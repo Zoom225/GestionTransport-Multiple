@@ -38,8 +38,6 @@ public class TrajetServiceImpl implements TrajetService {
     private final VoyageurService voyageurService;
     private final TrajetMapper trajetMapper;
 
-    private static final double TRAJET_PRICE = 60.0;
-
     @Override
     @Transactional
     public TrajetDto createTrajet(CreateTrajetRequest request, String username) {
@@ -79,8 +77,8 @@ public class TrajetServiceImpl implements TrajetService {
         trajet.setTypeTrajet(TypeTrajet.valueOf(request.trajetType()));
         trajet.setStatut(StatutTrajet.PLANIFIE);
         trajet.setNbPassagersActuels(0);
-        trajet.setPrixTotal(TRAJET_PRICE);
-        trajet.setPrixParPassager(TRAJET_PRICE / REQUIRED_PASSAGERS_PER_TRAJET);
+        trajet.setPrixTotal(PRIX_TRAJET_EUROS);
+        trajet.setPrixParPassager(PRIX_TRAJET_EUROS / REQUIRED_PASSAGERS_PER_TRAJET);
 
         Trajet savedTrajet = trajetRepository.save(trajet);
         // Regle metier : l'organisateur commence avec une reservation en attente et un paiement associe.
