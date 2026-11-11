@@ -6,6 +6,162 @@ Projet fullstack de gestion de matchs de padel.
 - Frontend : Angular 21, Angular Material, Tailwind, Vitest
 - Base de donnees : PostgreSQL 15 avec Docker Compose
 
+## Guide principal — préparation du covoiturage belge (issue #2)
+
+GestionTransport-Multiple évolue vers une application de covoiturage entre villes
+belges. La cible comprend recherche départ/destination/date, conducteur Voyageur,
+véhicules à capacité variable, réservations confirmées au paiement, restrictions
+et administration. **Ces fonctions ne sont pas encore toutes implémentées.**
+
+L'énoncé PDF de cinq pages et le code existant ont été analysés. Consulter :
+
+- [Analyse métier, existant/manquant et règles](docs/covoiturage/analyse-metier.md).
+- [Classes, modèle relationnel et migration protégée](docs/covoiturage/modele-donnees.md).
+- [Issues, branches, PR, tests et critères de livraison](docs/covoiturage/plan-livraison.md).
+
+Le tarif actuel demandé est **100 € par trajet, soit 25 € par personne pour quatre
+places**, traité dans la PR #10 / issue #4. Les anciens montants restent conservés.
+La politique tarifaire des autres capacités sera validée avant sa mise en œuvre.
+
+### Versions et architecture
+
+Java 21, Spring Boot 3.5, Maven, PostgreSQL 15, Angular 21, Angular Material et
+Tailwind sont conservés. Le flux reste Controller → Service → Repository → base,
+avec DTO, Mapper, validation, JWT et gestion centralisée des erreurs. Aucun
+microservice, Google Maps, Redis, Kafka ou paiement bancaire réel n'est prévu.
+
+Les PR #8 et #9 portent la baseline et la nomenclature Transport ; elles ne sont
+pas encore fusionnées au moment de cette analyse. Les commandes suivantes
+décrivent ce socle après leur intégration. develop ne constitue pas encore la
+plateforme de covoiturage finale. Vérifier sa branche avant toute démonstration.
+
+### 1. Vérifier les outils et préserver le travail local
+
+```powershell
+git status
+git diff -- pom.xml
+git fetch origin
+java -version
+mvn --version
+node --version
+npm --version
+docker version
+docker compose version
+```
+
+Le pom.xml local utilise actuellement l'artifactId `industri` ; son diff doit
+rester préservé. Ne pas supposer le nom du JAR ou effacer les modifications pour
+changer de branche. Les branches suivent les issues et les PR ciblent develop.
+
+### 2. Docker et PostgreSQL
+
+```powershell
+docker compose config
+docker compose pull
+docker compose up -d
+docker compose ps
+docker compose logs --tail=100 postgres
+```
+
+Le Compose actuel utilise l'image officielle PostgreSQL 15, le port hôte 5440 et
+un volume persistant. Il ne contient pas encore de Dockerfile backend/frontend :
+`docker compose build` ne compile donc pas ces deux applications. Leurs builds
+sont Maven et Angular, ci-dessous ; leur conteneurisation appartient à l'issue #7.
+
+Conserver les identifiants historiques du volume et de la base ; ne jamais
+utiliser `docker compose down -v` pour dépanner. Les identifiants `padel/padel`
+présents dans le Compose sont exclusivement ceux du développement local.
+
+Pour une démonstration potentiellement modificatrice, créer une base distincte
+(commande à lancer une seule fois ; si elle existe, vérifier son contenu) :
+
+```powershell
+docker compose exec postgres createdb -U padel covoiturage_demo
+```
+
+### 3. Configurer et démarrer le backend
+
+```powershell
+$env:DB_URL='jdbc:postgresql://localhost:5440/covoiturage_demo'
+$env:DB_USER='padel'
+$env:DB_PASSWORD='padel'
+$jwtBytes=New-Object byte[] 48
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($jwtBytes)
+$env:JWT_SECRET=[Convert]::ToBase64String($jwtBytes)
+$env:DEMO_DATA_ENABLED='false'
+mvn -B spring-boot:run
+```
+
+Ne pas afficher la clé JWT, publier des secrets ou réutiliser l'ancienne clé
+versionnée. Ces variables sont locales au terminal. En dehors du développement,
+utiliser des identifiants propres à l'environnement et un compte DB limité.
+
+`ddl-auto=update` peut modifier le schéma : ne pas lancer cette commande sur la
+base métier sans sauvegarde et validation. L'initialiseur de démonstration reste
+désactivé par défaut, car sa version héritée peut modifier les comptes existants.
+Il sera adapté aux exemples belges uniquement dans un environnement de développement.
+
+Backend : http://localhost:8080 ; Swagger : http://localhost:8080/swagger-ui.html ;
+OpenAPI : http://localhost:8080/v3/api-docs. Après nomenclature #9, les ressources
+principales sont `/api/agences`, `/api/vehicules`, `/api/trajets`, `/api/voyageurs`,
+`/api/reservations`, `/api/paiements`, `/api/indisponibilites-service`.
+
+### 4. Compiler et tester le backend
+
+```powershell
+mvn -B test
+mvn -B -DskipTests package
+```
+
+Après #8, la suite standard utilise H2 en mémoire. Pour les tests PostgreSQL
+opt-in, utiliser exclusivement une base isolée nommée `issue1_validation_<suffixe>` :
+
+```powershell
+docker compose exec postgres createdb -U padel issue1_validation_academique
+$env:POSTGRES_BASELINE_URL='jdbc:postgresql://localhost:5440/issue1_validation_academique'
+$env:DB_USER='padel'
+$env:DB_PASSWORD='padel'
+mvn -B test
+Remove-Item Env:POSTGRES_BASELINE_URL
+```
+
+Éviter de compiler simultanément avec l'IDE et Maven dans les mêmes répertoires
+de sortie. Ne pas considérer les tests H2 comme preuve du comportement PostgreSQL.
+
+### 5. Installer, compiler, tester et démarrer Angular
+
+Dans un autre terminal, à partir de la racine du dépôt :
+
+```powershell
+cd frontend
+npm ci
+npm run build
+npm test
+npm start
+```
+
+Ouvrir http://localhost:4200. Le proxy existant cible le backend sur 8080 ; les
+contrats frontend/backend doivent être livrés ensemble. Réutiliser l'intercepteur
+JWT, les sessions et les guards ; se reconnecter après une modification de contrat.
+
+### 6. Présentation et validation
+
+La démonstration finale devra montrer recherche réelle, conducteur automatique,
+paiement simulé identifié, confirmation, annulation, restriction et statistiques.
+Les villes populaires servent de raccourcis de recherche, jamais de fausses
+places disponibles. Vérifier mobile 375 px, tablette 768 px, ordinateur 1440 px,
+clavier/focus et absence de débordement horizontal.
+
+Résultats vérifiés de la branche tarif `3758998` : 112 tests Java avec PostgreSQL
+isolé et 58 tests Angular réussis, build Angular réussi. Ces résultats ne sont
+pas ceux du modèle cible, encore documentaire, ni ceux de develop avant fusion.
+L'analyse #2 ne modifie aucune classe, dépendance, entité ni donnée PostgreSQL.
+
+### Documentation historique conservée
+
+Les sections ci-dessous décrivent le socle antérieur. Le guide ci-dessus et les
+documents de l'issue #2 indiquent les prérequis et la cible de la refonte.
+
 ## Prerequis
 
 Installer sur la machine :
