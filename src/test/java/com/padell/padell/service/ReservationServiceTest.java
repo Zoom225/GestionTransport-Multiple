@@ -42,6 +42,9 @@ class ReservationServiceTest {
     @Mock
     private MembreService membreService;
 
+    @Mock
+    private jakarta.persistence.EntityManager entityManager;
+
     @InjectMocks
     private ReservationServiceImpl reservationService;
 

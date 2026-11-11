@@ -14,6 +14,8 @@ import com.padell.padell.service.MembreService;
 import com.padell.padell.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,11 +31,16 @@ public class ReservationServiceImpl implements ReservationService {
     private final PaiementRepository paiementRepository;
     private final MatchService matchService;
     private final MembreService membreService;
+    private final EntityManager entityManager;
 
     @Override
     @Transactional
     public Reservation create(Long matchId, Long membreId, Long requesterId) {
         Match match = matchService.getMatchEntityById(matchId);
+        // Serialize reservations on this match and reload any state read earlier
+        // in the transaction before checking capacity or duplicate membership.
+        entityManager.lock(match, LockModeType.PESSIMISTIC_WRITE);
+        entityManager.refresh(match);
         Membre membre = membreService.getById(membreId);
 
         // Regle metier : impossible de reserver un match deja complet.
