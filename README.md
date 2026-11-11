@@ -1,6 +1,14 @@
-# PadelPlay
+# GestionTransport-Multiple
 
-Projet fullstack de gestion de matchs de padel.
+Application Spring Boot et Angular en cours de transformation vers le transport public et privé.
+
+Le guide actuel est [Exécution Transport](docs/transport-execution.md), avec les
+nouveaux packages, routes et contrats. Le périmètre et les exceptions de
+compatibilité sont décrits dans [Nomenclature Transport](docs/nomenclature-transport.md).
+
+Les sections ci-dessous sont conservées comme documentation historique du socle.
+Les noms de base, comptes et volumes existants doivent être préservés ; les
+anciennes routes et les anciens noms de classes ne décrivent plus le code courant.
 
 - Backend : Spring Boot 3.5, Java 21, Maven
 - Frontend : Angular 21, Angular Material, Tailwind, Vitest

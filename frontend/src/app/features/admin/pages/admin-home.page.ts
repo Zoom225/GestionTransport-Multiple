@@ -5,17 +5,17 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
-import { MatchesApiService } from '../../../core/api/matches-api.service';
-import { MembresApiService } from '../../../core/api/membres-api.service';
+import { TrajetsApiService } from '../../../core/api/trajets-api.service';
+import { VoyageursApiService } from '../../../core/api/voyageurs-api.service';
 import { ReservationsApiService } from '../../../core/api/reservations-api.service';
-import { SitesApiService } from '../../../core/api/sites-api.service';
-import { TerrainsApiService } from '../../../core/api/terrains-api.service';
+import { AgencesApiService } from '../../../core/api/agences-api.service';
+import { VehiculesApiService } from '../../../core/api/vehicules-api.service';
 import { AdminSessionService } from '../../../core/auth/admin-session.service';
 import { LanguageService } from '../../../core/i18n/language.service';
-import { MatchResponse } from '../../../shared/models/match.model';
-import { MembreResponse } from '../../../shared/models/membre.model';
+import { TrajetResponse } from '../../../shared/models/trajet.model';
+import { VoyageurResponse } from '../../../shared/models/voyageur.model';
 import { ReservationResponse } from '../../../shared/models/reservation.model';
-import { SiteResponse, TerrainResponse } from '../../../shared/models/site-terrain.model';
+import { AgenceResponse, VehiculeResponse } from '../../../shared/models/agence-vehicule.model';
 import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
 
 @Component({
@@ -29,16 +29,16 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
           <p class="eyebrow">{{ language.t('admin.home.eyebrow') }}</p>
           <h1>{{ language.t('admin.home.title') }}</h1>
           <p class="hero-subtitle">
-            {{ language.t('admin.home.subtitle', { scope: adminSession.isGlobalAdmin() ? 'global' : 'site' }) }}
+            {{ language.t('admin.home.subtitle', { scope: adminSession.isGlobalAdmin() ? 'global' : 'agence' }) }}
           </p>
         </div>
 
         <div class="admin-actions">
-          <a routerLink="/admin/members">{{ language.t('nav.members') }}</a>
-          <a routerLink="/admin/matches">{{ language.t('nav.matches') }}</a>
-          <a routerLink="/admin/sites">{{ language.t('nav.sites') }}</a>
-          <a routerLink="/admin/terrains">{{ language.t('nav.courts') }}</a>
-          <a routerLink="/admin/fermetures">{{ language.t('nav.closures') }}</a>
+          <a routerLink="/admin/voyageurs">{{ language.t('nav.voyageurs') }}</a>
+          <a routerLink="/admin/trajets">{{ language.t('nav.trajets') }}</a>
+          <a routerLink="/admin/agences">{{ language.t('nav.agences') }}</a>
+          <a routerLink="/admin/vehicules">{{ language.t('nav.vehicules') }}</a>
+          <a routerLink="/admin/indisponibilites">{{ language.t('nav.indisponibilites') }}</a>
         </div>
       </div>
 
@@ -54,8 +54,8 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
 
       <div class="kpi-grid">
         <div class="admin-kpi green">
-          <p>{{ language.t('admin.home.matches') }}</p>
-          <strong>{{ matches().length }}</strong>
+          <p>{{ language.t('admin.home.trajets') }}</p>
+          <strong>{{ trajets().length }}</strong>
           <span>{{ language.t('admin.home.allStatuses') }}</span>
         </div>
         <div class="admin-kpi blue">
@@ -64,8 +64,8 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
           <span>{{ pendingReservationsCount() }} {{ language.t('admin.home.waiting') }}</span>
         </div>
         <div class="admin-kpi slate">
-          <p>{{ language.t('admin.home.members') }}</p>
-          <strong>{{ members().length }}</strong>
+          <p>{{ language.t('admin.home.voyageurs') }}</p>
+          <strong>{{ voyageurs().length }}</strong>
           <span>{{ language.t('admin.home.visible') }}</span>
         </div>
         <div class="admin-kpi amber">
@@ -83,10 +83,10 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
           </mat-card-header>
           <mat-card-content>
             <div class="data-list">
-              @for (item of occupancyBySite(); track item.site) {
+              @for (item of occupancyByAgence(); track item.agence) {
                 <div class="data-row">
-                  <span>{{ item.site }}</span>
-                  <strong>{{ item.count }} {{ language.t('admin.home.matchCount') }}</strong>
+                  <span>{{ item.agence }}</span>
+                  <strong>{{ item.count }} {{ language.t('admin.home.trajetCount') }}</strong>
                 </div>
               } @empty {
                 <p class="empty-state">{{ language.t('admin.home.empty') }}</p>
@@ -103,16 +103,16 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
           <mat-card-content>
             <div class="resource-grid">
               <div>
-                <span>{{ language.t('admin.home.sitesVisible') }}</span>
-                <strong>{{ sites().length }}</strong>
+                <span>{{ language.t('admin.home.agencesVisible') }}</span>
+                <strong>{{ agences().length }}</strong>
               </div>
               <div>
-                <span>{{ language.t('admin.home.terrainsVisible') }}</span>
-                <strong>{{ terrains().length }}</strong>
+                <span>{{ language.t('admin.home.vehiculesVisible') }}</span>
+                <strong>{{ vehicules().length }}</strong>
               </div>
               <div>
-                <span>{{ language.t('admin.home.completeMatches') }}</span>
-                <strong>{{ completeMatchesCount() }}</strong>
+                <span>{{ language.t('admin.home.completeTrajets') }}</span>
+                <strong>{{ completeTrajetsCount() }}</strong>
               </div>
               <div>
                 <span>{{ language.t('admin.home.pendingReservations') }}</span>
@@ -356,35 +356,35 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
   `]
 })
 export class AdminHomePage {
-  private readonly matchesApi = inject(MatchesApiService);
-  private readonly membresApi = inject(MembresApiService);
+  private readonly trajetsApi = inject(TrajetsApiService);
+  private readonly voyageursApi = inject(VoyageursApiService);
   private readonly reservationsApi = inject(ReservationsApiService);
-  private readonly sitesApi = inject(SitesApiService);
-  private readonly terrainsApi = inject(TerrainsApiService);
+  private readonly agencesApi = inject(AgencesApiService);
+  private readonly vehiculesApi = inject(VehiculesApiService);
   readonly adminSession = inject(AdminSessionService);
   readonly language = inject(LanguageService);
 
   readonly loading = signal(false);
   readonly errorMessage = signal('');
-  readonly matches = signal<MatchResponse[]>([]);
-  readonly members = signal<MembreResponse[]>([]);
+  readonly trajets = signal<TrajetResponse[]>([]);
+  readonly voyageurs = signal<VoyageurResponse[]>([]);
   readonly reservations = signal<ReservationResponse[]>([]);
-  readonly sites = signal<SiteResponse[]>([]);
-  readonly terrains = signal<TerrainResponse[]>([]);
+  readonly agences = signal<AgenceResponse[]>([]);
+  readonly vehicules = signal<VehiculeResponse[]>([]);
 
   readonly revenue = computed(() =>
     this.reservations()
       .filter((reservation) => reservation.paiement?.statut === 'PAYE')
       .reduce((sum, reservation) => sum + (reservation.paiement?.montant ?? 0), 0)
   );
-  readonly completeMatchesCount = computed(() => this.matches().filter((match) => match.statut === 'COMPLET').length);
+  readonly completeTrajetsCount = computed(() => this.trajets().filter((trajet) => trajet.statut === 'COMPLET').length);
   readonly pendingReservationsCount = computed(
     () => this.reservations().filter((reservation) => reservation.statut === 'EN_ATTENTE').length
   );
-  readonly occupancyBySite = computed(() => {
+  readonly occupancyByAgence = computed(() => {
     const map = new Map<string, number>();
-    this.matches().forEach((match) => map.set(match.siteNom, (map.get(match.siteNom) ?? 0) + 1));
-    return Array.from(map.entries()).map(([site, count]) => ({ site, count }));
+    this.trajets().forEach((trajet) => map.set(trajet.agenceNom, (map.get(trajet.agenceNom) ?? 0) + 1));
+    return Array.from(map.entries()).map(([agence, count]) => ({ agence, count }));
   });
 
   constructor() {
@@ -396,29 +396,29 @@ export class AdminHomePage {
     this.errorMessage.set('');
 
     forkJoin({
-      matches: this.matchesApi.getAll(),
-      members: this.membresApi.getAll(),
-      sites: this.sitesApi.getAll(),
-      terrains: this.terrainsApi.getAll()
+      trajets: this.trajetsApi.getAll(),
+      voyageurs: this.voyageursApi.getAll(),
+      agences: this.agencesApi.getAll(),
+      vehicules: this.vehiculesApi.getAll()
     }).subscribe({
-      next: ({ matches, members, sites, terrains }) => {
-        const filteredSites = this.filterSites(sites);
-        const filteredTerrains = this.filterTerrains(terrains);
-        const filteredMembers = this.filterMembers(members);
-        const filteredMatches = this.filterMatches(matches, filteredSites);
+      next: ({ trajets, voyageurs, agences, vehicules }) => {
+        const filteredAgences = this.filterAgences(agences);
+        const filteredVehicules = this.filterVehicules(vehicules);
+        const filteredVoyageurs = this.filterVoyageurs(voyageurs);
+        const filteredTrajets = this.filterTrajets(trajets, filteredAgences);
 
-        this.sites.set(filteredSites);
-        this.terrains.set(filteredTerrains);
-        this.members.set(filteredMembers);
-        this.matches.set(filteredMatches);
+        this.agences.set(filteredAgences);
+        this.vehicules.set(filteredVehicules);
+        this.voyageurs.set(filteredVoyageurs);
+        this.trajets.set(filteredTrajets);
 
-        if (!filteredMatches.length) {
+        if (!filteredTrajets.length) {
           this.reservations.set([]);
           this.loading.set(false);
           return;
         }
 
-        forkJoin(filteredMatches.map((match) => this.reservationsApi.getByMatch(match.id))).subscribe({
+        forkJoin(filteredTrajets.map((trajet) => this.reservationsApi.getByTrajet(trajet.id))).subscribe({
           next: (allReservations) => {
             this.reservations.set(allReservations.flat());
             this.loading.set(false);
@@ -436,36 +436,36 @@ export class AdminHomePage {
     });
   }
 
-  private filterSites(sites: SiteResponse[]): SiteResponse[] {
-    const siteId = this.adminSession.siteId();
-    if (this.adminSession.isGlobalAdmin() || !siteId) {
-      return sites;
+  private filterAgences(agences: AgenceResponse[]): AgenceResponse[] {
+    const agenceId = this.adminSession.agenceId();
+    if (this.adminSession.isGlobalAdmin() || !agenceId) {
+      return agences;
     }
-    return sites.filter((site) => site.id === siteId);
+    return agences.filter((agence) => agence.id === agenceId);
   }
 
-  private filterTerrains(terrains: TerrainResponse[]): TerrainResponse[] {
-    const siteId = this.adminSession.siteId();
-    if (this.adminSession.isGlobalAdmin() || !siteId) {
-      return terrains;
+  private filterVehicules(vehicules: VehiculeResponse[]): VehiculeResponse[] {
+    const agenceId = this.adminSession.agenceId();
+    if (this.adminSession.isGlobalAdmin() || !agenceId) {
+      return vehicules;
     }
-    return terrains.filter((terrain) => terrain.siteId === siteId);
+    return vehicules.filter((vehicule) => vehicule.agenceId === agenceId);
   }
 
-  private filterMembers(members: MembreResponse[]): MembreResponse[] {
-    const siteId = this.adminSession.siteId();
-    if (this.adminSession.isGlobalAdmin() || !siteId) {
-      return members;
+  private filterVoyageurs(voyageurs: VoyageurResponse[]): VoyageurResponse[] {
+    const agenceId = this.adminSession.agenceId();
+    if (this.adminSession.isGlobalAdmin() || !agenceId) {
+      return voyageurs;
     }
-    return members.filter((member) => member.siteId === siteId || member.siteId === null);
+    return voyageurs.filter((voyageur) => voyageur.agenceId === agenceId || voyageur.agenceId === null);
   }
 
-  private filterMatches(matches: MatchResponse[], sites: SiteResponse[]): MatchResponse[] {
+  private filterTrajets(trajets: TrajetResponse[], agences: AgenceResponse[]): TrajetResponse[] {
     if (this.adminSession.isGlobalAdmin()) {
-      return matches;
+      return trajets;
     }
 
-    const siteNames = new Set(sites.map((site) => site.nom));
-    return matches.filter((match) => siteNames.has(match.siteNom));
+    const agenceNames = new Set(agences.map((agence) => agence.nom));
+    return trajets.filter((trajet) => agenceNames.has(trajet.agenceNom));
   }
 }

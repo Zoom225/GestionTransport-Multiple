@@ -11,6 +11,6 @@ export interface LoginResponse {
   nom: string;
   prenom: string;
   role: TypeAdministrateur;
-  siteId: number | null;
+  agenceId: number | null;
 }
 

@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { firstValueFrom, of } from 'rxjs';
 import { AdminSessionService } from '../auth/admin-session.service';
-import { MemberSessionService } from '../auth/member-session.service';
+import { VoyageurSessionService } from '../auth/voyageur-session.service';
 import { authTokenInterceptor } from './auth-token.interceptor';
 import { AuthApiService } from '../api/auth-api.service';
 
@@ -13,7 +13,7 @@ describe('authTokenInterceptor', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
-        { provide: AuthApiService, useValue: { loginMembre: vi.fn() } }, // ← fix
+        { provide: AuthApiService, useValue: { loginVoyageur: vi.fn() } }, // ← fix
       ],
     });
   });
@@ -26,14 +26,14 @@ describe('authTokenInterceptor', () => {
       nom: 'Admin',
       prenom: 'Root',
       role: 'GLOBAL',
-      siteId: null
+      agenceId: null
     });
 
     let receivedRequest!: HttpRequest<unknown>;
 
     await firstValueFrom(
       TestBed.runInInjectionContext(() =>
-        authTokenInterceptor(new HttpRequest('GET', '/api/sites'), (req) => {
+        authTokenInterceptor(new HttpRequest('GET', '/api/agences'), (req) => {
           receivedRequest = req;
           return of(new HttpResponse({ status: 200 }));
         })
@@ -51,7 +51,7 @@ describe('authTokenInterceptor', () => {
       nom: 'Admin',
       prenom: 'Root',
       role: 'GLOBAL',
-      siteId: null
+      agenceId: null
     });
 
     let receivedRequest!: HttpRequest<unknown>;
@@ -68,32 +68,32 @@ describe('authTokenInterceptor', () => {
     expect(receivedRequest?.headers.has('Authorization')).toBe(false);
   });
 
-  it('devrait utiliser le token membre quand seule la session membre existe', async () => {
-    const session = TestBed.inject(MemberSessionService);
-    session.setMember({
+  it('devrait utiliser le token voyageur quand seule la session voyageur existe', async () => {
+    const session = TestBed.inject(VoyageurSessionService);
+    session.setVoyageur({
       id: 1,
       matricule: 'G1001',
       nom: 'Doe',
       prenom: 'John',
       email: 'john@example.com',
-      typeMembre: 'GLOBAL',
-      siteId: null,
-      siteNom: null,
+      typeVoyageur: 'GLOBAL',
+      agenceId: null,
+      agenceNom: null,
       solde: 0,
-      token: 'member-token'
+      token: 'voyageur-token'
     });
 
     let receivedRequest!: HttpRequest<unknown>;
 
     await firstValueFrom(
       TestBed.runInInjectionContext(() =>
-        authTokenInterceptor(new HttpRequest('GET', '/api/reservations/membre/1'), (req) => {
+        authTokenInterceptor(new HttpRequest('GET', '/api/reservations/voyageur/1'), (req) => {
           receivedRequest = req;
           return of(new HttpResponse({ status: 200 }));
         })
       )
     );
 
-    expect(receivedRequest?.headers.get('Authorization')).toBe('Bearer member-token');
+    expect(receivedRequest?.headers.get('Authorization')).toBe('Bearer voyageur-token');
   });
 });

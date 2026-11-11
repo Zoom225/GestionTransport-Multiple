@@ -7,49 +7,49 @@ export const ADMIN_ROUTES: Routes = [
   {
 	path: 'login',
 	loadComponent: () => import('./pages/admin-login.page').then((m) => m.AdminLoginPage),
-	title: () => `PadelPlay - ${inject(LanguageService).t('nav.adminLogin')}`
+	title: () => `GestionTransport - ${inject(LanguageService).t('nav.adminLogin')}`
   },
   {
 	path: '',
 	canActivate: [adminGuard],
-	data: { roles: ['GLOBAL', 'SITE'] },
+	data: { roles: ['GLOBAL', 'AGENCE'] },
 	loadComponent: () => import('./pages/admin-home.page').then((m) => m.AdminHomePage),
-	title: () => `PadelPlay - ${inject(LanguageService).t('nav.dashboard')}`
+	title: () => `GestionTransport - ${inject(LanguageService).t('nav.dashboard')}`
   },
   {
-	path: 'members',
+	path: 'voyageurs',
 	canActivate: [adminGuard],
-	data: { roles: ['GLOBAL', 'SITE'] },
-	loadComponent: () => import('./pages/admin-members.page').then((m) => m.AdminMembersPage),
-	title: () => `PadelPlay - ${inject(LanguageService).t('nav.members')}`
+	data: { roles: ['GLOBAL', 'AGENCE'] },
+	loadComponent: () => import('./pages/admin-voyageurs-page.component').then((m) => m.AdminVoyageursPage),
+	title: () => `GestionTransport - ${inject(LanguageService).t('nav.voyageurs')}`
   },
   {
-	path: 'matches',
+	path: 'trajets',
 	canActivate: [adminGuard],
-	data: { roles: ['GLOBAL', 'SITE'] },
-	loadComponent: () => import('./pages/admin-matches.page').then((m) => m.AdminMatchesPage),
-	title: () => `PadelPlay - ${inject(LanguageService).t('nav.matches')}`
+	data: { roles: ['GLOBAL', 'AGENCE'] },
+	loadComponent: () => import('./pages/admin-trajets-page.component').then((m) => m.AdminTrajetsPage),
+	title: () => `GestionTransport - ${inject(LanguageService).t('nav.trajets')}`
   },
   {
-	path: 'sites',
+	path: 'agences',
 	canActivate: [adminGuard],
-	data: { roles: ['GLOBAL', 'SITE'] },
-	loadComponent: () => import('./pages/admin-sites.page').then((m) => m.AdminSitesPage),
-	title: () => `PadelPlay - ${inject(LanguageService).t('nav.sites')}`
+	data: { roles: ['GLOBAL', 'AGENCE'] },
+	loadComponent: () => import('./pages/admin-agences-page.component').then((m) => m.AdminAgencesPage),
+	title: () => `GestionTransport - ${inject(LanguageService).t('nav.agences')}`
   },
   {
-	path: 'terrains',
+	path: 'vehicules',
 	canActivate: [adminGuard],
-	data: { roles: ['GLOBAL', 'SITE'] },
-	loadComponent: () => import('./pages/admin-terrains.page').then((m) => m.AdminTerrainsPage),
-	title: () => `PadelPlay - ${inject(LanguageService).t('nav.courts')}`
+	data: { roles: ['GLOBAL', 'AGENCE'] },
+	loadComponent: () => import('./pages/admin-vehicules-page.component').then((m) => m.AdminVehiculesPage),
+	title: () => `GestionTransport - ${inject(LanguageService).t('nav.vehicules')}`
   },
   {
-	path: 'fermetures',
+	path: 'indisponibilites',
 	canActivate: [adminGuard],
-	data: { roles: ['GLOBAL', 'SITE'] },
-	loadComponent: () => import('./pages/admin-jours-fermeture.page').then((m) => m.AdminJoursFermeturePage),
-	title: () => `PadelPlay - ${inject(LanguageService).t('nav.closures')}`
+	data: { roles: ['GLOBAL', 'AGENCE'] },
+	loadComponent: () => import('./pages/admin-indisponibilites-service-page.component').then((m) => m.AdminIndisponibilitesServicePage),
+	title: () => `GestionTransport - ${inject(LanguageService).t('nav.indisponibilites')}`
   }
 ];
 
