@@ -86,3 +86,21 @@ aucune commande de migration ou d'effacement lancée ; PostgreSQL inaccessible.
   le socle : aucune RM01–RM30 Transport n'est déclarée implémentée en phase 0.
 - Concevoir les migrations et règles Transport dans #2, puis les tester dans
   les phases #3–#7. Aucun terrain ne doit devenir un véhicule par renommage.
+
+## Bilan frontend final
+
+- Une tentative intermédiaire npm ci a échoué avec ENOTEMPTY pendant que
+  l'installation initiale était encore active. L'installation initiale a été
+  arrêtée avant la dernière tentative exécutée seule.
+- npm.cmd ci --fetch-retries=0 --fetch-timeout=30000 --no-audit --no-fund :
+  535 paquets installés en 5 minutes. Avertissement allow-scripts pour
+  @parcel/watcher, esbuild, lmdb et msgpackr-extract ; aucun script supplémentaire
+  autorisé. Ces avertissements n'ont pas empêché les validations suivantes.
+- npm.cmd run build : bundle Angular généré, 502,02 kB initiaux ; sortie
+  frontend/dist/frontend. Aucun changement de budget ni de dépendance.
+- npm.cmd test : 12 fichiers et 58 tests réussis, durée 68,11 secondes.
+- git diff -- frontend/package-lock.json : aucun changement.
+
+La validation Angular demandée est donc réalisée. Restent bloqués le démarrage
+Docker/PostgreSQL et la vérification HTTP REST/Swagger sur cette base. Phase 0
+non validée globalement ; PR à conserver en brouillon, phase 1 non commencée.
