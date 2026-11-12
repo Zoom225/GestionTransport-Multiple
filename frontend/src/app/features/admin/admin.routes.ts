@@ -4,6 +4,8 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { adminGuard } from '../../core/guards/admin.guard';
 
 export const ADMIN_ROUTES: Routes = [
+  { path: 'trajets/new', canActivate: [adminGuard], data: {roles:['GLOBAL','AGENCE']},
+    loadComponent: () => import('../voyageur/pages/voyageur-create-trajet-page.component').then(m => m.VoyageurCreateTrajetPage) },
   {
 	path: 'login',
 	loadComponent: () => import('./pages/admin-login.page').then((m) => m.AdminLoginPage),

@@ -31,7 +31,7 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
   template: `
     <div class="gestiontransport-hero">
       <div class="gestiontransport-hero-content">
-        <div class="gestiontransport-ball">🎾</div>
+        <div class="gestiontransport-ball">🚗</div>
         <h1 class="gestiontransport-hero-title">{{ language.t('voyageur.home.title') }}</h1>
         <p class="gestiontransport-hero-sub">{{ language.t('voyageur.home.subtitle') }}</p>
       </div>
@@ -83,7 +83,7 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
               </div>
             </div>
             <div class="gestiontransport-type-badge gestiontransport-type-agence">
-              <span class="gestiontransport-type-icon">🏟️</span>
+              <span class="gestiontransport-type-icon">🏢</span>
               <div>
                 <div class="gestiontransport-type-name">{{ language.t('voyageur.home.agence') }}</div>
                 <div class="gestiontransport-type-hint">{{ language.t('voyageur.home.agenceHint') }}</div>
@@ -130,7 +130,7 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
                   style="display:inline-block; margin-right:8px;"
                 ></mat-spinner>
               }
-              🎾 {{ language.t('voyageur.home.cta') }}
+              🚗 {{ language.t('voyageur.home.cta') }}
             </button>
           </div>
         </form>

@@ -24,7 +24,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
     <div class="adm-trajet-header">
       <div class="adm-trajet-header-inner">
         <div class="adm-trajet-title-block">
-<span class="adm-trajet-icon">🎾</span>
+<span class="adm-trajet-icon">🚗</span>
           <div>
             <h1 class="adm-trajet-title">{{ language.t('admin.trajets.title') }}</h1>
             <p class="adm-trajet-sub">{{ language.t('admin.trajets.subtitle') }}</p>
@@ -35,6 +35,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
     </div>
 
     <section class="page-shell">
+      <a mat-flat-button routerLink="/admin/trajets/new">Créer un trajet avec chauffeur</a>
       @if (loading()) {
         <mat-spinner diameter="32"></mat-spinner>
       }
@@ -52,7 +53,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
               <div class="adm-trajet-card-title-row">
                 <div>
                   <mat-card-title class="adm-trajet-card-title">{{ trajet.vehiculeNom }}</mat-card-title>
-                  <mat-card-subtitle class="adm-trajet-card-sub">🏟️ {{ trajet.agenceNom }}</mat-card-subtitle>
+                  <mat-card-subtitle class="adm-trajet-card-sub">🏢 {{ trajet.agenceNom }}</mat-card-subtitle>
                 </div>
                 <span class="ds-badge" [class]="typeBadgeClass(trajet.typeTrajet)">{{ typeLabel(trajet.typeTrajet) }}</span>
               </div>
@@ -116,7 +117,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
           </mat-card>
         } @empty {
           <div class="adm-trajet-empty lg:col-span-2">
-            <span>🎾</span>
+            <span>🚗</span>
 <p>{{ language.t('admin.trajets.empty') }}</p>
           </div>
         }
@@ -237,8 +238,8 @@ export class AdminTrajetsPage {
     if (this.adminSession.isGlobalAdmin()) {
       return this.trajets();
     }
-    const agenceNames = new Set(this.agences().map((agence) => agence.nom));
-    return this.trajets().filter((trajet) => agenceNames.has(trajet.agenceNom));
+    const agenceIds = new Set(this.agences().map((agence) => agence.id));
+    return this.trajets().filter((trajet) => trajet.agenceId != null && agenceIds.has(trajet.agenceId));
   });
 
   constructor() {

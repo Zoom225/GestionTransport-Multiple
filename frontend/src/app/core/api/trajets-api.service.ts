@@ -1,13 +1,12 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { CreateTrajetRequest, TrajetRequest, TrajetResponse } from '../../shared/models/trajet.model';
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable, shareReplay } from 'rxjs';
+import { CreateTrajetRequest, TrajetRequest, TrajetResponse, VilleOption, RechercheTrajet } from '../../shared/models/trajet.model';
 import { apiUrl } from './api-url';
-import { VoyageurSessionService } from '../auth/voyageur-session.service';
 
 @Injectable({ providedIn: 'root' })
 export class TrajetsApiService {
-  private readonly voyageurSession = inject(VoyageurSessionService);
+  private villes$?: Observable<VilleOption[]>;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -19,8 +18,13 @@ export class TrajetsApiService {
     return this.http.get<TrajetResponse>(apiUrl(`/trajets/${id}`));
   }
 
-  getPublic(): Observable<TrajetResponse[]> {
-    return this.http.get<TrajetResponse[]>(apiUrl('/trajets/public'));
+  getPublic(recherche: RechercheTrajet = {}): Observable<TrajetResponse[]> {
+    const params = Object.fromEntries(Object.entries(recherche).filter(([, valeur]) => !!valeur));
+    return this.http.get<TrajetResponse[]>(apiUrl('/trajets/public'), { params });
+  }
+
+  getVilles(): Observable<VilleOption[]> {
+    return this.villes$ ??= this.http.get<VilleOption[]>(apiUrl('/trajets/villes')).pipe(shareReplay(1));
   }
 
   getByAgence(agenceId: number): Observable<TrajetResponse[]> {
@@ -32,11 +36,7 @@ export class TrajetsApiService {
   }
 
   create(payload: CreateTrajetRequest): Observable<TrajetResponse> {
-    const token = this.voyageurSession.token();
-    const headers = token
-      ? new HttpHeaders({ Authorization: `Bearer ${token}` })
-      : new HttpHeaders();
-    return this.http.post<TrajetResponse>(apiUrl('/trajets'), payload, { headers });
+    return this.http.post<TrajetResponse>(apiUrl('/trajets'), payload);
   }
 
   update(id: number, payload: TrajetRequest): Observable<TrajetResponse> {

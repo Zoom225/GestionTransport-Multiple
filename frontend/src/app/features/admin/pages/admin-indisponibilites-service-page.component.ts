@@ -111,7 +111,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
               </span>
             </div>
             @if (!jour.global) {
-              <div class="adm-fer-agence">🏟️ {{ jour.agenceNom }}</div>
+              <div class="adm-fer-agence">🏢 {{ jour.agenceNom }}</div>
             }
             <div class="adm-fer-raison">
               📝 {{ jour.raison || language.t('admin.indisponibilites.reasonEmpty') }}

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router, RouterModule } from '@angular/router';
@@ -15,11 +15,12 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
 <header class="app-header">
   <div class="app-header-inner">
     <a routerLink="/" class="app-logo">
-      <span class="app-logo-badge">P</span>
-      <span class="app-logo-text">GestionTransport</span>
+      <span class="app-logo-badge" aria-hidden="true">↗</span>
+      <span class="app-logo-text">GestionTransport-Multiple</span>
     </a>
 
-    <nav class="app-nav">
+    <button type="button" class="menu-toggle" (click)="menuOuvert.set(!menuOuvert())" [attr.aria-expanded]="menuOuvert()" aria-controls="navigation">Menu</button>
+    <nav id="navigation" aria-label="Navigation principale" class="app-nav" [class.open]="menuOuvert()" (click)="menuOuvert.set(false)">
       <a routerLink="/" routerLinkActive="nav-active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">
         {{ navText().home }}
       </a>
@@ -39,9 +40,9 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
         <a routerLink="/voyageur/reservations" routerLinkActive="nav-active" class="nav-link">{{ navText().reservations }}</a>
         <a routerLink="/voyageur/payments" routerLinkActive="nav-active" class="nav-link">{{ navText().payments }}</a>
         <div class="nav-divider"></div>
-        <a routerLink="/voyageur/trajets/new" class="nav-btn-create">{{ navText().create }}</a>
-        <a routerLink="/voyageur/trajets/new" [queryParams]="{type:'PUBLIC'}" class="nav-btn-green">{{ navText().public }}</a>
-        <a routerLink="/voyageur/trajets/new" [queryParams]="{type:'PRIVE'}" class="nav-btn-purple">{{ navText().private }}</a>
+        @if (voyageurSession.voyageur()?.peutProposerTrajet) {
+          <a routerLink="/voyageur/trajets/new" class="nav-btn-create">{{ navText().create }}</a>
+        }
         <div class="nav-divider"></div>
         <button class="nav-btn-logout" type="button" (click)="logoutVoyageur()">{{ navText().logout }}</button>
       }
@@ -68,6 +69,9 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
 </main>
 `,
   styles: [`
+    .menu-toggle{display:none;min-height:44px;border:1px solid #c8d8cf;border-radius:10px;background:white;color:#173f36;padding:.5rem 1rem}
+    @media(max-width:1000px){.menu-toggle{display:block}.app-nav{display:none!important;width:100%}.app-nav.open{display:flex!important;flex-wrap:wrap}.app-header-inner{padding:.6rem 1rem!important}.app-logo-text{font-size:.9rem!important}.app-logo{margin-right:0!important}.app-lang-switcher{margin-left:auto}.nav-link,.nav-btn-outline,.nav-btn-create,.nav-btn-logout{min-height:44px;display:inline-flex;align-items:center}}
+
     .app-header {
       position: sticky;
       top: 0;
@@ -251,6 +255,7 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
   `]
 })
 export class App {
+  readonly menuOuvert = signal(false);
   readonly adminSession = inject(AdminSessionService);
   readonly voyageurSession = inject(VoyageurSessionService);
   private readonly language = inject(LanguageService);

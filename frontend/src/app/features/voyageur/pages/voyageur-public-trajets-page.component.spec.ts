@@ -48,6 +48,7 @@ describe('VoyageurPublicTrajetsPage', () => {
   ];
 
   let trajetsApiMock: {
+    getVilles: ReturnType<typeof vi.fn>;
     getPublic: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
     cancel: ReturnType<typeof vi.fn>;
@@ -56,6 +57,7 @@ describe('VoyageurPublicTrajetsPage', () => {
 
   beforeEach(async () => {
     trajetsApiMock = {
+      getVilles: vi.fn().mockReturnValue(of([])),
       getPublic: vi.fn().mockReturnValue(of(trajets)),
       update: vi.fn().mockImplementation((id: number, payload: Partial<TrajetResponse>) =>
         of({ ...trajets.find((m) => m.id === id)!, ...payload } as TrajetResponse)
