@@ -19,6 +19,10 @@ public class Vehicule extends BaseEntity {
     @Column(nullable = false)
     private String nom;
 
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private Boolean disponible = false;
+
     @Column(nullable = true)
     private Double prix;
 

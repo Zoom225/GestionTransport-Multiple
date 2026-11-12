@@ -39,7 +39,6 @@ import java.util.List;
         "Les voyageurs se connectent avec leur matricule via /api/voyageurs/login.")
 public class VoyageurController {
 
-    private static final String DEFAULT_VOYAGEUR_PASSWORD = "Voyageur1234!";
 
     private final VoyageurService voyageurService;
     private final AgenceService agenceService;
@@ -73,10 +72,10 @@ public class VoyageurController {
             voyageur.setAgence(agence);
         }
 
-        String rawPassword = StringUtils.hasText(request.getPassword())
-                ? request.getPassword()
-                : DEFAULT_VOYAGEUR_PASSWORD;
-        voyageur.setPasswordHash(passwordEncoder.encode(rawPassword));
+        if (!StringUtils.hasText(request.getPassword())) {
+            throw new com.transport.gestiontransport.exception.BusinessException("Un mot de passe initial personnel est obligatoire.");
+        }
+        voyageur.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 
         adminAuthorizationService.checkVoyageurAccess(voyageur);
         Voyageur saved = voyageurService.create(voyageur);

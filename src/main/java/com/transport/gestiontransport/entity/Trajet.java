@@ -11,7 +11,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "matches")
+@Table(name = "matches", indexes = {
+        @Index(name = "idx_trajets_recherche", columnList = "type_match,statut,ville_depart,ville_arrivee,date_debut"),
+        @Index(name = "idx_trajets_chauffeur_creneau", columnList = "organisateur_id,date_debut,date_fin"),
+        @Index(name = "idx_trajets_vehicule_creneau", columnList = "terrain_id,date_debut,date_fin")
+})
 @Getter
 @Setter
 @NoArgsConstructor

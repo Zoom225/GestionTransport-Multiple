@@ -32,7 +32,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
   ],
   template: `
     <!-- En-tête gestiontransport admin -->
@@ -45,26 +45,52 @@ import { LanguageService } from '../../../core/i18n/language.service';
             <p class="adm-sub ds-subtitle">{{ language.t('admin.voyageurs.subtitle') }}</p>
           </div>
         </div>
-        <a mat-stroked-button routerLink="/admin" class="adm-back-btn">{{ language.t('common.back') }}</a>
+        <a mat-stroked-button routerLink="/admin" class="adm-back-btn">{{
+          language.t('common.back')
+        }}</a>
       </div>
     </div>
 
     <section class="page-shell">
-
       <!-- Formulaire création/édition -->
       <div class="adm-form-card">
-          <div class="adm-form-header">
-            <span class="adm-form-icon">{{ editingId() ? '✏️' : '➕' }}</span>
-          <h2 class="adm-form-title">{{ editingId() ? language.t('common.edit') : language.t('common.create') }}</h2>
+        <div class="adm-form-header">
+          <span class="adm-form-icon">{{ editingId() ? '✏️' : '➕' }}</span>
+          <h2 class="adm-form-title">
+            {{ editingId() ? language.t('common.edit') : language.t('common.create') }}
+          </h2>
         </div>
 
         <form [formGroup]="form" class="grid gap-4 pt-4 md:grid-cols-2" (ngSubmit)="save()">
-          <mat-checkbox formControlName="peutProposerTrajet" class="md:col-span-2">Autoriser ce voyageur à proposer des trajets comme chauffeur</mat-checkbox>
+          <mat-checkbox formControlName="peutProposerTrajet" class="md:col-span-2"
+            >Autoriser ce voyageur à proposer des trajets comme chauffeur</mat-checkbox
+          >
+          @if (!editingId()) {
+            <mat-form-field appearance="outline"
+              ><mat-label>Mot de passe initial personnel</mat-label>
+              <input
+                matInput
+                type="password"
+                formControlName="password"
+                autocomplete="new-password"
+                minlength="12"
+                maxlength="128"
+              />
+              <mat-hint
+                >Entre 12 et 128 caractères. Les mots de passe existants ne sont pas
+                modifiés.</mat-hint
+              >
+            </mat-form-field>
+          }
           <mat-form-field appearance="outline">
             <mat-label>{{ language.t('admin.voyageurs.matricule') }}</mat-label>
-            <input matInput formControlName="matricule" [readonly]="editingId() !== null"
-                   [placeholder]="editingId() ? '' : 'G1234 / S12345 / L12345'"
-                   class="uppercase font-semibold tracking-wider" />
+            <input
+              matInput
+              formControlName="matricule"
+              [readonly]="editingId() !== null"
+              [placeholder]="editingId() ? '' : 'G1234 / S12345 / L12345'"
+              class="uppercase font-semibold tracking-wider"
+            />
             @if (!editingId()) {
               <mat-hint>{{ language.t('admin.voyageurs.matriculeHint') }}</mat-hint>
             }
@@ -91,7 +117,12 @@ import { LanguageService } from '../../../core/i18n/language.service';
 
           <mat-form-field appearance="outline">
             <mat-label>{{ language.t('admin.voyageurs.email') }}</mat-label>
-            <input matInput type="email" formControlName="email" placeholder="jean.dupont@email.com" />
+            <input
+              matInput
+              type="email"
+              formControlName="email"
+              placeholder="jean.dupont@email.com"
+            />
           </mat-form-field>
 
           <mat-form-field appearance="outline">
@@ -115,7 +146,9 @@ import { LanguageService } from '../../../core/i18n/language.service';
             <button class="adm-btn-primary" type="submit" [disabled]="loading() || form.invalid">
               {{ editingId() ? language.t('common.save') : language.t('common.create') }}
             </button>
-            <button class="adm-btn-secondary" type="button" (click)="resetForm()">{{ language.t('common.reset') }}</button>
+            <button class="adm-btn-secondary" type="button" (click)="resetForm()">
+              {{ language.t('common.reset') }}
+            </button>
             @if (loading()) {
               <mat-spinner diameter="24"></mat-spinner>
             }
@@ -126,30 +159,49 @@ import { LanguageService } from '../../../core/i18n/language.service';
       <!-- Recherche par matricule -->
       <div class="adm-search-bar">
         <span class="adm-search-icon">🔍</span>
-          <input
+        <input
           class="adm-search-input"
           type="text"
           [placeholder]="language.t('admin.voyageurs.searchPlaceholder')"
           [value]="searchQuery()"
-          (input)="searchQuery.set($any($event.target).value)" />
+          (input)="searchQuery.set($any($event.target).value)"
+        />
         @if (searchQuery()) {
           <button class="adm-search-clear" (click)="searchQuery.set('')">✕</button>
         }
-        <span class="adm-search-count">{{ displayedVoyageurs().length }} {{ language.t('admin.voyageurs.count') }}</span>
+        <span class="adm-search-count"
+          >{{ displayedVoyageurs().length }} {{ language.t('admin.voyageurs.count') }}</span
+        >
       </div>
 
       <!-- Filtres par type -->
       <div class="adm-type-filters">
-        <button class="adm-filter-btn" [class.active]="typeFilter() === ''" (click)="typeFilter.set('')">
+        <button
+          class="adm-filter-btn"
+          [class.active]="typeFilter() === ''"
+          (click)="typeFilter.set('')"
+        >
           {{ language.t('admin.voyageurs.filterAll') }} ({{ filteredVoyageurs().length }})
         </button>
-        <button class="adm-filter-btn adm-filter-global" [class.active]="typeFilter() === 'VIP'" (click)="typeFilter.set('VIP')">
+        <button
+          class="adm-filter-btn adm-filter-global"
+          [class.active]="typeFilter() === 'VIP'"
+          (click)="typeFilter.set('VIP')"
+        >
           🌍 {{ language.t('admin.voyageurs.filterGlobal') }} ({{ countByType('VIP') }})
         </button>
-        <button class="adm-filter-btn adm-filter-agence" [class.active]="typeFilter() === 'LOCAL'" (click)="typeFilter.set('LOCAL')">
+        <button
+          class="adm-filter-btn adm-filter-agence"
+          [class.active]="typeFilter() === 'LOCAL'"
+          (click)="typeFilter.set('LOCAL')"
+        >
           🏢 {{ language.t('admin.voyageurs.filterAgence') }} ({{ countByType('LOCAL') }})
         </button>
-        <button class="adm-filter-btn adm-filter-libre" [class.active]="typeFilter() === 'LIBRE'" (click)="typeFilter.set('LIBRE')">
+        <button
+          class="adm-filter-btn adm-filter-libre"
+          [class.active]="typeFilter() === 'LIBRE'"
+          (click)="typeFilter.set('LIBRE')"
+        >
           ⚡ {{ language.t('admin.voyageurs.filterLibre') }} ({{ countByType('LIBRE') }})
         </button>
       </div>
@@ -160,17 +212,30 @@ import { LanguageService } from '../../../core/i18n/language.service';
           <span class="adm-empty-icon">🚗</span>
           <p class="adm-empty-title">{{ language.t('admin.voyageurs.empty') }}</p>
           <p class="adm-empty-sub">
-            {{ searchQuery() ? language.t('admin.voyageurs.searchNoResult', { query: searchQuery() }) : language.t('admin.voyageurs.emptySub') }}
+            {{
+              searchQuery()
+                ? language.t('admin.voyageurs.searchNoResult', { query: searchQuery() })
+                : language.t('admin.voyageurs.emptySub')
+            }}
           </p>
         </div>
       }
 
       <div class="grid gap-4 md:grid-cols-2">
         @for (voyageur of displayedVoyageurs(); track voyageur.id) {
-          <div class="adm-voyageur-card" [class]="'adm-voyageur-' + voyageur.typeVoyageur.toLowerCase()">
+          <div
+            class="adm-voyageur-card"
+            [class]="'adm-voyageur-' + voyageur.typeVoyageur.toLowerCase()"
+          >
             <div class="adm-voyageur-top">
               <div class="adm-voyageur-avatar">
-                {{ voyageur.typeVoyageur === 'VIP' ? '🌍' : voyageur.typeVoyageur === 'LOCAL' ? '🏢' : '⚡' }}
+                {{
+                  voyageur.typeVoyageur === 'VIP'
+                    ? '🌍'
+                    : voyageur.typeVoyageur === 'LOCAL'
+                      ? '🏢'
+                      : '⚡'
+                }}
               </div>
               <div class="adm-voyageur-info">
                 <div class="adm-voyageur-name">{{ voyageur.prenom }} {{ voyageur.nom }}</div>
@@ -180,18 +245,24 @@ import { LanguageService } from '../../../core/i18n/language.service';
                 {{ voyageur.typeVoyageur }}
               </span>
               @if (hasActiveRestriction(voyageur.id)) {
-                <span class="adm-restriction-badge">{{ language.t('admin.voyageurs.restriction') }}</span>
+                <span class="adm-restriction-badge">{{
+                  language.t('admin.voyageurs.restriction')
+                }}</span>
               }
             </div>
 
             <div class="adm-voyageur-details ds-data-list">
               <div class="adm-detail-row ds-data-row">
                 <span class="ds-data-key">{{ language.t('admin.voyageurs.email') }}</span>
-                <span class="ds-data-value">{{ voyageur.email || language.t('admin.voyageurs.emailMissing') }}</span>
+                <span class="ds-data-value">{{
+                  voyageur.email || language.t('admin.voyageurs.emailMissing')
+                }}</span>
               </div>
               <div class="adm-detail-row ds-data-row">
                 <span class="ds-data-key">{{ language.t('admin.voyageurs.agence') }}</span>
-                <span class="ds-data-value">{{ voyageur.agenceNom || language.t('admin.voyageurs.agenceAll') }}</span>
+                <span class="ds-data-value">{{
+                  voyageur.agenceNom || language.t('admin.voyageurs.agenceAll')
+                }}</span>
               </div>
               <div class="adm-detail-row ds-data-row">
                 <span class="ds-data-key">{{ language.t('admin.voyageurs.balance') }}</span>
@@ -200,8 +271,12 @@ import { LanguageService } from '../../../core/i18n/language.service';
             </div>
 
             <div class="adm-voyageur-actions">
-              <button class="adm-action-edit" (click)="edit(voyageur)">✏️ {{ language.t('admin.voyageurs.edit') }}</button>
-              <button class="adm-action-delete" (click)="remove(voyageur.id)">🗑️ {{ language.t('admin.voyageurs.delete') }}</button>
+              <button class="adm-action-edit" (click)="edit(voyageur)">
+                ✏️ {{ language.t('admin.voyageurs.edit') }}
+              </button>
+              <button class="adm-action-delete" (click)="remove(voyageur.id)">
+                🗑️ {{ language.t('admin.voyageurs.delete') }}
+              </button>
             </div>
           </div>
         }
@@ -213,125 +288,344 @@ import { LanguageService } from '../../../core/i18n/language.service';
         background: linear-gradient(135deg, #14532d 0%, #15803d 50%, #166534 100%);
         padding: 1.5rem 2rem;
       }
-      .adm-header-content { display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 0 auto; }
-      .adm-header-left { display: flex; align-items: center; gap: 1rem; }
-      .adm-icon { font-size: 2.5rem; }
-      .adm-title { font-size: 1.6rem; font-weight: 800; color: #fff; margin: 0; }
-      .adm-sub { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
-      .adm-back-btn { color: #fff !important; border-color: rgba(255,255,255,0.4) !important; }
+      .adm-header-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .adm-header-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .adm-icon {
+        font-size: 2.5rem;
+      }
+      .adm-title {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0;
+      }
+      .adm-sub {
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 0.85rem;
+        margin: 0;
+      }
+      .adm-back-btn {
+        color: #fff !important;
+        border-color: rgba(255, 255, 255, 0.4) !important;
+      }
 
       .adm-form-card {
-        background: #fff; border-radius: 1.25rem;
-        box-shadow: 0 4px 20px rgba(21,128,61,0.1);
-        padding: 1.5rem; border-left: 5px solid #16a34a;
+        background: #fff;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 20px rgba(21, 128, 61, 0.1);
+        padding: 1.5rem;
+        border-left: 5px solid #16a34a;
       }
-      .adm-form-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
-      .adm-form-icon { font-size: 1.5rem; }
-      .adm-form-title { font-size: 1.2rem; font-weight: 700; color: #14532d; margin: 0; }
+      .adm-form-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+      }
+      .adm-form-icon {
+        font-size: 1.5rem;
+      }
+      .adm-form-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #14532d;
+        margin: 0;
+      }
 
-      .adm-success { background: #f0fdf4; border: 1px solid #86efac; border-radius: 0.75rem; padding: 0.75rem 1rem; color: #14532d; font-size: 0.9rem; }
-      .adm-error   { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 0.75rem; padding: 0.75rem 1rem; color: #991b1b; font-size: 0.9rem; }
+      .adm-success {
+        background: #f0fdf4;
+        border: 1px solid #86efac;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: #14532d;
+        font-size: 0.9rem;
+      }
+      .adm-error {
+        background: #fef2f2;
+        border: 1px solid #fca5a5;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: #991b1b;
+        font-size: 0.9rem;
+      }
 
       .adm-btn-primary {
-        background: linear-gradient(135deg, #15803d, #16a34a); color: #fff; border: none;
-        border-radius: 0.6rem; padding: 0.65rem 1.5rem; font-weight: 700; cursor: pointer;
-        box-shadow: 0 3px 10px rgba(21,128,61,0.3); transition: transform 0.15s;
+        background: linear-gradient(135deg, #15803d, #16a34a);
+        color: #fff;
+        border: none;
+        border-radius: 0.6rem;
+        padding: 0.65rem 1.5rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 3px 10px rgba(21, 128, 61, 0.3);
+        transition: transform 0.15s;
       }
-      .adm-btn-primary:hover:not(:disabled) { transform: translateY(-1px); }
-      .adm-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+      .adm-btn-primary:hover:not(:disabled) {
+        transform: translateY(-1px);
+      }
+      .adm-btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
       .adm-btn-secondary {
-        background: #f8fafc; color: #475569; border: 1px solid #cbd5e1;
-        border-radius: 0.6rem; padding: 0.65rem 1.25rem; font-weight: 600; cursor: pointer;
+        background: #f8fafc;
+        color: #475569;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.6rem;
+        padding: 0.65rem 1.25rem;
+        font-weight: 600;
+        cursor: pointer;
         transition: background 0.15s;
       }
-      .adm-btn-secondary:hover { background: #f1f5f9; }
+      .adm-btn-secondary:hover {
+        background: #f1f5f9;
+      }
 
       .adm-search-bar {
-        display: flex; align-items: center; gap: 0.75rem;
-        background: #fff; border: 2px solid #86efac; border-radius: 1rem;
-        padding: 0.6rem 1rem; box-shadow: 0 2px 8px rgba(21,128,61,0.1);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: #fff;
+        border: 2px solid #86efac;
+        border-radius: 1rem;
+        padding: 0.6rem 1rem;
+        box-shadow: 0 2px 8px rgba(21, 128, 61, 0.1);
       }
-      .adm-search-icon { font-size: 1.1rem; }
+      .adm-search-icon {
+        font-size: 1.1rem;
+      }
       .adm-search-input {
-        flex: 1; border: none; outline: none; font-size: 0.95rem; background: transparent; color: #1e293b;
+        flex: 1;
+        border: none;
+        outline: none;
+        font-size: 0.95rem;
+        background: transparent;
+        color: #1e293b;
       }
       .adm-search-clear {
-        background: #fee2e2; border: none; border-radius: 50%; width: 1.5rem; height: 1.5rem;
-        cursor: pointer; font-size: 0.75rem; display: flex; align-items: center; justify-content: center;
+        background: #fee2e2;
+        border: none;
+        border-radius: 50%;
+        width: 1.5rem;
+        height: 1.5rem;
+        cursor: pointer;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       .adm-search-count {
-        font-size: 0.8rem; color: #64748b; white-space: nowrap;
-        background: #f0fdf4; padding: 0.2rem 0.6rem; border-radius: 9999px;
+        font-size: 0.8rem;
+        color: #64748b;
+        white-space: nowrap;
+        background: #f0fdf4;
+        padding: 0.2rem 0.6rem;
+        border-radius: 9999px;
       }
 
-      .adm-type-filters { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+      .adm-type-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
       .adm-filter-btn {
-        padding: 0.4rem 1rem; border-radius: 9999px; border: 2px solid #e2e8f0;
-        background: #fff; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
+        padding: 0.4rem 1rem;
+        border-radius: 9999px;
+        border: 2px solid #e2e8f0;
+        background: #fff;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
         color: #475569;
       }
-      .adm-filter-btn.active, .adm-filter-btn:hover { border-color: #16a34a; background: #f0fdf4; color: #14532d; }
-      .adm-filter-global.active { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
-      .adm-filter-agence.active   { border-color: #16a34a; background: #f0fdf4; color: #14532d; }
-      .adm-filter-libre.active  { border-color: #eab308; background: #fefce8; color: #a16207; }
+      .adm-filter-btn.active,
+      .adm-filter-btn:hover {
+        border-color: #16a34a;
+        background: #f0fdf4;
+        color: #14532d;
+      }
+      .adm-filter-global.active {
+        border-color: #3b82f6;
+        background: #eff6ff;
+        color: #1d4ed8;
+      }
+      .adm-filter-agence.active {
+        border-color: #16a34a;
+        background: #f0fdf4;
+        color: #14532d;
+      }
+      .adm-filter-libre.active {
+        border-color: #eab308;
+        background: #fefce8;
+        color: #a16207;
+      }
 
-      .adm-empty { text-align: center; padding: 3rem 1rem; }
-      .adm-empty-icon { font-size: 3rem; display: block; margin-bottom: 0.75rem; }
-      .adm-empty-title { font-size: 1.1rem; font-weight: 700; color: #374151; margin: 0 0 0.35rem; }
-      .adm-empty-sub { color: #9ca3af; font-size: 0.9rem; margin: 0; }
+      .adm-empty {
+        text-align: center;
+        padding: 3rem 1rem;
+      }
+      .adm-empty-icon {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: 0.75rem;
+      }
+      .adm-empty-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #374151;
+        margin: 0 0 0.35rem;
+      }
+      .adm-empty-sub {
+        color: #9ca3af;
+        font-size: 0.9rem;
+        margin: 0;
+      }
 
       .adm-voyageur-card {
-        background: #fff; border-radius: 1.25rem;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.07);
-        overflow: hidden; transition: transform 0.15s, box-shadow 0.15s;
+        background: #fff;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+        overflow: hidden;
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s;
         border-top: 4px solid #e2e8f0;
       }
-      .adm-voyageur-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.12); }
-      .adm-voyageur-global { border-top-color: #3b82f6; }
-      .adm-voyageur-agence   { border-top-color: #16a34a; }
-      .adm-voyageur-libre  { border-top-color: #eab308; }
+      .adm-voyageur-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+      }
+      .adm-voyageur-global {
+        border-top-color: #3b82f6;
+      }
+      .adm-voyageur-agence {
+        border-top-color: #16a34a;
+      }
+      .adm-voyageur-libre {
+        border-top-color: #eab308;
+      }
 
-      .adm-voyageur-top { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.25rem 0.5rem; }
-      .adm-voyageur-avatar { font-size: 2rem; }
-      .adm-voyageur-info { flex: 1; }
-      .adm-voyageur-name { font-size: 1rem; font-weight: 700; color: #1e293b; }
-      .adm-voyageur-matricule { font-size: 0.85rem; color: #64748b; font-family: monospace; letter-spacing: 0.05em; }
+      .adm-voyageur-top {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem 0.5rem;
+      }
+      .adm-voyageur-avatar {
+        font-size: 2rem;
+      }
+      .adm-voyageur-info {
+        flex: 1;
+      }
+      .adm-voyageur-name {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1e293b;
+      }
+      .adm-voyageur-matricule {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-family: monospace;
+        letter-spacing: 0.05em;
+      }
 
       .adm-voyageur-badge {
-        display: inline-block; padding: 0.2rem 0.7rem; border-radius: 9999px;
-        font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em;
+        display: inline-block;
+        padding: 0.2rem 0.7rem;
+        border-radius: 9999px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
       }
-      .adm-badge-global { background: #dbeafe; color: #1d4ed8; }
-      .adm-badge-agence   { background: #dcfce7; color: #15803d; }
-      .adm-badge-libre  { background: #fef9c3; color: #a16207; }
+      .adm-badge-global {
+        background: #dbeafe;
+        color: #1d4ed8;
+      }
+      .adm-badge-agence {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .adm-badge-libre {
+        background: #fef9c3;
+        color: #a16207;
+      }
       .adm-restriction-badge {
-        display: inline-flex; align-items: center; gap: 0.25rem;
-        background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;
-        padding: 0.2rem 0.65rem; border-radius: 9999px;
-        font-size: 0.72rem; font-weight: 800; white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+        padding: 0.2rem 0.65rem;
+        border-radius: 9999px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        white-space: nowrap;
       }
 
-      .adm-voyageur-details { padding: 0.5rem 1.25rem 0.75rem; display: flex; flex-direction: column; gap: 0.3rem; }
-      .adm-detail-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #475569; }
+      .adm-voyageur-details {
+        padding: 0.5rem 1.25rem 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+      }
+      .adm-detail-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: #475569;
+      }
 
       .adm-voyageur-actions {
-        display: flex; gap: 0.5rem; padding: 0.75rem 1.25rem;
+        display: flex;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
         border-top: 1px solid #f1f5f9;
       }
       .adm-action-edit {
-        flex: 1; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;
-        border-radius: 0.5rem; padding: 0.4rem; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+        flex: 1;
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+        border-radius: 0.5rem;
+        padding: 0.4rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
         transition: background 0.15s;
       }
-      .adm-action-edit:hover { background: #dbeafe; }
+      .adm-action-edit:hover {
+        background: #dbeafe;
+      }
       .adm-action-delete {
-        flex: 1; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;
-        border-radius: 0.5rem; padding: 0.4rem; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+        flex: 1;
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+        border-radius: 0.5rem;
+        padding: 0.4rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
         transition: background 0.15s;
       }
-      .adm-action-delete:hover { background: #fee2e2; }
+      .adm-action-delete:hover {
+        background: #fee2e2;
+      }
     </style>
-  `
+  `,
 })
 export class AdminVoyageursPage {
   private readonly voyageursApi = inject(VoyageursApiService);
@@ -362,20 +656,21 @@ export class AdminVoyageursPage {
     const q = this.searchQuery().trim().toUpperCase();
     const t = this.typeFilter();
     if (q) {
-      list = list.filter(m =>
-        m.matricule.toUpperCase().includes(q) ||
-        m.nom.toUpperCase().includes(q) ||
-        m.prenom.toUpperCase().includes(q)
+      list = list.filter(
+        (m) =>
+          m.matricule.toUpperCase().includes(q) ||
+          m.nom.toUpperCase().includes(q) ||
+          m.prenom.toUpperCase().includes(q),
       );
     }
     if (t) {
-      list = list.filter(m => m.typeVoyageur === t);
+      list = list.filter((m) => m.typeVoyageur === t);
     }
     return list;
   });
 
   countByType(type: string): number {
-    return this.filteredVoyageurs().filter(m => m.typeVoyageur === type).length;
+    return this.filteredVoyageurs().filter((m) => m.typeVoyageur === type).length;
   }
 
   typeBadgeClass(type: TypeVoyageur): string {
@@ -393,13 +688,20 @@ export class AdminVoyageursPage {
   }
 
   readonly form = new FormGroup({
-    peutProposerTrajet: new FormControl(false, {nonNullable:true}),
+    password: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.minLength(12), Validators.maxLength(128)],
+    }),
+    peutProposerTrajet: new FormControl(false, { nonNullable: true }),
     matricule: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     nom: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     prenom: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     email: new FormControl('', { nonNullable: true, validators: [Validators.email] }),
-    typeVoyageur: new FormControl<TypeVoyageur>('VIP', { nonNullable: true, validators: [Validators.required] }),
-    agenceId: new FormControl<number | null>(null)
+    typeVoyageur: new FormControl<TypeVoyageur>('VIP', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+    agenceId: new FormControl<number | null>(null),
   });
 
   constructor() {
@@ -411,19 +713,25 @@ export class AdminVoyageursPage {
     this.restrictedVoyageurIds.set(new Set());
     forkJoin({
       voyageurs: this.voyageursApi.getAll(),
-      agences: this.agencesApi.getAll()
+      agences: this.agencesApi.getAll(),
     }).subscribe({
       next: ({ voyageurs, agences }) => {
         this.voyageurs.set(voyageurs);
-        this.agences.set(this.adminSession.isGlobalAdmin() ? agences : agences.filter((s) => s.id === this.adminSession.agenceId()));
+        this.agences.set(
+          this.adminSession.isGlobalAdmin()
+            ? agences
+            : agences.filter((s) => s.id === this.adminSession.agenceId()),
+        );
         this.loadRestrictionStatuses(voyageurs);
         this.loading.set(false);
       },
       error: (error) => {
         this.loading.set(false);
         this.restrictedVoyageurIds.set(new Set());
-        this.errorMessage.set(extractApiErrorMessage(error, this.language.t('admin.voyageurs.loadError')));
-      }
+        this.errorMessage.set(
+          extractApiErrorMessage(error, this.language.t('admin.voyageurs.loadError')),
+        );
+      },
     });
   }
 
@@ -433,17 +741,17 @@ export class AdminVoyageursPage {
       return;
     }
 
-    forkJoin(voyageurs.map((voyageur) =>
-      this.voyageursApi.hasRestriction(voyageur.id).pipe(
-        map((hasRestriction) => ({ id: voyageur.id, hasRestriction })),
-        catchError(() => of({ id: voyageur.id, hasRestriction: false }))
-      )
-    )).subscribe((statuses) => {
-      this.restrictedVoyageurIds.set(new Set(
-        statuses
-          .filter((status) => status.hasRestriction)
-          .map((status) => status.id)
-      ));
+    forkJoin(
+      voyageurs.map((voyageur) =>
+        this.voyageursApi.hasRestriction(voyageur.id).pipe(
+          map((hasRestriction) => ({ id: voyageur.id, hasRestriction })),
+          catchError(() => of({ id: voyageur.id, hasRestriction: false })),
+        ),
+      ),
+    ).subscribe((statuses) => {
+      this.restrictedVoyageurIds.set(
+        new Set(statuses.filter((status) => status.hasRestriction).map((status) => status.id)),
+      );
     });
   }
 
@@ -456,7 +764,7 @@ export class AdminVoyageursPage {
       prenom: voyageur.prenom,
       email: voyageur.email,
       typeVoyageur: voyageur.typeVoyageur,
-      agenceId: voyageur.agenceId
+      agenceId: voyageur.agenceId,
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -466,13 +774,14 @@ export class AdminVoyageursPage {
     this.message.set('');
     this.errorMessage.set('');
     this.form.reset({
+      password: '',
       peutProposerTrajet: false,
       matricule: '',
       nom: '',
       prenom: '',
       email: '',
       typeVoyageur: this.adminSession.isAgenceAdmin() ? 'LOCAL' : 'VIP',
-      agenceId: this.adminSession.isAgenceAdmin() ? this.adminSession.agenceId() : null
+      agenceId: this.adminSession.isAgenceAdmin() ? this.adminSession.agenceId() : null,
     });
   }
 
@@ -484,6 +793,12 @@ export class AdminVoyageursPage {
     this.errorMessage.set('');
 
     const payload = this.form.getRawValue() as VoyageurRequest;
+    if (this.editingId()) delete payload.password;
+    else if (!payload.password || payload.password.length < 12) {
+      this.loading.set(false);
+      this.errorMessage.set('Un mot de passe initial de 12 caractères minimum est obligatoire.');
+      return;
+    }
     if (this.adminSession.isAgenceAdmin()) {
       payload.agenceId = this.adminSession.agenceId() ?? undefined;
       payload.typeVoyageur = 'LOCAL';
@@ -498,13 +813,19 @@ export class AdminVoyageursPage {
         const wasEditing = this.editingId() !== null;
         this.loading.set(false);
         this.resetForm();
-        this.message.set(wasEditing ? this.language.t('admin.voyageurs.updateSuccess') : this.language.t('admin.voyageurs.createSuccess'));
+        this.message.set(
+          wasEditing
+            ? this.language.t('admin.voyageurs.updateSuccess')
+            : this.language.t('admin.voyageurs.createSuccess'),
+        );
         this.loadData();
       },
       error: (error) => {
         this.loading.set(false);
-        this.errorMessage.set(extractApiErrorMessage(error, this.language.t('admin.voyageurs.saveError')));
-      }
+        this.errorMessage.set(
+          extractApiErrorMessage(error, this.language.t('admin.voyageurs.saveError')),
+        );
+      },
     });
   }
 
@@ -522,8 +843,10 @@ export class AdminVoyageursPage {
       },
       error: (error) => {
         this.loading.set(false);
-        this.errorMessage.set(extractApiErrorMessage(error, this.language.t('admin.voyageurs.deleteError')));
-      }
+        this.errorMessage.set(
+          extractApiErrorMessage(error, this.language.t('admin.voyageurs.deleteError')),
+        );
+      },
     });
   }
 }

@@ -13,4 +13,5 @@ public class VehiculeResponse {
     private Long agenceId;
     private String agenceNom;
     private Double prix;
+    private Boolean disponible;
 }

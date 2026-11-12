@@ -43,7 +43,7 @@ const formatDateForInput = (date: Date): string => {
     MatSelectModule,
     MatCheckboxModule,
     MatButtonModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
   ],
   template: `
     <section class="page-shell max-w-6xl">
@@ -51,35 +51,65 @@ const formatDateForInput = (date: Date): string => {
         <div>
           <h1 class="title-gradient ds-section-title">{{ language.t('voyageur.create.title') }}</h1>
           <p class="ds-subtitle">{{ language.t('voyageur.create.subtitle') }}</p>
-          <span class="ds-badge"
-                [class]="form.controls.typeTrajet.value === 'PRIVE' ? 'ds-badge-info' : 'ds-badge-success'">
+          <span
+            class="ds-badge"
+            [class]="
+              form.controls.typeTrajet.value === 'PRIVE' ? 'ds-badge-info' : 'ds-badge-success'
+            "
+          >
             {{ language.t('voyageur.create.mode') }} : {{ form.controls.typeTrajet.value }}
           </span>
         </div>
         <div class="toolbar-actions">
-          <a mat-stroked-button routerLink="/voyageur/trajets">{{ language.t('voyageur.public.title') }}</a>
+          <a mat-stroked-button routerLink="/voyageur/trajets">{{
+            language.t('voyageur.public.title')
+          }}</a>
         </div>
       </div>
 
       <mat-card class="card-soft panel-gradient">
         <mat-card-content>
           <form [formGroup]="form" class="grid gap-4 pt-4 md:grid-cols-2" (ngSubmit)="submit()">
-            <mat-form-field appearance="outline"><mat-label>Ville de départ</mat-label><mat-select formControlName="villeDepart">
-              @for (ville of villes(); track ville.code) { <mat-option [value]="ville.code">{{ ville.libelle }}</mat-option> }
-            </mat-select></mat-form-field>
-            <mat-form-field appearance="outline"><mat-label>Destination</mat-label><mat-select formControlName="villeArrivee">
-              @for (ville of villes(); track ville.code) { <mat-option [value]="ville.code">{{ ville.libelle }}</mat-option> }
-            </mat-select></mat-form-field>
+            <mat-form-field appearance="outline"
+              ><mat-label>Ville de départ</mat-label
+              ><mat-select formControlName="villeDepart">
+                @for (ville of villes(); track ville.code) {
+                  <mat-option [value]="ville.code">{{ ville.libelle }}</mat-option>
+                }
+              </mat-select></mat-form-field
+            >
+            <mat-form-field appearance="outline"
+              ><mat-label>Destination</mat-label
+              ><mat-select formControlName="villeArrivee">
+                @for (ville of villes(); track ville.code) {
+                  <mat-option [value]="ville.code">{{ ville.libelle }}</mat-option>
+                }
+              </mat-select></mat-form-field
+            >
             @if (adminSession.isAuthenticated()) {
-              <mat-form-field appearance="outline"><mat-label>Chauffeur autorisé</mat-label><mat-select formControlName="chauffeurId">
-                @for (chauffeur of chauffeurs(); track chauffeur.id) { <mat-option [value]="chauffeur.id">{{ chauffeur.prenom }} {{ chauffeur.nom }}</mat-option> }
-              </mat-select></mat-form-field>
+              <mat-form-field appearance="outline"
+                ><mat-label>Chauffeur autorisé</mat-label
+                ><mat-select formControlName="chauffeurId">
+                  @for (chauffeur of chauffeurs(); track chauffeur.id) {
+                    <mat-option [value]="chauffeur.id"
+                      >{{ chauffeur.prenom }} {{ chauffeur.nom }}</mat-option
+                    >
+                  }
+                </mat-select></mat-form-field
+              >
             } @else {
-              <p class="md:col-span-2">Chauffeur : {{ voyageur()?.prenom }} {{ voyageur()?.nom }}. Vous ne réservez aucune des quatre places clients.</p>
+              <p class="md:col-span-2">
+                Chauffeur : {{ voyageur()?.prenom }} {{ voyageur()?.nom }}. Vous ne réservez aucune
+                des quatre places clients.
+              </p>
             }
             <mat-form-field appearance="outline">
               <mat-label>{{ language.t('voyageur.create.agence') }}</mat-label>
-              <mat-select formControlName="agenceId" (valueChange)="onAgenceChange($event)" [disabled]="isAgenceVoyageur()">
+              <mat-select
+                formControlName="agenceId"
+                (valueChange)="onAgenceChange($event)"
+                [disabled]="isAgenceVoyageur()"
+              >
                 @for (agence of agences(); track agence.id) {
                   <mat-option [value]="agence.id">{{ agence.nom }}</mat-option>
                 }
@@ -113,14 +143,19 @@ const formatDateForInput = (date: Date): string => {
               </mat-select>
             </mat-form-field>
 
-            <div class="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 md:col-span-2">
+            <div
+              class="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 md:col-span-2"
+            >
               <p class="font-semibold text-slate-800">{{ language.t('voyageur.create.rappel') }}</p>
               <ul class="ml-4 list-disc space-y-1">
                 <li>{{ language.t('voyageur.create.ruleGlobal') }}</li>
                 <li>{{ language.t('voyageur.create.ruleAgence') }}</li>
                 <li>{{ language.t('voyageur.create.ruleLibre') }}</li>
               </ul>
-              <p class="mt-2 text-slate-500">Ces délais concernent les réservations clients. Votre trajet propose quatre places à 25 €.</p>
+              <p class="mt-2 text-slate-500">
+                Ces délais concernent les réservations clients. Votre trajet propose quatre places à
+                25 €.
+              </p>
             </div>
 
             @if (errorMessage()) {
@@ -130,12 +165,16 @@ const formatDateForInput = (date: Date): string => {
             }
 
             @if (form.controls.agenceId.value && !vehicules().length && !loading()) {
-              <p class="status-info md:col-span-2">{{ language.t('voyageur.create.noVehicule') }}</p>
+              <p class="status-info md:col-span-2">
+                {{ language.t('voyageur.create.noVehicule') }}
+              </p>
             }
 
             @if (form.controls.typeTrajet.value === 'PRIVE' && !adminSession.isAuthenticated()) {
               <div class="md:col-span-2">
-                <p class="mb-2 text-sm font-medium text-slate-800">{{ language.t('voyageur.create.privatePassagers') }}</p>
+                <p class="mb-2 text-sm font-medium text-slate-800">
+                  {{ language.t('voyageur.create.privatePassagers') }}
+                </p>
                 <div class="grid gap-3 md:grid-cols-3">
                   <mat-form-field appearance="outline">
                     <mat-label>{{ language.t('voyageur.create.passager2') }}</mat-label>
@@ -149,21 +188,34 @@ const formatDateForInput = (date: Date): string => {
                     <mat-label>{{ language.t('voyageur.create.passager4') }}</mat-label>
                     <input matInput formControlName="passager3" />
                   </mat-form-field>
-                  <mat-form-field appearance="outline"><mat-label>Client 4 (matricule)</mat-label><input matInput formControlName="passager4" /></mat-form-field>
+                  <mat-form-field appearance="outline"
+                    ><mat-label>Client 4 (matricule)</mat-label
+                    ><input matInput formControlName="passager4"
+                  /></mat-form-field>
                 </div>
               </div>
             }
 
-            <mat-checkbox formControlName="publicationAutomatiqueAutorisee" class="md:col-span-2">J'autorise la publication des places restantes 24 h avant le départ d'un trajet privé.</mat-checkbox>
+            <mat-checkbox formControlName="publicationAutomatiqueAutorisee" class="md:col-span-2"
+              >J'autorise la publication des places restantes 24 h avant le départ d'un trajet
+              privé.</mat-checkbox
+            >
             @if (message()) {
               <p class="status-success md:col-span-2">{{ message() }}</p>
             }
 
             <div class="toolbar-actions justify-start md:col-span-2">
-              <button mat-flat-button color="primary" type="submit" [disabled]="loading() || form.invalid || !vehicules().length">
+              <button
+                mat-flat-button
+                color="primary"
+                type="submit"
+                [disabled]="loading() || form.invalid || !vehicules().length"
+              >
                 {{ language.t('voyageur.create.submit') }}
               </button>
-              <a mat-stroked-button routerLink="/voyageur/profile">{{ language.t('voyageur.create.back') }}</a>
+              <a mat-stroked-button routerLink="/voyageur/profile">{{
+                language.t('voyageur.create.back')
+              }}</a>
               @if (loading()) {
                 <mat-spinner diameter="24"></mat-spinner>
               }
@@ -172,7 +224,7 @@ const formatDateForInput = (date: Date): string => {
         </mat-card-content>
       </mat-card>
     </section>
-  `
+  `,
 })
 export class VoyageurCreateTrajetPage {
   private readonly agencesApi = inject(AgencesApiService);
@@ -201,25 +253,25 @@ export class VoyageurCreateTrajetPage {
     return formatDateForInput(today);
   });
   readonly form = new FormGroup({
-    villeDepart: new FormControl('', {nonNullable:true, validators:[Validators.required]}),
-    villeArrivee: new FormControl('', {nonNullable:true, validators:[Validators.required]}),
-    publicationAutomatiqueAutorisee: new FormControl(false, {nonNullable:true}),
+    villeDepart: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    villeArrivee: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    publicationAutomatiqueAutorisee: new FormControl(false, { nonNullable: true }),
     chauffeurId: new FormControl<number | null>(null),
     agenceId: new FormControl<number | null>(null, { validators: [Validators.required] }),
     vehiculeId: new FormControl<number | null>(null, { validators: [Validators.required] }),
     date: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required]
+      validators: [Validators.required],
     }),
     heureDebut: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     typeTrajet: new FormControl<'PUBLIC' | 'PRIVE'>('PUBLIC', {
       nonNullable: true,
-      validators: [Validators.required]
+      validators: [Validators.required],
     }),
     passager1: new FormControl('', { nonNullable: true }),
     passager2: new FormControl('', { nonNullable: true }),
     passager3: new FormControl('', { nonNullable: true }),
-    passager4: new FormControl('', {nonNullable:true})
+    passager4: new FormControl('', { nonNullable: true }),
   });
 
   constructor() {
@@ -231,10 +283,16 @@ export class VoyageurCreateTrajetPage {
     this.applyPreferredTypeFromQuery();
     this.applyDefaultStartTime();
     this.applyDateBounds();
-    this.trajetsApi.getVilles().subscribe({next: villes => this.villes.set(villes), error: () => this.errorMessage.set('Impossible de charger les villes.')});
+    this.trajetsApi.getVilles().subscribe({
+      next: (villes) => this.villes.set(villes),
+      error: () => this.errorMessage.set('Impossible de charger les villes.'),
+    });
     if (this.adminSession.isAuthenticated()) {
       this.form.controls.chauffeurId.addValidators(Validators.required);
-      this.voyageursApi.getAll().subscribe({next: voyageurs => this.chauffeurs.set(voyageurs.filter(v => v.peutProposerTrajet)), error: () => this.errorMessage.set('Impossible de charger les chauffeurs.')});
+      this.voyageursApi.getAll().subscribe({
+        next: (voyageurs) => this.chauffeurs.set(voyageurs.filter((v) => v.peutProposerTrajet)),
+        error: () => this.errorMessage.set('Impossible de charger les chauffeurs.'),
+      });
     }
     this.loadAgences();
   }
@@ -257,7 +315,9 @@ export class VoyageurCreateTrajetPage {
     this.errorMessage.set('');
     this.agencesApi.getAll().subscribe({
       next: (agences) => {
-        agences = this.adminSession.isAgenceAdmin() ? agences.filter(a => a.id === this.adminSession.agenceId()) : agences;
+        agences = this.adminSession.isAgenceAdmin()
+          ? agences.filter((a) => a.id === this.adminSession.agenceId())
+          : agences;
         this.agences.set(agences);
         const voyageur = this.voyageur();
         if (voyageur?.typeVoyageur === 'LOCAL' && voyageur.agenceId) {
@@ -274,9 +334,11 @@ export class VoyageurCreateTrajetPage {
         this.loading.set(false);
       },
       error: (error) => {
-        this.errorMessage.set(extractApiErrorMessage(error, this.language.t('voyageur.create.noAgenceLoaded')));
+        this.errorMessage.set(
+          extractApiErrorMessage(error, this.language.t('voyageur.create.noAgenceLoaded')),
+        );
         this.loading.set(false);
-      }
+      },
     });
   }
 
@@ -291,6 +353,7 @@ export class VoyageurCreateTrajetPage {
     this.loading.set(true);
     this.vehiculesApi.getByAgence(agenceId).subscribe({
       next: (vehicules) => {
+        vehicules = vehicules.filter((vehicule) => vehicule.disponible !== false);
         this.vehicules.set(vehicules);
         if (vehicules.length) {
           this.form.controls.vehiculeId.setValue(vehicules[0].id);
@@ -304,11 +367,13 @@ export class VoyageurCreateTrajetPage {
         } else if (status === 500) {
           this.errorMessage.set(this.language.t('voyageur.create.noVehiculeLoaded'));
         } else {
-          this.errorMessage.set(extractApiErrorMessage(error, this.language.t('voyageur.create.noVehiculeLoaded')));
+          this.errorMessage.set(
+            extractApiErrorMessage(error, this.language.t('voyageur.create.noVehiculeLoaded')),
+          );
         }
         this.vehicules.set([]);
         this.loading.set(false);
-      }
+      },
     });
   }
 
@@ -319,10 +384,23 @@ export class VoyageurCreateTrajetPage {
       return;
     }
 
-    const { vehiculeId, date, heureDebut, typeTrajet, villeDepart, villeArrivee, publicationAutomatiqueAutorisee, chauffeurId } = this.form.getRawValue();
-    if (villeDepart === villeArrivee) { this.errorMessage.set('Choisissez deux villes différentes.'); return; }
+    const {
+      vehiculeId,
+      date,
+      heureDebut,
+      typeTrajet,
+      villeDepart,
+      villeArrivee,
+      publicationAutomatiqueAutorisee,
+      chauffeurId,
+    } = this.form.getRawValue();
+    if (villeDepart === villeArrivee) {
+      this.errorMessage.set('Choisissez deux villes différentes.');
+      return;
+    }
     if (!this.adminSession.isAuthenticated() && !this.voyageur()?.peutProposerTrajet) {
-      this.errorMessage.set("Votre compte n'est pas autorisé à proposer des trajets."); return;
+      this.errorMessage.set("Votre compte n'est pas autorisé à proposer des trajets.");
+      return;
     }
 
     if (!vehiculeId) {
@@ -344,8 +422,11 @@ export class VoyageurCreateTrajetPage {
     const payload: import('../../../shared/models/trajet.model').CreateTrajetRequest = {
       vehiculeId,
       trajetDate,
-      trajetType: typeTrajet, villeDepart, villeArrivee, publicationAutomatiqueAutorisee,
-      ...(this.adminSession.isAuthenticated() && chauffeurId ? {chauffeurId} : {})
+      trajetType: typeTrajet,
+      villeDepart,
+      villeArrivee,
+      publicationAutomatiqueAutorisee,
+      ...(this.adminSession.isAuthenticated() && chauffeurId ? { chauffeurId } : {}),
     };
 
     this.trajetsApi.create(payload).subscribe({
@@ -355,7 +436,7 @@ export class VoyageurCreateTrajetPage {
       error: (error) => {
         this.loading.set(false);
         this.errorMessage.set(this.toFriendlyCreationErrorMessage(error));
-      }
+      },
     });
   }
 
@@ -372,7 +453,10 @@ export class VoyageurCreateTrajetPage {
   }
 
   private toFriendlyCreationErrorMessage(error: unknown): string {
-    const apiMessage = extractApiErrorMessage(error, this.language.t('voyageur.create.createError'));
+    const apiMessage = extractApiErrorMessage(
+      error,
+      this.language.t('voyageur.create.createError'),
+    );
     const status = (error as any)?.status || (error as any)?.error?.status;
 
     const errorMappings: Record<string, string> = {
@@ -380,8 +464,10 @@ export class VoyageurCreateTrajetPage {
       'active restriction': this.language.t('voyageur.create.activeRestriction'),
       'ce créneau est déjà réservé': this.language.t('voyageur.create.slotTaken'),
       'agence est fermé': this.language.t('voyageur.create.agenceClosed'),
-      'en dehors des heures d\'ouverture': this.language.t('voyageur.create.outOfHours'),
-      'ne peut créer un trajet que sur sa propre agence': this.language.t('voyageur.create.agenceOnly')
+      "en dehors des heures d'ouverture": this.language.t('voyageur.create.outOfHours'),
+      'ne peut créer un trajet que sur sa propre agence': this.language.t(
+        'voyageur.create.agenceOnly',
+      ),
     };
 
     const normalizedMessage = apiMessage
@@ -414,33 +500,59 @@ export class VoyageurCreateTrajetPage {
       this.form.controls.passager1.getRawValue(),
       this.form.controls.passager2.getRawValue(),
       this.form.controls.passager3.getRawValue(),
-      this.form.controls.passager4.getRawValue()
+      this.form.controls.passager4.getRawValue(),
     ]
       .map((value) => value.trim().toUpperCase())
       .filter(Boolean);
 
-    if (this.adminSession.isAuthenticated() || this.form.controls.typeTrajet.getRawValue() !== 'PRIVE' || !invitees.length) {
+    if (
+      this.adminSession.isAuthenticated() ||
+      this.form.controls.typeTrajet.getRawValue() !== 'PRIVE' ||
+      !invitees.length
+    ) {
       this.loading.set(false);
       this.message.set(this.language.t('voyageur.create.success'));
-      setTimeout(() => this.router.navigateByUrl(this.adminSession.isAuthenticated() ? '/admin/trajets' : '/voyageur/profile'), 1000);
+      setTimeout(
+        () =>
+          this.router.navigateByUrl(
+            this.adminSession.isAuthenticated() ? '/admin/trajets' : '/voyageur/profile',
+          ),
+        1000,
+      );
       return;
     }
 
-    this.reservationsApi.createPrivateInvites({
-      trajetId: createdTrajet.id,
-      inviteeMatricules: invitees
-    }).subscribe({
-      next: () => {
-        this.loading.set(false);
-        this.message.set(this.language.t('voyageur.create.successPrivate'));
-        setTimeout(() => this.router.navigateByUrl(this.adminSession.isAuthenticated() ? '/admin/trajets' : '/voyageur/profile'), 1000);
-      },
-      error: (error) => {
-        this.loading.set(false);
-        this.message.set(this.language.t('voyageur.create.partialSuccess'));
-        this.errorMessage.set(extractApiErrorMessage(error, this.language.t('voyageur.create.addPassagersError')));
-        setTimeout(() => this.router.navigateByUrl(this.adminSession.isAuthenticated() ? '/admin/trajets' : '/voyageur/profile'), 2000);
-      }
-    });
+    this.reservationsApi
+      .createPrivateInvites({
+        trajetId: createdTrajet.id,
+        inviteeMatricules: invitees,
+      })
+      .subscribe({
+        next: () => {
+          this.loading.set(false);
+          this.message.set(this.language.t('voyageur.create.successPrivate'));
+          setTimeout(
+            () =>
+              this.router.navigateByUrl(
+                this.adminSession.isAuthenticated() ? '/admin/trajets' : '/voyageur/profile',
+              ),
+            1000,
+          );
+        },
+        error: (error) => {
+          this.loading.set(false);
+          this.message.set(this.language.t('voyageur.create.partialSuccess'));
+          this.errorMessage.set(
+            extractApiErrorMessage(error, this.language.t('voyageur.create.addPassagersError')),
+          );
+          setTimeout(
+            () =>
+              this.router.navigateByUrl(
+                this.adminSession.isAuthenticated() ? '/admin/trajets' : '/voyageur/profile',
+              ),
+            2000,
+          );
+        },
+      });
   }
 }

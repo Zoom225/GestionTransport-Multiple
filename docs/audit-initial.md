@@ -2,6 +2,10 @@
 
 Issue #1 — phase 0 — 11 novembre 2026.
 
+Ce document conserve l'audit historique du socle. Pour le fonctionnement actuel,
+consulter le [README](../README.md) et les comptes rendus dans `docs/covoiturage/`.
+Les résultats contemporains sont ajoutés au rapport de validation de l'issue #7.
+
 ## Git et modifications préexistantes
 
 État initial : master à 688190e, seule modification locale dans pom.xml :

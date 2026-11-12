@@ -1,28 +1,21 @@
 package com.transport.gestiontransport;
 
-import com.transport.gestiontransport.entity.Voyageur;
-import com.transport.gestiontransport.entity.enums.TypeVoyageur;
+import com.transport.gestiontransport.entity.*;
 import com.transport.gestiontransport.repository.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.List;
-import java.util.Optional;
-import java.time.LocalDate;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class DataInitializerTest {
-
     @Mock private AgenceRepository agenceRepository;
     @Mock private VehiculeRepository vehiculeRepository;
     @Mock private VoyageurRepository voyageurRepository;
@@ -33,47 +26,39 @@ class DataInitializerTest {
     @Mock private PaiementRepository paiementRepository;
     @Mock private RestrictionRepository restrictionRepository;
     @Mock private PasswordEncoder passwordEncoder;
-
-    @InjectMocks
-    private DataInitializer dataInitializer;
+    @InjectMocks private DataInitializer dataInitializer;
 
     @Test
-    void run_shouldBackfillLegacyVoyageurPasswordHashes() {
-        Voyageur legacyVoyageur = Voyageur.builder()
-                .matricule("g1001")
-                .nom("Martin")
-                .prenom("Lucas")
-                .email("lucas@email.com")
-                .typeVoyageur(TypeVoyageur.VIP)
-                .solde(0.0)
-                .passwordHash(null)
-                .build();
-
-        Voyageur restrictedVoyageur = Voyageur.builder()
-                .matricule("L10002")
-                .nom("Penalise")
-                .prenom("Demo")
-                .email("demo@email.com")
-                .typeVoyageur(TypeVoyageur.LIBRE)
-                .solde(0.0)
-                .passwordHash("existing-hash")
-                .build();
-        restrictedVoyageur.setId(2L);
-
+    void run_preserveLesComptesEtPaiementsDeTouteBaseNonVide() {
         when(agenceRepository.count()).thenReturn(1L);
-        when(trajetRepository.count()).thenReturn(1L);
-        when(voyageurRepository.findAll()).thenReturn(List.of(legacyVoyageur, restrictedVoyageur));
-        when(passwordEncoder.encode("Voyageur1234!")).thenReturn("hashed-default-password");
-        when(voyageurRepository.findByMatriculeIgnoreCase("L10002")).thenReturn(Optional.of(restrictedVoyageur));
-        when(restrictionRepository.existsByVoyageurIdAndDateFinAfter(eq(2L), any(LocalDate.class))).thenReturn(true);
-
         dataInitializer.run();
+        verify(voyageurRepository, never()).save(any());
+        verify(voyageurRepository, never()).saveAll(any());
+        verify(administrateurRepository, never()).save(any());
+        verify(paiementRepository, never()).save(any());
+        verifyNoInteractions(passwordEncoder);
+    }
 
-        ArgumentCaptor<List<Voyageur>> captor = ArgumentCaptor.forClass(List.class);
-        verify(voyageurRepository).saveAll(captor.capture());
-        assertThat(captor.getValue())
-                .extracting(Voyageur::getPasswordHash)
-                .contains("hashed-default-password");
-        assertThat(legacyVoyageur.getPasswordHash()).isEqualTo("hashed-default-password");
+    @Test
+    void refuseUneBaseMetierMemeVide() {
+        ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://localhost:5440/transportService");
+        assertThatThrownBy(() -> dataInitializer.run()).isInstanceOf(IllegalStateException.class);
+        verifyNoInteractions(passwordEncoder);
+    }
+
+    @Test
+    void demonstrationIsoleeNeReserveAucunePlacePourLeChauffeur() {
+        ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://localhost:5440/transport_demo_test");
+        ReflectionTestUtils.setField(dataInitializer, "demoPassword", "OnlyForThisTest123!");
+        when(passwordEncoder.encode(any())).thenReturn("hash-test");
+        when(agenceRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(vehiculeRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(voyageurRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        dataInitializer.run();
+        verify(trajetRepository).save(argThat(t -> t.getChauffeur() != null
+                && Boolean.TRUE.equals(t.getChauffeur().getPeutProposerTrajet()) && t.getNbPassagersActuels() == 0
+                && t.getVilleDepart() != t.getVilleArrivee() && t.getPrixParPassager() == 25.0));
+        verify(reservationRepository, never()).save(any());
+        verify(paiementRepository, never()).save(any());
     }
 }

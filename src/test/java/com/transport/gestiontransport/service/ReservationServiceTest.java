@@ -180,6 +180,17 @@ class ReservationServiceTest {
     }
 
     @Test
+    void unAncienTarifNestPasRevenduAutomatiquementAuNouveauPrix() {
+        trajetPublic.setPrixParPassager(15.0);
+        when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic));
+        when(voyageurService.getById(2L)).thenReturn(passager);
+        assertThatThrownBy(() -> reservationService.create(11L, 2L, 2L))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("historique");
+        verifyNoInteractions(reservationRepository, paiementRepository);
+        assertThat(trajetPublic.getPrixParPassager()).isEqualTo(15.0);
+    }
+
+    @Test
     void uneDemandeExpireSansDetteEtSansModifierLesPlacesConfirmees() {
         Reservation demande = Reservation.builder().trajet(trajetPublic).voyageur(passager)
                 .statut(StatutReservation.EN_ATTENTE)

@@ -19,6 +19,8 @@ export interface PaiementResponse {
 }
 
 export interface ReservationResponse {
+  villeDepart?: string | null;
+  villeArrivee?: string | null;
   id: number;
   trajetId: number;
   trajetDateTime: string;

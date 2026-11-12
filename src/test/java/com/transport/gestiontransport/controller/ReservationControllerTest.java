@@ -124,9 +124,8 @@ class ReservationControllerTest {
 
     void cancelReservation_WithAuthenticatedUser_ShouldReturnOk() throws Exception {
 
-        doNothing().when(reservationService).cancel(1L);
-        when(reservationService.getById(1L)).thenReturn(reservation);
-        doNothing().when(currentVoyageurService).requireCurrentVoyageur(1L);
+        doNothing().when(reservationService).cancelForUser(1L, 1L);
+        when(currentVoyageurService.currentVoyageurId()).thenReturn(1L);
 
         mockMvc.perform(patch("/api/reservations/1/cancel")
                         .with(csrf()))

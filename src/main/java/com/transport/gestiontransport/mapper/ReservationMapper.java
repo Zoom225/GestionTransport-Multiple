@@ -28,6 +28,8 @@ public class ReservationMapper {
                 .id(reservation.getId())
                 .trajetId(reservation.getTrajet().getId())
                 .trajetDateTime(reservation.getTrajet().getDateDebut())
+                .villeDepart(reservation.getTrajet().getVilleDepart())
+                .villeArrivee(reservation.getTrajet().getVilleArrivee())
                 .voyageurId(reservation.getVoyageur().getId())
                 .voyageurNom(reservation.getVoyageur().getPrenom() + " " + reservation.getVoyageur().getNom())
                 .statut(reservation.getStatut())

@@ -16,6 +16,6 @@ public class ReservationRequest {
     @NotNull(message = "L'ID du voyageur est obligatoire")
     private Long voyageurId;
 
-    @NotNull(message = "L'ID du demandeur est obligatoire")
+    // Compatibilité avec l'ancien client ; l'identité utilisée vient toujours du JWT.
     private Long requesterId;
 }

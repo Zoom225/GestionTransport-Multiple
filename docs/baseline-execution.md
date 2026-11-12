@@ -1,5 +1,10 @@
 # Exécuter le socle sans modifier les données existantes
 
+Archive du protocole de baseline. La configuration actuelle, les commandes et la
+démonstration isolée sont décrites dans le [README](../README.md). L'ancien
+initialiseur mentionné plus bas a été remplacé par une démonstration dev explicite
+qui refuse toute base métier et toute base non vide ; il ne réécrit aucun compte.
+
 Après renommage, consulter aussi [Exécution Transport](transport-execution.md)
 pour les packages et routes actuels. Ce document conserve le protocole de baseline.
 

@@ -192,7 +192,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
           <mat-card class="card-soft">
             <mat-card-header>
               <mat-card-title>📋 {{ language.t('voyageur.reservations.reservationTitle') }} #{{ reservation.id }}</mat-card-title>
-              <mat-card-subtitle>{{ reservation.trajetDateTime }}</mat-card-subtitle>
+              <mat-card-subtitle>{{ reservation.villeDepart }} → {{ reservation.villeArrivee }} · {{ reservation.trajetDateTime }}</mat-card-subtitle>
             </mat-card-header>
             <mat-card-content class="ds-data-list">
               <div class="ds-data-row"><span class="ds-data-key">{{ language.t('voyageur.reservations.passager') }}</span><span class="ds-data-value">{{ reservation.voyageurNom }}</span></div>

@@ -11,6 +11,7 @@ public class VehiculeMapper {
     public Vehicule toEntity(VehiculeRequest request) {
         return Vehicule.builder()
                 .nom(request.getNom())
+                .disponible(request.getDisponible())
                 .build();
     }
 
@@ -18,6 +19,7 @@ public class VehiculeMapper {
         return VehiculeResponse.builder()
                 .id(vehicule.getId())
                 .nom(vehicule.getNom())
+                .disponible(vehicule.getDisponible())
                 .agenceId(vehicule.getAgence() != null ? vehicule.getAgence().getId() : null)
                 .agenceNom(vehicule.getAgence() != null ? vehicule.getAgence().getNom() : null)
                 .prix(vehicule.getPrix())

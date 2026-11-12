@@ -414,14 +414,14 @@ class VoyageurServiceTest {
         @Test
         @DisplayName("✅ doit ajouter une restriction avec dateFin = aujourd'hui + 7 jours")
         void shouldAddRestrictionWithCorrectDateFin() {
-            when(voyageurRepository.findById(1L)).thenReturn(Optional.of(voyageurGlobal));
+            when(voyageurRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(voyageurGlobal));
             when(restrictionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             voyageurService.addRestriction(1L);
 
             verify(restrictionRepository, times(1)).save(argThat(restriction ->
                     restriction.getDateFin().equals(LocalDate.now().plusWeeks(1)) &&
-                            restriction.getMotif().equals("Trajet privé incomplet avant l'échéance")
+                            restriction.getMotif().equals("Suspension de réservation après décision métier validée")
             ));
         }
     }
