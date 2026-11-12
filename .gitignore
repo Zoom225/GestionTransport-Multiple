@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Local credentials and diagnostic output
+.env
+.env.*
+!.env.example
+*.log
