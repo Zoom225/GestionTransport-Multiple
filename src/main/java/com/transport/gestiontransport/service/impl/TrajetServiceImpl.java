@@ -20,7 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
+import com.transport.gestiontransport.service.ReservationService;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,8 +33,9 @@ public class TrajetServiceImpl implements TrajetService {
 
     private final TrajetRepository trajetRepository;
     private final VoyageurRepository voyageurRepository;
-    private final ReservationRepository reservationRepository;
-    private final PaiementRepository paiementRepository;
+    private final ReservationService reservationService;
+    private final EntityManager entityManager;
+    private final AdminAuthorizationService adminAuthorizationService;
     private final IndisponibiliteServiceRepository indisponibiliteServiceRepository;
     private final VehiculeService vehiculeService;
     private final VoyageurService voyageurService;
@@ -41,51 +44,66 @@ public class TrajetServiceImpl implements TrajetService {
     @Override
     @Transactional
     public TrajetDto createTrajet(CreateTrajetRequest request, String username) {
-        Voyageur organisateur = voyageurRepository.findByMatriculeIgnoreCase(username)
+        Voyageur chauffeur = voyageurRepository.findByMatriculeIgnoreCase(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Voyageur non trouvé pour l'utilisateur: " + username));
+        if (request.chauffeurId() != null && !request.chauffeurId().equals(chauffeur.getId())) {
+            throw new BusinessException("Le chauffeur est déterminé par votre authentification.");
+        }
+        return creerPourChauffeur(request, chauffeur);
+    }
 
+    @Override
+    @Transactional
+    public TrajetDto createTrajetForAdmin(CreateTrajetRequest request) {
+        if (request.chauffeurId() == null) throw new BusinessException("Sélectionnez un chauffeur existant.");
+        Voyageur chauffeur = voyageurService.getById(request.chauffeurId());
+        adminAuthorizationService.checkVoyageurAccess(chauffeur);
+        adminAuthorizationService.checkVehiculeAccess(vehiculeService.getById(request.vehiculeId()));
+        return creerPourChauffeur(request, chauffeur);
+    }
+
+    private TrajetDto creerPourChauffeur(CreateTrajetRequest request, Voyageur chauffeur) {
         Vehicule vehicule = vehiculeService.getById(request.vehiculeId());
-
-        // Regle metier : un voyageur avec un solde impaye ne peut pas creer de trajet.
-        if (voyageurService.hasOutstandingBalance(organisateur.getId())) {
+        entityManager.lock(chauffeur, LockModeType.PESSIMISTIC_WRITE);
+        entityManager.refresh(chauffeur);
+        entityManager.lock(vehicule, LockModeType.PESSIMISTIC_WRITE);
+        entityManager.refresh(vehicule);
+        if (!Boolean.TRUE.equals(chauffeur.getPeutProposerTrajet())) {
+            throw new BusinessException("Ce voyageur n'est pas autorisé à proposer un trajet.");
+        }
+        if (voyageurService.hasOutstandingBalance(chauffeur.getId())) {
             throw new BusinessException("Vous avez un solde impayé et ne pouvez pas créer de trajet.");
         }
-        // Regle metier : un voyageur restreint ne peut pas creer de trajet.
-        if (voyageurService.hasActiveRestriction(organisateur.getId())) {
+        if (voyageurService.hasActiveRestriction(chauffeur.getId())) {
             throw new BusinessException("Vous avez une restriction active et ne pouvez pas créer de trajet.");
         }
-
-        validateBookingDelay(organisateur, request.trajetDate().toLocalDate());
-        validateAgenceAccessForOrganizer(organisateur, vehicule);
-        //Service metier debut et fin trajet
-        LocalDateTime dateDebut = request.trajetDate();
-        LocalDateTime dateFin = dateDebut.plusMinutes(vehicule.getAgence().getDureeTrajetMinutes());
-
-        validateAgenceNotClosed(vehicule, dateDebut.toLocalDate());
-        validateAgenceOpeningHours(vehicule, dateDebut.toLocalTime(), dateFin.toLocalTime());
-
-        // Regle metier : un vehicule ne peut pas avoir deux trajets sur le meme creneau horaire.
-        if (!isSlotAvailable(vehicule, dateDebut, dateFin)) {
+        if (request.villeDepart() == null || request.villeArrivee() == null
+                || request.villeDepart() == request.villeArrivee()) {
+            throw new BusinessException("Deux villes belges différentes sont obligatoires.");
+        }
+        LocalDateTime debut = request.trajetDate();
+        if (debut == null || !debut.isAfter(LocalDateTime.now())) {
+            throw new BusinessException("Le départ doit être futur.");
+        }
+        TypeTrajet type;
+        try { type = TypeTrajet.valueOf(request.trajetType()); }
+        catch (IllegalArgumentException | NullPointerException ex) { throw new BusinessException("Type de trajet invalide."); }
+        validateAgenceAccessForOrganizer(chauffeur, vehicule);
+        LocalDateTime fin = debut.plusMinutes(vehicule.getAgence().getDureeTrajetMinutes());
+        validateAgenceNotClosed(vehicule, debut.toLocalDate());
+        validateAgenceOpeningHours(vehicule, debut.toLocalTime(), fin.toLocalTime());
+        if (!isSlotAvailable(vehicule, debut, fin)) {
             throw new BusinessException("Ce créneau est déjà réservé sur le vehicule : " + vehicule.getId());
         }
-
-        Trajet trajet = new Trajet();
-        trajet.setChauffeur(organisateur);
-        trajet.setVehicule(vehicule);
-        trajet.setDateDebut(dateDebut);
-        trajet.setDateFin(dateFin);
-        trajet.setTypeTrajet(TypeTrajet.valueOf(request.trajetType()));
-        trajet.setStatut(StatutTrajet.PLANIFIE);
-        trajet.setNbPassagersActuels(0);
-        trajet.setPrixTotal(PRIX_TRAJET_EUROS);
-        trajet.setPrixParPassager(PRIX_TRAJET_EUROS / REQUIRED_PASSAGERS_PER_TRAJET);
-
-        Trajet savedTrajet = trajetRepository.save(trajet);
-        // Regle metier : l'organisateur commence avec une reservation en attente et un paiement associe.
-        createPendingReservationForOrganizer(savedTrajet, organisateur);
-        log.info("Trajet créé avec succès (ID: {}) par l'utilisateur {}", savedTrajet.getId(), username);
-
-        return trajetMapper.toTrajetDto(savedTrajet);
+        if (trajetRepository.existsChauffeurOverlap(chauffeur.getId(), debut, fin, 0L)) {
+            throw new BusinessException("Le chauffeur effectue déjà un trajet à cet horaire.");
+        }
+        Trajet trajet = Trajet.builder().chauffeur(chauffeur).vehicule(vehicule)
+                .dateDebut(debut).dateFin(fin).villeDepart(request.villeDepart()).villeArrivee(request.villeArrivee())
+                .typeTrajet(type).statut(StatutTrajet.PLANIFIE).nbPassagersActuels(0)
+                .publicationAutomatiqueAutorisee(request.publicationAutomatiqueAutorisee())
+                .prixTotal(PRIX_TRAJET_EUROS.doubleValue()).prixParPassager(PRIX_CLIENT_EUROS.doubleValue()).build();
+        return trajetMapper.toTrajetDto(trajetRepository.save(trajet));
     }
 
     @Override
@@ -97,10 +115,18 @@ public class TrajetServiceImpl implements TrajetService {
 
     @Override
     public List<TrajetDto> getPublicAvailableTrajets() {
-        return trajetRepository.findByTypeTrajetAndStatut(TypeTrajet.PUBLIC, StatutTrajet.PLANIFIE)
-                .stream()
-                .map(trajetMapper::toTrajetDto)
-                .collect(Collectors.toList());
+        return searchPublicTrajets(null, null, null);
+    }
+
+    @Override
+    public List<TrajetDto> searchPublicTrajets(VilleBelge depart, VilleBelge arrivee, LocalDate date) {
+        return trajetRepository.findByTypeTrajetAndStatut(TypeTrajet.PUBLIC, StatutTrajet.PLANIFIE).stream()
+                .filter(t -> t.getChauffeur() != null && t.getVilleDepart() != null && t.getVilleArrivee() != null)
+                .filter(t -> t.getDateDebut().isAfter(LocalDateTime.now()) && t.getNbPassagersActuels() < Trajet.MAX_CLIENTS)
+                .filter(t -> depart == null || t.getVilleDepart() == depart)
+                .filter(t -> arrivee == null || t.getVilleArrivee() == arrivee)
+                .filter(t -> date == null || t.getDateDebut().toLocalDate().equals(date))
+                .map(trajetMapper::toTrajetDto).toList();
     }
 
     @Override
@@ -134,6 +160,9 @@ public class TrajetServiceImpl implements TrajetService {
     @Transactional
     public TrajetDto updateTrajet(Long trajetId, TrajetRequest request) {
         Trajet trajet = getTrajetEntityById(trajetId);
+        entityManager.lock(trajet, LockModeType.PESSIMISTIC_WRITE);
+        entityManager.refresh(trajet);
+        entityManager.lock(trajet.getChauffeur(), LockModeType.PESSIMISTIC_WRITE);
 
         // Regle metier : un trajet annule ne peut plus etre modifie.
         if (trajet.getStatut() == StatutTrajet.ANNULE) {
@@ -145,6 +174,8 @@ public class TrajetServiceImpl implements TrajetService {
         }
 
         Vehicule vehicule = vehiculeService.getById(request.getVehiculeId());
+        entityManager.lock(vehicule, LockModeType.PESSIMISTIC_WRITE);
+        entityManager.refresh(vehicule);
         LocalDateTime dateDebut = request.getDate().atTime(request.getHeureDebut());
         LocalDateTime dateFin = dateDebut.plusMinutes(vehicule.getAgence().getDureeTrajetMinutes());
 
@@ -156,6 +187,10 @@ public class TrajetServiceImpl implements TrajetService {
             throw new BusinessException("Ce créneau est déjà réservé sur le vehicule : " + vehicule.getId());
         }
 
+        if (!dateDebut.isAfter(LocalDateTime.now())
+                || trajetRepository.existsChauffeurOverlap(trajet.getChauffeur().getId(), dateDebut, dateFin, trajetId)) {
+            throw new BusinessException("Horaire passé ou incompatible pour ce chauffeur.");
+        }
         trajet.setVehicule(vehicule);
         trajet.setDateDebut(dateDebut);
         trajet.setDateFin(dateFin);
@@ -167,40 +202,16 @@ public class TrajetServiceImpl implements TrajetService {
     @Override
     @Transactional
     public void cancelTrajet(Long trajetId, Long requesterId) {
-        Trajet trajet = getTrajetEntityById(trajetId);
-
-        // Regle metier : un trajet deja annule ne peut pas etre annule une seconde fois.
-        if (trajet.getStatut() == StatutTrajet.ANNULE) {
-            throw new BusinessException("Ce trajet est déjà annulé.");
-        }
-        // Regle metier : seul l'organisateur peut annuler son trajet.
-        if (!trajet.getChauffeur().getId().equals(requesterId)) {
-            throw new BusinessException("Seul l'organisateur peut annuler ce trajet.");
-        }
-
-        trajet.setStatut(StatutTrajet.ANNULE);
-        trajetRepository.save(trajet);
-        log.info("Trajet {} annulé par l'organisateur {}", trajetId, requesterId);
+        reservationService.cancelTrajet(trajetId, requesterId);
     }
 
     @Override
     @Transactional
     public void checkAndConvertExpiredPrivateTrajets() {
-        LocalDate tomorrow = LocalDate.now().plusDays(1);
-        LocalDateTime startOfDay = tomorrow.atStartOfDay();
-        LocalDateTime endOfDay = tomorrow.atTime(LocalTime.MAX);
-
-        // Regle metier : a J-1, un trajet prive incomplet redevient public et restreint son organisateur.
-        List<Trajet> expiredTrajets = trajetRepository
-                .findByDateDebutBetweenAndStatut(startOfDay, endOfDay, StatutTrajet.PLANIFIE)
-                .stream()
-                .filter(m -> m.getTypeTrajet() == TypeTrajet.PRIVE && m.getNbPassagersActuels() < REQUIRED_PASSAGERS_PER_TRAJET)
-                .toList();
-        //sheduler active converti en public la veille
-        if (!expiredTrajets.isEmpty()) {
-            expiredTrajets.forEach(m -> convertToPublic(m.getId()));
-            log.info("Scheduler : {} trajet(s) privé(s) ont été converti(s) en public", expiredTrajets.size());
-        }
+        LocalDateTime maintenant = LocalDateTime.now();
+        trajetRepository.findByDateDebutBetweenAndStatut(maintenant, maintenant.plusHours(24), StatutTrajet.PLANIFIE)
+                .stream().filter(t -> t.getTypeTrajet() == TypeTrajet.PRIVE && t.isPublicationAutomatiqueAutorisee())
+                .forEach(t -> convertToPublic(t.getId()));
     }
 
 
@@ -208,53 +219,24 @@ public class TrajetServiceImpl implements TrajetService {
     @Transactional
     public void convertToPublic(Long trajetId) {
         Trajet trajet = getTrajetEntityById(trajetId);
-        // Regle metier : un trajet deja public ne peut pas etre converti en public.
-        if (trajet.getTypeTrajet() == TypeTrajet.PUBLIC) {
-            throw new BusinessException("Le trajet est déjà public.");
+        entityManager.lock(trajet, LockModeType.PESSIMISTIC_WRITE);
+        entityManager.refresh(trajet);
+        LocalDateTime maintenant = LocalDateTime.now();
+        if (trajet.getTypeTrajet() != TypeTrajet.PRIVE || !trajet.isPublicationAutomatiqueAutorisee()
+                || trajet.getStatut() != StatutTrajet.PLANIFIE
+                || !trajet.getDateDebut().isAfter(maintenant) || trajet.getDateDebut().isAfter(maintenant.plusHours(24))) {
+            throw new BusinessException("Publication autorisée uniquement avec le consentement du chauffeur dans les 24 heures avant départ.");
         }
         trajet.setTypeTrajet(TypeTrajet.PUBLIC);
-        trajet.setDateConversionPublic(LocalDateTime.now());
-        trajetRepository.save(trajet);
-        voyageurService.addRestriction(trajet.getChauffeur().getId());
-        log.info("Trajet {} converti en public, restriction appliquée à l'organisateur {}", trajetId, trajet.getChauffeur().getId());
-    }
-
-    @Override
-    @Transactional
-    public void incrementPassagers(Long trajetId) {
-        Trajet trajet = getTrajetEntityById(trajetId);
-        incrementPassagersForTrajet(trajet, true);
-    }
-
-    private void incrementPassagersForTrajet(Trajet trajet, boolean save) {
-        // Regle metier : un trajet de transport doit contenir exactement 4 passagers.
-        // Des que les 4 places sont occupees, le trajet devient complet.
-        if (trajet.getNbPassagersActuels() >= REQUIRED_PASSAGERS_PER_TRAJET) {
-            throw new BusinessException("Le trajet est déjà complet.");
-        }
-        trajet.setNbPassagersActuels(trajet.getNbPassagersActuels() + 1);
-        if (trajet.getNbPassagersActuels() == REQUIRED_PASSAGERS_PER_TRAJET) {
-            trajet.setStatut(StatutTrajet.COMPLET);
-        }
-        if (save) {
-            trajetRepository.save(trajet);
-        }
-    }
-
-    @Override
-    @Transactional
-    public void decrementPassagers(Long trajetId) {
-        Trajet trajet = getTrajetEntityById(trajetId);
-        // Regle metier : impossible de retirer un passager d'un trajet vide.
-        if (trajet.getNbPassagersActuels() <= 0) {
-            throw new BusinessException("Le trajet n'a aucun passager.");
-        }
-        trajet.setNbPassagersActuels(trajet.getNbPassagersActuels() - 1);
-        if (trajet.getStatut() == StatutTrajet.COMPLET) {
-            trajet.setStatut(StatutTrajet.PLANIFIE);
-        }
+        trajet.setDateConversionPublic(maintenant);
         trajetRepository.save(trajet);
     }
+
+
+
+
+
+
     //la règle des 15 minutes entre deux trajets
     private boolean isSlotAvailable(Vehicule vehicule, LocalDateTime start, LocalDateTime end) {
         int breakMinutes = vehicule.getAgence().getDureeEntreTrajetMinutes();
@@ -278,24 +260,7 @@ public class TrajetServiceImpl implements TrajetService {
         return existingTrajets.stream().allMatch(m -> m.getId().equals(excludedTrajetId));
     }
 
-    private void validateBookingDelay(Voyageur voyageur, LocalDate trajetDate) {
-        long daysUntilTrajet = ChronoUnit.DAYS.between(LocalDate.now(), trajetDate);
-        int maxDaysAhead = switch (voyageur.getTypeVoyageur()) {
-            case VIP -> 21;
-            case LOCAL -> 14;
-            case LIBRE -> 5;
-        };
 
-        // Regle metier : la date du trajet ne peut pas etre dans le passe.
-        if (daysUntilTrajet < 0) {
-            throw new BusinessException("La date du trajet est déjà passée.");
-        }
-        // Regle metier : le delai de reservation depend du type de voyageur.
-        if (daysUntilTrajet > maxDaysAhead) {
-            throw new BusinessException("Le voyageur " + voyageur.getTypeVoyageur()
-                    + " ne peut pas réserver plus de " + maxDaysAhead + " jours à l'avance.");
-        }
-    }
     //methode fermeture globaux de agence
     private void validateAgenceNotClosed(Vehicule vehicule, LocalDate date) {
         boolean closedGlobally = indisponibiliteServiceRepository.existsByDateAndGlobalTrue(date);
@@ -324,23 +289,5 @@ public class TrajetServiceImpl implements TrajetService {
         }
     }
 
-    private void createPendingReservationForOrganizer(Trajet trajet, Voyageur organisateur) {
-        Reservation reservation = Reservation.builder()
-                .trajet(trajet)
-                .voyageur(organisateur)
-                .statut(StatutReservation.EN_ATTENTE)
-                .build();
-        reservation = reservationRepository.save(reservation);
 
-        Paiement paiement = Paiement.builder()
-                .reservation(reservation)
-                .montant(trajet.getPrixParPassager())
-                .statut(StatutPaiement.EN_ATTENTE)
-                .build();
-        paiement = paiementRepository.save(paiement);
-        reservation.setPaiement(paiement);
-
-        // Regle metier : la reservation en attente de l'organisateur bloque une place.
-        incrementPassagersForTrajet(trajet, false);
-    }
 }

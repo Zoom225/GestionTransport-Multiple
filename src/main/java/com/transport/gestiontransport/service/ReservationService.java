@@ -13,4 +13,7 @@ public interface ReservationService {
     void checkReservationOwner(Long reservationId, Long voyageurId);
     void cancel(Long reservationId);
     void confirm(Long reservationId);
+    Reservation preparePaiement(Long reservationId, Long voyageurId);
+    void expirePendingReservations();
+    void cancelTrajet(Long trajetId, Long chauffeurId);
 }

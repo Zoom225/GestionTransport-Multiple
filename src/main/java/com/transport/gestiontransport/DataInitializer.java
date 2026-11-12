@@ -369,8 +369,8 @@ public class DataInitializer implements CommandLineRunner {
                 .typeTrajet(typeTrajet)
                 .statut(statut)
                 .nbPassagersActuels(nbPassagersActuels)
-                .prixTotal(TrajetService.PRIX_TRAJET_EUROS)
-                .prixParPassager(TrajetService.PRIX_TRAJET_EUROS / TrajetService.REQUIRED_PASSAGERS_PER_TRAJET)
+                .prixTotal(TrajetService.PRIX_TRAJET_EUROS.doubleValue())
+                .prixParPassager(TrajetService.PRIX_CLIENT_EUROS.doubleValue())
                 .build());
     }
 

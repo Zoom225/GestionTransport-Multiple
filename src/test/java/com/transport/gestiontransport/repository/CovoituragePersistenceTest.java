@@ -52,7 +52,7 @@ class CovoituragePersistenceTest {
         assertThat(saved.getCreatedAt()).isNotNull();
         assertThat(jdbc.queryForObject("SELECT type_membre FROM membres WHERE id=?", String.class,
                 saved.getChauffeur().getId())).isEqualTo("GLOBAL");
-        assertThat(trajets.existsChauffeurOverlap(saved.getChauffeur().getId(), saved.getDateDebut(), saved.getDateFin())).isTrue();
+        assertThat(trajets.existsChauffeurOverlap(saved.getChauffeur().getId(), saved.getDateDebut(), saved.getDateFin(), 0L)).isTrue();
     }
 
     @Test

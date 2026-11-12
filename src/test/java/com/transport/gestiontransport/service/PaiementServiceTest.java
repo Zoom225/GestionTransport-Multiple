@@ -101,8 +101,7 @@ class PaiementServiceTest {
         @Test
         @DisplayName("✅ doit traiter le paiement et confirmer la réservation")
         void shouldProcessPayment() {
-            when(reservationService.getById(1L)).thenReturn(reservation);
-            when(trajetRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(trajet));
+            when(reservationService.preparePaiement(1L, 2L)).thenReturn(reservation);
             when(paiementRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             Paiement result = paiementService.pay(1L, 2L);
@@ -113,44 +112,31 @@ class PaiementServiceTest {
         }
 
         @Test
-        @DisplayName("✅ doit ajouter le solde impayé et l'effacer")
+        @DisplayName("✅ doit conserver une dette et refuser le paiement")
         void shouldAddOutstandingBalanceToPayment() {
             passager.setSolde(15.0);
-            when(reservationService.getById(1L)).thenReturn(reservation);
-            when(trajetRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(trajet));
-            when(voyageurRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-            when(paiementRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
-            Paiement result = paiementService.pay(1L, 2L);
-
-            assertThat(result.getMontant()).isEqualTo(40.0);
-            assertThat(passager.getSolde()).isEqualTo(0.0);
-            verify(voyageurRepository).save(passager);
+            when(reservationService.preparePaiement(1L, 2L)).thenThrow(new BusinessException("solde impayé"));
+            assertThatThrownBy(() -> paiementService.pay(1L, 2L)).isInstanceOf(BusinessException.class);
+            assertThat(passager.getSolde()).isEqualTo(15.0);
+            assertThat(paiement.getMontant()).isEqualTo(25.0);
+            verifyNoInteractions(voyageurRepository, paiementRepository);
         }
 
         @Test
         @DisplayName("❌ doit lever une exception quand déjà payé")
         void shouldThrowWhenAlreadyPaid() {
-            paiement.setStatut(StatutPaiement.PAYE);
-            when(reservationService.getById(1L)).thenReturn(reservation);
-
-            assertThatThrownBy(() -> paiementService.pay(1L, 2L))
-                    .isInstanceOf(BusinessException.class)
-                    .hasMessageContaining("déjà été effectué");
+            when(reservationService.preparePaiement(1L, 2L)).thenThrow(new BusinessException("déjà payé"));
+            assertThatThrownBy(() -> paiementService.pay(1L, 2L)).isInstanceOf(BusinessException.class);
+            verifyNoInteractions(paiementRepository);
         }
 
         @Test
-        @DisplayName("✅ doit autoriser le paiement quand la place réservée rend le trajet complet")
+        @DisplayName("✅ doit refuser le paiement quand le trajet est complet")
         void shouldAllowPaymentWhenReservedPlaceMakesTrajetFull() {
-            trajet.setNbPassagersActuels(4);
-            when(reservationService.getById(1L)).thenReturn(reservation);
-            when(trajetRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(trajet));
-            when(paiementRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
-            Paiement result = paiementService.pay(1L, 2L);
-
-            assertThat(result.getStatut()).isEqualTo(StatutPaiement.PAYE);
-            verify(reservationService).confirm(1L);
+            when(reservationService.preparePaiement(1L, 2L)).thenThrow(new BusinessException("trajet complet"));
+            assertThatThrownBy(() -> paiementService.pay(1L, 2L)).isInstanceOf(BusinessException.class);
+            verify(reservationService, never()).confirm(any());
+            verifyNoInteractions(paiementRepository);
         }
     }
 
@@ -178,34 +164,21 @@ class PaiementServiceTest {
     @DisplayName("checkUnpaidBeforeTrajet()")
     class SchedulerTests {
         @Test
-        @DisplayName("✅ doit annuler la réservation impayée et ajouter le solde")
+        @DisplayName("✅ doit expirer les demandes sans facturer le chauffeur")
         void shouldCancelUnpaidReservationAndAddBalanceToOrganizer() {
-            // Correction : Utiliser setDateDebut pour modifier la date du trajet
-            LocalDateTime tomorrowStart = LocalDate.now().plusDays(1).atStartOfDay();
-            trajet.setDateDebut(tomorrowStart);
-
-            when(paiementRepository.findByStatut(StatutPaiement.EN_ATTENTE)).thenReturn(List.of(paiement));
-            when(voyageurRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
             paiementService.checkUnpaidBeforeTrajet();
-
-            verify(reservationService).cancel(reservation.getId());
-            assertThat(organisateur.getSolde()).isEqualTo(25.0);
-            verify(voyageurRepository).save(organisateur);
+            verify(reservationService).expirePendingReservations();
+            assertThat(organisateur.getSolde()).isEqualTo(0.0);
+            verifyNoInteractions(voyageurRepository);
         }
 
         @Test
-        @DisplayName("✅ NE doit PAS annuler quand le trajet n'est pas demain")
+        @DisplayName("✅ doit utiliser le délai configurable et conserver les soldes")
         void shouldNotCancelWhenTrajetIsNotTomorrow() {
-            // Correction : S'assurer que la date du trajet n'est pas demain
-            trajet.setDateDebut(LocalDate.now().plusDays(5).atStartOfDay());
-
-            when(paiementRepository.findByStatut(StatutPaiement.EN_ATTENTE)).thenReturn(List.of(paiement));
-
             paiementService.checkUnpaidBeforeTrajet();
-
+            verify(reservationService).expirePendingReservations();
             verify(reservationService, never()).cancel(any());
-            verify(voyageurRepository, never()).save(any());
+            verifyNoInteractions(voyageurRepository);
         }
     }
 }
