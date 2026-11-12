@@ -17,7 +17,8 @@ nouveaux packages, routes et contrats. Le périmètre et les exceptions de
 compatibilité sont décrits dans [Nomenclature Transport](docs/nomenclature-transport.md).
 
 Les sections ci-dessous sont conservées comme documentation historique du socle.
-Les noms de base, comptes et volumes existants doivent être préservés ; les
+Le volume existant doit être préservé ; le nom de base et le compte sont migrés
+explicitement selon la procédure ci-dessous. Les
 anciennes routes et les anciens noms de classes ne décrivent plus le code courant.
 
 - Backend : Spring Boot 3.5, Java 21, Maven
@@ -60,12 +61,17 @@ Le projet utilise PostgreSQL via Docker.
 Configuration :
 
 ```text
-Base       : padelService
-Utilisateur: padel
-Mot de passe: padel
+Base       : transportService
+Utilisateur: transport
+Mot de passe: transport
 Port local : 5440
 Port Docker: 5432
 ```
+
+Ces identifiants sont ceux du développement local. DB_USER et DB_PASSWORD
+permettent de fournir d'autres valeurs. Pour un volume déjà initialisé, modifier
+le Compose ne change ni le compte ni le nom de base PostgreSQL : utiliser la
+[migration des identifiants de développement](docs/identifiants-postgresql.md).
 
 Demarrer PostgreSQL :
 
@@ -85,11 +91,8 @@ Arreter PostgreSQL :
 docker compose down
 ```
 
-Supprimer aussi les donnees de la base :
-
-```bash
-docker compose down -v
-```
+Conserver le volume PostgreSQL : ne pas utiliser l'option `-v` de `down` pour
+changer les identifiants ou dépanner un démarrage.
 
 ## Backend Spring Boot
 
@@ -110,9 +113,9 @@ src/main/resources/application.properties
 Connexion a la base :
 
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5440/padelService
-spring.datasource.username=padel
-spring.datasource.password=padel
+spring.datasource.url=${DB_URL:jdbc:postgresql://localhost:5440/transportService}
+spring.datasource.username=${DB_USER:transport}
+spring.datasource.password=${DB_PASSWORD:transport}
 server.port=8080
 ```
 

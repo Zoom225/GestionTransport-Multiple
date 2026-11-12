@@ -64,8 +64,10 @@ colonnes historiques restent dans les annotations JPA. Les autres tables restent
 de compatibilité. Ces exceptions évitent une création de colonnes ou une perte
 de données par renommage implicite ; elles nécessiteront une migration validée.
 
-Le nom de base, le compte et les identifiants du volume/conteneur Docker existants
-restent conservés. L'artifactId commité et le module IDE associé restent ceux du
+Les identifiants du volume/conteneur Docker existants restent conservés. La base
+est désormais transportService et le compte de développement transport : voir la
+[migration explicite des identifiants](identifiants-postgresql.md).
+L'artifactId commité et le module IDE associé restent ceux du
 socle tant que le diff local de l'artifactId n'est pas intégré volontairement.
 Les audits et l'ancienne documentation sont explicitement historiques ; le
 [guide d'exécution Transport](transport-execution.md) décrit les contrats courants.
