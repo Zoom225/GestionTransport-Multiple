@@ -6,6 +6,9 @@ import { apiUrl } from './api-url';
 
 @Injectable({ providedIn: 'root' })
 export class VoyageursApiService {
+  getRestrictions(id: number): Observable<import('../../shared/models/voyageur.model').RestrictionResponse[]> {
+    return this.http.get<import('../../shared/models/voyageur.model').RestrictionResponse[]>(apiUrl(`/voyageurs/${id}/restrictions`));
+  }
   constructor(private readonly http: HttpClient) {}
 
   getAll(): Observable<VoyageurResponse[]> {

@@ -271,6 +271,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
             </div>
 
             <div class="adm-voyageur-actions">
+              <button mat-button type="button" (click)="voirRestrictions(voyageur.id)">Historique des restrictions</button>
               <button class="adm-action-edit" (click)="edit(voyageur)">
                 ✏️ {{ language.t('admin.voyageurs.edit') }}
               </button>
@@ -278,6 +279,13 @@ import { LanguageService } from '../../../core/i18n/language.service';
                 🗑️ {{ language.t('admin.voyageurs.delete') }}
               </button>
             </div>
+            @if (historiqueVoyageurId() === voyageur.id) {
+              <div class="p-4" aria-live="polite">
+                @for (restriction of historiqueRestrictions(); track restriction.id) {
+                  <p class="break-words">{{ restriction.motif }} — {{ restriction.dateDebut ? (restriction.dateDebut | date:'dd/MM/yyyy') : 'Début historique non renseigné' }} → {{ restriction.dateFin | date:'dd/MM/yyyy' }} : {{ restriction.active ? 'Active' : 'Inactive' }}</p>
+                } @empty { <p>Aucune restriction enregistrée.</p> }
+              </div>
+            }
           </div>
         }
       </div>
@@ -628,6 +636,16 @@ import { LanguageService } from '../../../core/i18n/language.service';
   `,
 })
 export class AdminVoyageursPage {
+  readonly historiqueVoyageurId = signal<number | null>(null);
+  readonly historiqueRestrictions = signal<import('../../../shared/models/voyageur.model').RestrictionResponse[]>([]);
+
+  voirRestrictions(id: number): void {
+    this.historiqueVoyageurId.set(null);
+    this.voyageursApi.getRestrictions(id).subscribe({
+      next: rows => { this.historiqueRestrictions.set(rows); this.historiqueVoyageurId.set(id); },
+      error: error => this.errorMessage.set(extractApiErrorMessage(error, "L'historique est indisponible."))
+    });
+  }
   private readonly voyageursApi = inject(VoyageursApiService);
   private readonly agencesApi = inject(AgencesApiService);
   private readonly adminSession = inject(AdminSessionService);

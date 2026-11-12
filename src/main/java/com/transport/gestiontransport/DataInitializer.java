@@ -49,8 +49,8 @@ public class DataInitializer implements CommandLineRunner {
         if (databaseUrl == null || !databaseUrl.matches("jdbc:postgresql://[^/]+/(issue1_validation_[a-z0-9_]+|transport_demo_[a-z0-9_]+)(\\?.*)?")) {
             throw new IllegalStateException("La démonstration exige une base isolée explicitement nommée.");
         }
-        if (demoPassword == null || demoPassword.length() < 12) {
-            throw new IllegalStateException("DEMO_PASSWORD doit être fourni par l'environnement avec au moins 12 caractères.");
+        if (demoPassword == null || demoPassword.length() < 12 || demoPassword.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72) {
+            throw new IllegalStateException("DEMO_PASSWORD doit contenir au moins 12 caractères et au maximum 72 octets UTF-8 pour BCrypt.");
         }
         Agence agence = agenceRepository.save(Agence.builder().nom("Agence Bruxelles — DÉMONSTRATION")
                 .adresse("Bruxelles, Belgique").heureOuverture(LocalTime.of(6, 0)).heureFermeture(LocalTime.of(23, 0))
@@ -74,12 +74,20 @@ public class DataInitializer implements CommandLineRunner {
         administrateurRepository.save(Administrateur.builder().matricule("AD1002").nom("Démo").prenom("Admin local")
                 .email("agence@example.test").passwordHash(hash).typeAdministrateur(TypeAdministrateur.AGENCE).agence(agence).build());
         LocalDate jour = LocalDate.now().plusDays(2);
-        trajetRepository.save(Trajet.builder().chauffeur(chauffeur).vehicule(voiture)
-                .villeDepart(VilleBelge.MONS).villeArrivee(VilleBelge.BRUXELLES)
-                .dateDebut(jour.atTime(9, 0)).dateFin(jour.atTime(10, 30)).typeTrajet(TypeTrajet.PUBLIC)
+        VilleBelge[][] parcours = {
+                {VilleBelge.MONS, VilleBelge.BRUXELLES}, {VilleBelge.BRUXELLES, VilleBelge.MONS},
+                {VilleBelge.CHARLEROI, VilleBelge.BRUXELLES}, {VilleBelge.NAMUR, VilleBelge.BRUXELLES},
+                {VilleBelge.LIEGE, VilleBelge.BRUXELLES}, {VilleBelge.BRUXELLES, VilleBelge.ANVERS},
+                {VilleBelge.GAND, VilleBelge.BRUXELLES}, {VilleBelge.LOUVAIN, VilleBelge.BRUXELLES}};
+        for (int i = 0; i < parcours.length; i++) {
+            java.time.LocalDateTime depart = jour.atTime(7 + 2 * i, 0);
+            trajetRepository.save(Trajet.builder().chauffeur(chauffeur).vehicule(voiture)
+                .villeDepart(parcours[i][0]).villeArrivee(parcours[i][1])
+                .dateDebut(depart).dateFin(depart.plusMinutes(90)).typeTrajet(i == 1 || i == 7 ? TypeTrajet.PRIVE : TypeTrajet.PUBLIC)
                 .statut(StatutTrajet.PLANIFIE).nbPassagersActuels(0)
                 .prixTotal(TrajetService.PRIX_TRAJET_EUROS.doubleValue())
                 .prixParPassager(TrajetService.PRIX_CLIENT_EUROS.doubleValue()).build());
+        }
         log.info("Démonstration créée sur base isolée vide : aucune réservation ni aucun paiement de chauffeur.");
     }
 }

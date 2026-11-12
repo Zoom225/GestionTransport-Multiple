@@ -33,3 +33,11 @@ export interface VoyageurResponse {
 export interface LoginResponse extends VoyageurResponse {
   token: string;
 }
+export interface RestrictionResponse {
+  id: number;
+  motif: string;
+  sourceEvenement: string | null;
+  dateDebut: string | null;
+  dateFin: string;
+  active: boolean;
+}

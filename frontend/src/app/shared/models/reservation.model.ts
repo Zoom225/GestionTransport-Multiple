@@ -19,6 +19,8 @@ export interface PaiementResponse {
 }
 
 export interface ReservationResponse {
+  absenceDeclareeLe?: string | null;
+  motifAbsence?: string | null;
   villeDepart?: string | null;
   villeArrivee?: string | null;
   id: number;

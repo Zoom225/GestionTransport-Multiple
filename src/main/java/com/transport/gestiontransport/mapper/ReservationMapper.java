@@ -26,6 +26,8 @@ public class ReservationMapper {
 
         return ReservationResponse.builder()
                 .id(reservation.getId())
+                .absenceDeclareeLe(reservation.getAbsenceDeclareeLe())
+                .motifAbsence(reservation.getMotifAbsence())
                 .trajetId(reservation.getTrajet().getId())
                 .trajetDateTime(reservation.getTrajet().getDateDebut())
                 .villeDepart(reservation.getTrajet().getVilleDepart())

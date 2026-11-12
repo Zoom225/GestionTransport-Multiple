@@ -45,6 +45,8 @@ class ReservationServiceTest {
     @Mock
     private jakarta.persistence.EntityManager entityManager;
 
+    @Mock private com.transport.gestiontransport.service.impl.AdminAuthorizationService adminAuthorizationService;
+
     @InjectMocks
     private ReservationServiceImpl reservationService;
 
@@ -57,6 +59,102 @@ class ReservationServiceTest {
     private Trajet trajetPrive;
     private Trajet trajetPublic;
     private Trajet trajetComplet;
+
+    @Nested
+    class PenalitesTests {
+        private Reservation reservationPayee() {
+            Reservation reservation = Reservation.builder().trajet(trajetPublic).voyageur(passager)
+                    .statut(StatutReservation.CONFIRMEE).paiement(com.transport.gestiontransport.entity.Paiement.builder()
+                            .montant(25.0).statut(com.transport.gestiontransport.entity.enums.StatutPaiement.PAYE).build()).build();
+            reservation.setId(90L);
+            when(reservationRepository.findById(90L)).thenReturn(Optional.of(reservation));
+            lenient().when(trajetRepository.findById(trajetPublic.getId())).thenReturn(Optional.of(trajetPublic));
+            return reservation;
+        }
+
+        private void activer(String champ, Object valeur) {
+            org.springframework.test.util.ReflectionTestUtils.setField(reservationService, champ, valeur);
+        }
+
+        @Test void absenceRefuseeSansAdministrateur() {
+            assertThatThrownBy(() -> reservationService.declarerAbsence(90L, "Absence vérifiée"))
+                    .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+            verifyNoInteractions(voyageurService, reservationRepository);
+        }
+
+        @Test void absenceFutureRefusee() {
+            reservationPayee();
+            when(adminAuthorizationService.isAdmin()).thenReturn(true);
+            assertThatThrownBy(() -> reservationService.declarerAbsence(90L, "Absence vérifiée"))
+                    .isInstanceOf(BusinessException.class);
+            verifyNoInteractions(voyageurService);
+        }
+
+        @Test void declarationExpliciteIdempotenteSansSanctionParDefaut() {
+            Reservation reservation = reservationPayee();
+            trajetPublic.setDateDebut(java.time.LocalDateTime.now().minusHours(1));
+            when(adminAuthorizationService.isAdmin()).thenReturn(true);
+            reservationService.declarerAbsence(90L, "Absence vérifiée par téléphone");
+            reservationService.declarerAbsence(90L, "Ne pas réécrire la première déclaration");
+            assertThat(reservation.getMotifAbsence()).isEqualTo("Absence vérifiée par téléphone");
+            assertThat(reservation.getAbsenceDeclareeLe()).isNotNull();
+            verify(reservationRepository).save(reservation);
+            verifyNoInteractions(voyageurService);
+        }
+
+        @Test void absenceAvecPolitiqueValideeAppliqueUneSeuleRestriction() {
+            Reservation reservation = reservationPayee();
+            trajetPublic.setDateDebut(java.time.LocalDateTime.now().minusHours(1));
+            when(adminAuthorizationService.isAdmin()).thenReturn(true);
+            activer("absenceActive", true);
+            reservationService.declarerAbsence(90L, "Absence injustifiée vérifiée");
+            reservationService.declarerAbsence(90L, "Absence injustifiée vérifiée");
+            verify(voyageurService).addRestrictionPourEvenement(eq(passager.getId()), eq("absence:90"), anyString());
+            assertThat(reservation.getStatut()).isEqualTo(StatutReservation.CONFIRMEE);
+        }
+
+        @Test void annulationTardiveClientConfirmeDeclencheLaPolitiqueActivee() {
+            reservationPayee();
+            trajetPublic.setDateDebut(java.time.LocalDateTime.now().plusHours(1));
+            activer("annulationTardiveActive", true);
+            activer("seuilAnnulationHeures", 2);
+            reservationService.cancelForUser(90L, passager.getId());
+            verify(voyageurService).addRestrictionPourEvenement(eq(passager.getId()), eq("annulation-client:90"), anyString());
+        }
+
+        @Test void chauffeurAnnulantUnClientNeSanctionnePasCeClient() {
+            reservationPayee();
+            trajetPublic.setDateDebut(java.time.LocalDateTime.now().plusHours(1));
+            activer("annulationTardiveActive", true);
+            activer("seuilAnnulationHeures", 2);
+            reservationService.cancelForUser(90L, organisateur.getId());
+            verifyNoInteractions(voyageurService);
+        }
+
+        @Test void demandeNonPayeeAnnuleeNeCreePasDeDetteNiSanction() {
+            Reservation reservation = reservationPayee();
+            reservation.setStatut(StatutReservation.EN_ATTENTE);
+            reservation.getPaiement().setStatut(com.transport.gestiontransport.entity.enums.StatutPaiement.EN_ATTENTE);
+            trajetPublic.setDateDebut(java.time.LocalDateTime.now().plusHours(1));
+            activer("annulationTardiveActive", true);
+            activer("seuilAnnulationHeures", 2);
+            reservationService.cancelForUser(90L, passager.getId());
+            verifyNoInteractions(voyageurService);
+            assertThat(reservation.getPaiement().getStatut()).isEqualTo(com.transport.gestiontransport.entity.enums.StatutPaiement.ANNULE);
+        }
+
+        @Test void annulationsChauffeurSanctionneesSeulementAuSeuilValide() {
+            when(trajetRepository.findById(trajetPublic.getId())).thenReturn(Optional.of(trajetPublic));
+            when(reservationRepository.findByTrajetId(trajetPublic.getId())).thenReturn(java.util.List.of());
+            activer("annulationChauffeurActive", true);
+            activer("seuilAnnulationsChauffeur", 3);
+            activer("fenetreChauffeurJours", 30);
+            when(trajetRepository.countByChauffeurIdAndStatutAndDateAnnulationAfter(eq(organisateur.getId()), any(), any())).thenReturn(3L);
+            reservationService.cancelTrajet(trajetPublic.getId(), organisateur.getId());
+            assertThat(trajetPublic.getDateAnnulation()).isNotNull();
+            verify(voyageurService).addRestrictionPourEvenement(eq(organisateur.getId()), eq("annulation-chauffeur:" + trajetPublic.getId()), anyString());
+        }
+    }
 
     @BeforeEach
     void setUp() {

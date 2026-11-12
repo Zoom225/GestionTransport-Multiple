@@ -54,6 +54,32 @@ Angular : les 58 tests existants passent (`npm test`).
 
 ## Suite
 
+## Complément soutenance du 12 novembre 2026 — issue #4
+
+Le service Voyageur existant centralise les restrictions ; aucun second moteur n'est
+ajouté. `addRestrictionPourEvenement` verrouille le voyageur et enregistre un fait unique.
+La contrainte unique de `source_evenement` protège également les écritures concurrentes.
+Les nouvelles restrictions ont une date de début et une fin exclusive à J+7 par défaut.
+Les anciennes dates inconnues ne sont pas inventées. L'expiration se calcule à la lecture,
+sans suppression d'historique ni tâche planifiée supplémentaire.
+
+ReservationService applique les politiques optionnelles d'annulation tardive et abusive
+du chauffeur. Seuls les faits d'annulation réellement enregistrés depuis cette évolution
+entrent dans le comptage chauffeur : aucune date historique n'est reconstruite. Les seuils
+restent à zéro et les politiques désactivées jusqu'à validation métier explicite.
+Une annulation imposée par le chauffeur ne sanctionne pas automatiquement le client.
+
+L'absence est un acte administratif explicite sur une réservation confirmée et payée,
+après départ d'un trajet non annulé. Le déclarant et le motif sont tracés. Aucune absence
+n'est inférée par un scheduler. La déclaration est idempotente ; la suspension ne se
+déclenche que si la politique d'absence a été expressément activée.
+
+Un solde exigible positif reste bloquant, contrairement à une demande de paiement en
+attente. Aucun montant de sanction ou dette automatique n'est créé. Les règles de paiement,
+verrous de dernière place et remboursements existants sont réutilisés.
+
+Configuration, endpoints, migration additive et usage Angular sont détaillés dans le README.
+
 Issue #5 : exposer les villes et la recherche, compléter les DTO et sécuriser les
 accès privés et modifications par l'identité authentifiée.
 Issue #6 : adapter les formulaires Angular et les cartes de trajets à ces contrats.

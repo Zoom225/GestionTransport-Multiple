@@ -21,6 +21,11 @@ public class Restriction extends BaseEntity {
     @Column(nullable = false)
     private LocalDate dateFin;
 
+    private LocalDate dateDebut;
+
+    @Column(unique = true)
+    private String sourceEvenement;
+
     @Column(nullable = false)
     private String motif;
 }

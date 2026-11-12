@@ -28,6 +28,7 @@ describe('AdminVoyageursPage', () => {
 	update: ReturnType<typeof vi.fn>;
 	delete: ReturnType<typeof vi.fn>;
 	hasRestriction: ReturnType<typeof vi.fn>;
+	getRestrictions: ReturnType<typeof vi.fn>;
   };
   let agencesApiMock: { getAll: ReturnType<typeof vi.fn> };
   let adminSessionMock: {
@@ -42,7 +43,8 @@ describe('AdminVoyageursPage', () => {
 	  create: vi.fn().mockReturnValue(of(voyageurs[0])),
 	  update: vi.fn().mockReturnValue(of(voyageurs[1])),
 	  delete: vi.fn().mockReturnValue(of(void 0)),
-	  hasRestriction: vi.fn((id: number) => of(id === 2))
+	  hasRestriction: vi.fn((id: number) => of(id === 2)),
+	  getRestrictions: vi.fn().mockReturnValue(of([]))
 	};
 	agencesApiMock = {
 	  getAll: vi.fn().mockReturnValue(of(agences))
@@ -138,5 +140,15 @@ describe('AdminVoyageursPage', () => {
 
 	expect(voyageursApiMock.delete).toHaveBeenCalledWith(2);
 	expect(component.message()).toContain('Voyageur supprimé');
+  });
+
+  it('affiche les restrictions actives et historiques sans les supprimer', () => {
+    const historique = [{ id: 9, motif: 'Absence vérifiée', sourceEvenement: 'absence:1', dateDebut: '2026-11-01', dateFin: '2026-11-08', active: false }];
+    voyageursApiMock.getRestrictions = vi.fn().mockReturnValue(of(historique));
+    const fixture = TestBed.createComponent(AdminVoyageursPage);
+    fixture.componentInstance.voirRestrictions(1);
+    expect(voyageursApiMock.getRestrictions).toHaveBeenCalledWith(1);
+    expect(fixture.componentInstance.historiqueRestrictions()).toEqual(historique);
+    expect(fixture.componentInstance.historiqueVoyageurId()).toBe(1);
   });
 });

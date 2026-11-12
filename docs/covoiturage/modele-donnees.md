@@ -46,8 +46,9 @@ classDiagram
     }
     class Restriction {
         String motif
-        Instant appliqueeLe
-        Instant fin
+        LocalDate dateDebut
+        LocalDate dateFinExclusive
+        String sourceEvenementUnique
     }
     Agence "0..1" <-- "0..*" Voyageur : rattachement
     Agence "0..1" <-- "0..*" Vehicule : rattachement
@@ -58,12 +59,15 @@ classDiagram
     Trajet "1" <-- "0..*" Reservation : concerne
     Reservation "1" -- "0..1" Paiement : simulation
     Voyageur "1" <-- "0..*" Restriction : concerne
-    Reservation "0..1" <-- "0..*" Restriction : faitDeclencheur
-    Trajet "0..1" <-- "0..*" Restriction : faitDeclencheur
+    Administrateur "0..1" <-- "0..*" Reservation : declareAbsence
     Agence "0..1" <-- "0..*" IndisponibiliteService : perimetre
 ```
 
 Le diagramme exprime le modèle logique, pas des noms de champs à dupliquer.
+Les références de faits sont des clés stables `absence:id`, `annulation-client:id`
+ou `annulation-chauffeur:id` ; elles ne constituent pas deux nouvelles associations JPA.
+La réservation conserve `absence_declaree_le`, `motif_absence` et sa FK nullable
+`absence_admin_id`. Le trajet conserve la date effective de son annulation.
 Par exemple, dateDebut/dateFin existants portent le départ et l'arrivée estimée.
 L'association organisateur actuelle devient le conducteur autorisé : un seul
 lien JPA, pas deux liens contenant le même utilisateur.

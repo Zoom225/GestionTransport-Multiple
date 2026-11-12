@@ -54,11 +54,22 @@ class DataInitializerTest {
         when(agenceRepository.save(any())).thenAnswer(i -> i.getArgument(0));
         when(vehiculeRepository.save(any())).thenAnswer(i -> i.getArgument(0));
         when(voyageurRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(agenceRepository.count()).thenReturn(0L, 1L);
         dataInitializer.run();
-        verify(trajetRepository).save(argThat(t -> t.getChauffeur() != null
+        dataInitializer.run();
+        verify(trajetRepository, times(8)).save(argThat(t -> t.getChauffeur() != null
                 && Boolean.TRUE.equals(t.getChauffeur().getPeutProposerTrajet()) && t.getNbPassagersActuels() == 0
                 && t.getVilleDepart() != t.getVilleArrivee() && t.getPrixParPassager() == 25.0));
         verify(reservationRepository, never()).save(any());
         verify(paiementRepository, never()).save(any());
+    }
+
+    @Test
+    void refuseUnMotDePasseDepassantLaLimiteBcryptAvantTouteInsertion() {
+        ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://localhost:5440/transport_demo_test");
+        ReflectionTestUtils.setField(dataInitializer, "demoPassword", "a".repeat(73));
+        assertThatThrownBy(() -> dataInitializer.run()).isInstanceOf(IllegalStateException.class).hasMessageContaining("72 octets");
+        verify(agenceRepository, never()).save(any());
+        verifyNoInteractions(passwordEncoder);
     }
 }

@@ -103,6 +103,7 @@ public class VoyageurServiceImpl implements VoyageurService {
         if (dureeRestrictionJours < 1) throw new BusinessException("La durée de restriction doit être positive.");
         Restriction restriction = Restriction.builder()
                 .voyageur(voyageur)
+                .dateDebut(LocalDate.now())
                 .dateFin(LocalDate.now().plusDays(dureeRestrictionJours))
                 .motif("Suspension de réservation après décision métier validée")
                 .build();
@@ -122,6 +123,26 @@ public class VoyageurServiceImpl implements VoyageurService {
         }
 
         return voyageur;
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void addRestrictionPourEvenement(Long voyageurId, String source, String motif) {
+        if (!StringUtils.hasText(source) || !StringUtils.hasText(motif) || source.length() > 255 || motif.length() > 255) {
+            throw new BusinessException("Le motif et la référence de la restriction sont obligatoires (255 caractères maximum).");
+        }
+        Voyageur voyageur = voyageurRepository.findByIdForUpdate(voyageurId)
+                .orElseThrow(() -> new ResourceNotFoundException("Voyageur introuvable."));
+        if (restrictionRepository.existsBySourceEvenement(source)) return;
+        if (dureeRestrictionJours < 1) throw new BusinessException("La durée de restriction doit être positive.");
+        restrictionRepository.save(Restriction.builder().voyageur(voyageur).sourceEvenement(source)
+                .motif(motif).dateDebut(LocalDate.now()).dateFin(LocalDate.now().plusDays(dureeRestrictionJours)).build());
+    }
+
+    @Override
+    public List<Restriction> getRestrictions(Long voyageurId) {
+        getById(voyageurId);
+        return restrictionRepository.findByVoyageurIdOrderByDateFinDescIdDesc(voyageurId);
     }
 
     private String normalizeMatricule(String matricule) {

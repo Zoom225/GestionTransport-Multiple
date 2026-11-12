@@ -440,8 +440,8 @@ function depart(jours, heure) {
         r.request().method() === "POST",
     );
     await page
+      .locator(`[data-trajet-id="${publicCree.id}"]`)
       .getByRole("button", { name: "Réserver", exact: true })
-      .first()
       .click();
     const reponseCreation = await creationDepuisInterface;
     assert.equal(reponseCreation.status(), 201);

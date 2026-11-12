@@ -31,6 +31,15 @@ import java.util.List;
         "Une réservation relie un voyageur à un trajet et génère automatiquement un paiement en attente. " +
         "La place n'est confirmée qu'après paiement : premier payé, premier servi.")
 public class ReservationController {
+    public record DeclarationAbsence(@jakarta.validation.constraints.NotBlank
+            @jakarta.validation.constraints.Size(max = 500) String motif) {}
+
+    @Operation(summary = "Déclarer explicitement une absence injustifiée", security = @SecurityRequirement(name = "Bearer Auth"))
+    @PostMapping("/{id}/absence")
+    public ResponseEntity<ReservationResponse> declarerAbsence(@PathVariable Long id,
+            @Valid @RequestBody DeclarationAbsence request) {
+        return ResponseEntity.ok(reservationMapper.toResponse(reservationService.declarerAbsence(id, request.motif())));
+    }
 
     private final ReservationService reservationService;
     private final ReservationMapper reservationMapper;
