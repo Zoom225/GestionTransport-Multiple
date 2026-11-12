@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,6 +24,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
   standalone: true,
   imports: [
     CommonModule,
+    MatCheckboxModule,
     ReactiveFormsModule,
     RouterLink,
     MatCardModule,
@@ -37,7 +39,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
     <div class="adm-header">
       <div class="adm-header-content">
         <div class="adm-header-left">
-          <span class="adm-icon">🎾</span>
+          <span class="adm-icon">🚗</span>
           <div>
             <h1 class="adm-title ds-section-title">{{ language.t('admin.voyageurs.title') }}</h1>
             <p class="adm-sub ds-subtitle">{{ language.t('admin.voyageurs.subtitle') }}</p>
@@ -57,6 +59,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
         </div>
 
         <form [formGroup]="form" class="grid gap-4 pt-4 md:grid-cols-2" (ngSubmit)="save()">
+          <mat-checkbox formControlName="peutProposerTrajet" class="md:col-span-2">Autoriser ce voyageur à proposer des trajets comme chauffeur</mat-checkbox>
           <mat-form-field appearance="outline">
             <mat-label>{{ language.t('admin.voyageurs.matricule') }}</mat-label>
             <input matInput formControlName="matricule" [readonly]="editingId() !== null"
@@ -96,7 +99,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
             <mat-select formControlName="agenceId">
               <mat-option [value]="null">{{ language.t('admin.voyageurs.agenceNone') }}</mat-option>
               @for (agence of agences(); track agence.id) {
-                <mat-option [value]="agence.id">🏟️ {{ agence.nom }}</mat-option>
+                <mat-option [value]="agence.id">🏢 {{ agence.nom }}</mat-option>
               }
             </mat-select>
           </mat-form-field>
@@ -144,7 +147,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
           🌍 {{ language.t('admin.voyageurs.filterGlobal') }} ({{ countByType('VIP') }})
         </button>
         <button class="adm-filter-btn adm-filter-agence" [class.active]="typeFilter() === 'LOCAL'" (click)="typeFilter.set('LOCAL')">
-          🏟️ {{ language.t('admin.voyageurs.filterAgence') }} ({{ countByType('LOCAL') }})
+          🏢 {{ language.t('admin.voyageurs.filterAgence') }} ({{ countByType('LOCAL') }})
         </button>
         <button class="adm-filter-btn adm-filter-libre" [class.active]="typeFilter() === 'LIBRE'" (click)="typeFilter.set('LIBRE')">
           ⚡ {{ language.t('admin.voyageurs.filterLibre') }} ({{ countByType('LIBRE') }})
@@ -154,7 +157,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
       <!-- Liste des voyageurs -->
       @if (displayedVoyageurs().length === 0) {
         <div class="adm-empty">
-          <span class="adm-empty-icon">🎾</span>
+          <span class="adm-empty-icon">🚗</span>
           <p class="adm-empty-title">{{ language.t('admin.voyageurs.empty') }}</p>
           <p class="adm-empty-sub">
             {{ searchQuery() ? language.t('admin.voyageurs.searchNoResult', { query: searchQuery() }) : language.t('admin.voyageurs.emptySub') }}
@@ -167,7 +170,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
           <div class="adm-voyageur-card" [class]="'adm-voyageur-' + voyageur.typeVoyageur.toLowerCase()">
             <div class="adm-voyageur-top">
               <div class="adm-voyageur-avatar">
-                {{ voyageur.typeVoyageur === 'VIP' ? '🌍' : voyageur.typeVoyageur === 'LOCAL' ? '🏟️' : '⚡' }}
+                {{ voyageur.typeVoyageur === 'VIP' ? '🌍' : voyageur.typeVoyageur === 'LOCAL' ? '🏢' : '⚡' }}
               </div>
               <div class="adm-voyageur-info">
                 <div class="adm-voyageur-name">{{ voyageur.prenom }} {{ voyageur.nom }}</div>
@@ -390,6 +393,7 @@ export class AdminVoyageursPage {
   }
 
   readonly form = new FormGroup({
+    peutProposerTrajet: new FormControl(false, {nonNullable:true}),
     matricule: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     nom: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     prenom: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -446,6 +450,7 @@ export class AdminVoyageursPage {
   edit(voyageur: VoyageurResponse): void {
     this.editingId.set(voyageur.id);
     this.form.patchValue({
+      peutProposerTrajet: !!voyageur.peutProposerTrajet,
       matricule: voyageur.matricule,
       nom: voyageur.nom,
       prenom: voyageur.prenom,
@@ -461,6 +466,7 @@ export class AdminVoyageursPage {
     this.message.set('');
     this.errorMessage.set('');
     this.form.reset({
+      peutProposerTrajet: false,
       matricule: '',
       nom: '',
       prenom: '',

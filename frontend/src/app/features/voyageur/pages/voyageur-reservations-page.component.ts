@@ -172,7 +172,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
                         color="warn"
                         type="button"
                         (click)="removePassager(res)"
-                        [disabled]="actionId() === res.id || res.statut === 'ANNULEE' || res.voyageurId === voyageurId()"
+                        [disabled]="actionId() === res.id || res.statut === 'ANNULEE' || res.statut === 'EXPIREE' || res.voyageurId === voyageurId()"
                       >
                         {{ language.t('voyageur.reservations.removePassager') }}
                       </button>
@@ -216,7 +216,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
                 color="warn"
                 type="button"
                 (click)="cancel(reservation)"
-                [disabled]="reservation.statut === 'ANNULEE' || actionId() === reservation.id"
+                [disabled]="reservation.statut === 'ANNULEE' || reservation.statut === 'EXPIREE' || actionId() === reservation.id"
               >
                 ❌ {{ language.t('voyageur.reservations.cancel') }}
               </button>
@@ -576,6 +576,7 @@ export class VoyageurReservationsPage {
   }
 
   reservationStatusLabel(statut: ReservationResponse['statut']): string {
+    if (statut === 'EXPIREE') return 'Expirée';
     if (statut === 'CONFIRMEE') {
       return this.language.t('common.reservationConfirmed');
     }

@@ -465,7 +465,7 @@ export class AdminHomePage {
       return trajets;
     }
 
-    const agenceNames = new Set(agences.map((agence) => agence.nom));
-    return trajets.filter((trajet) => agenceNames.has(trajet.agenceNom));
+    const agenceIds = new Set(agences.map((agence) => agence.id));
+    return trajets.filter((trajet) => trajet.agenceId != null && agenceIds.has(trajet.agenceId));
   }
 }

@@ -31,7 +31,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
     <div class="adm-agence-header">
       <div class="adm-agence-header-inner">
         <div class="adm-agence-title-block">
-          <span class="adm-agence-icon">🏟️</span>
+          <span class="adm-agence-icon">🏢</span>
           <div>
             <h1 class="adm-agence-title">{{ language.t('admin.agences.title') }}</h1>
             <p class="adm-agence-sub">{{ language.t('admin.agences.subtitle') }}</p>
@@ -80,7 +80,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
           <div class="adm-agence-card">
             <div class="adm-agence-card-header">
               <div>
-                <div class="adm-agence-card-name">🏟️ {{ agence.nom }}</div>
+                <div class="adm-agence-card-name">🏢 {{ agence.nom }}</div>
                 <div class="adm-agence-card-addr">📍 {{ agence.adresse }}</div>
               </div>
             </div>
@@ -109,7 +109,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
           </div>
         } @empty {
           <div class="adm-agence-empty md:col-span-2">
-            <span>🏟️</span>
+            <span>🏢</span>
             <p>{{ language.t('admin.agences.empty') }}</p>
           </div>
         }

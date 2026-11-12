@@ -6,6 +6,8 @@ aucune des quatre places. La confirmation intervient après paiement simulé.
 Voir les règles et validations de [l'issue #4](docs/covoiturage/issue-4-reservation-paiement.md).
 Les [contrats REST et contrôles d'accès](docs/covoiturage/issue-5-api-securite.md)
 sont documentés dans l'issue #5.
+L'[interface responsive et ses vérifications](docs/covoiturage/issue-6-interface.md)
+sont décrites dans l'issue #6.
 
 Application Spring Boot et Angular en cours de transformation vers le transport public et privé.
 

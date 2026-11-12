@@ -1,3 +1,6 @@
+import { TrajetSearchComponent } from '../../../shared/components/trajet-search.component';
+import { TrajetCardComponent } from '../../../shared/components/trajet-card.component';
+import { RechercheTrajet } from '../../../shared/models/trajet.model';
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -23,6 +26,8 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
   standalone: true,
   imports: [
     CommonModule,
+    TrajetSearchComponent,
+    TrajetCardComponent,
     ReactiveFormsModule,
     RouterLink,
     MatCardModule,
@@ -45,6 +50,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         </div>
       </div>
 
+      <app-trajet-search (recherche)="rechercher($event)" />
       <mat-card class="card-soft">
         <mat-card-content class="grid gap-4 pt-4 md:grid-cols-3">
           <mat-form-field appearance="outline">
@@ -97,52 +103,13 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
       <div class="grid gap-4 lg:grid-cols-2">
         @for (trajet of filteredTrajets(); track trajet.id) {
           <mat-card class="card-soft">
-            <mat-card-header>
-              <mat-card-title>
-                {{ trajet.vehiculeNom }} - {{ trajet.agenceNom }}
-                @if (isOrganizer(trajet)) {
-                  <span class="ml-2 ds-badge ds-badge-info">{{ language.t('voyageur.public.myTrajet') }}</span>
-                }
-                @if (!isOrganizer(trajet) && trajet.nbPassagersActuels >= 4) {
-                  <span class="ml-2 ds-badge ds-badge-danger">{{ language.t('voyageur.public.completion') }}</span>
-                } @else if (!isOrganizer(trajet) && !canJoin(trajet)) {
-                  <span class="ml-2 ds-badge ds-badge-warning">{{ language.t('voyageur.public.none') }}</span>
-                } @else if (!isOrganizer(trajet)) {
-                  <span class="ml-2 ds-badge ds-badge-success">{{ language.t('voyageur.public.available') }}</span>
-                }
-              </mat-card-title>
-              <mat-card-subtitle>
-                {{ trajet.date }} · {{ trajet.heureDebut }} - {{ trajet.heureFin }}
-              </mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content class="ds-data-list">
-              <div class="ds-data-row"><span class="ds-data-key">{{ language.t('voyageur.public.organizer') }}</span><span class="ds-data-value">{{ trajet.organisateurNom }}</span></div>
-              <div class="ds-data-row"><span class="ds-data-key">{{ language.t('voyageur.public.status') }}</span><span class="ds-data-value"><span class="ds-badge" [class]="statusBadgeClass(trajet.statut)">{{ trajetStatusLabel(trajet.statut) }}</span></span></div>
-              <div class="ds-data-row"><span class="ds-data-key">{{ language.t('voyageur.public.type') }}</span><span class="ds-data-value"><span class="ds-badge" [class]="typeBadgeClass(trajet.typeTrajet)">{{ typeLabel(trajet.typeTrajet) }}</span></span></div>
-              <div class="ds-data-row"><span class="ds-data-key">{{ language.t('voyageur.public.passagers') }}</span><span class="ds-data-value">{{ trajet.nbPassagersActuels }}/4</span></div>
-              <div class="ds-data-row"><span class="ds-data-key">{{ language.t('voyageur.public.price') }}</span><span class="ds-data-value">{{ trajet.prixParPassager }} EUR</span></div>
-            </mat-card-content>
-            <mat-card-actions>
-              <button
-                mat-flat-button
-                color="primary"
-                type="button"
-                (click)="joinTrajet(trajet)"
-                [disabled]="joiningTrajetId() === trajet.id || !canJoin(trajet)"
-              >
-                {{ joiningTrajetId() === trajet.id ? language.t('voyageur.public.registering') : language.t('voyageur.public.join') }}
-              </button>
-
+            <app-trajet-card [trajet]="trajet" [disabled]="joiningTrajetId() === trajet.id || !canJoin(trajet)" (reservationDemandee)="joinTrajet($event)">
               @if (isOrganizer(trajet)) {
-                <button mat-stroked-button type="button" (click)="startEdit(trajet)" [disabled]="!canModify(trajet) || actionTrajetId() === trajet.id">
-                  {{ language.t('voyageur.public.modify') }}
-                </button>
-                <button mat-stroked-button color="warn" type="button" (click)="cancelOwnTrajet(trajet)" [disabled]="actionTrajetId() === trajet.id">
-                  {{ language.t('voyageur.public.delete') }}
-                </button>
+                <span class="ds-badge ds-badge-info">{{ language.t('voyageur.public.myTrajet') }}</span>
+                <button mat-stroked-button type="button" (click)="startEdit(trajet)" [disabled]="!canModify(trajet) || actionTrajetId() === trajet.id">{{ language.t('voyageur.public.modify') }}</button>
+                <button mat-stroked-button type="button" (click)="cancelOwnTrajet(trajet)" [disabled]="actionTrajetId() === trajet.id">{{ language.t('voyageur.public.delete') }}</button>
               }
-            </mat-card-actions>
-
+            </app-trajet-card>
             @if (isOrganizer(trajet) && !canModify(trajet)) {
               <p class="px-4 pb-3 text-xs text-amber-700">{{ language.t('voyageur.public.editHint') }}</p>
             }
@@ -220,8 +187,8 @@ export class VoyageurPublicTrajetsPage {
 
     return this.trajets()
       .filter((trajet) => {
-        const trajetsAgence = !agenceId || this.agences().find((agence) => agence.id === agenceId)?.nom === trajet.agenceNom;
-        const haystack = `${trajet.vehiculeNom} ${trajet.agenceNom} ${trajet.organisateurNom}`.toLowerCase();
+        const trajetsAgence = !agenceId || trajet.agenceId === agenceId;
+        const haystack = `${trajet.vehiculeNom} ${trajet.agenceNom} ${trajet.organisateurNom} ${trajet.villeDepart} ${trajet.villeArrivee}`.toLowerCase();
         const trajetsSearch = !search || haystack.includes(search);
         return trajetsAgence && trajetsSearch;
       })
@@ -236,13 +203,16 @@ export class VoyageurPublicTrajetsPage {
     this.loadData();
   }
 
+  private filtres: RechercheTrajet = {};
+  rechercher(filtres: RechercheTrajet): void { this.filtres = filtres; this.loadData(); }
+
   loadData(): void {
     this.loading.set(true);
     this.message.set('');
     this.errorMessage.set('');
 
     forkJoin({
-      trajets: this.trajetsApi.getPublic(),
+      trajets: this.trajetsApi.getPublic(this.filtres),
       agences: this.agencesApi.getAll()
     }).subscribe({
       next: ({ trajets, agences }) => {

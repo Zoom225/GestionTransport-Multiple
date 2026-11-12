@@ -10,6 +10,10 @@ import { VoyageursApiService } from '../../../core/api/voyageurs-api.service';
 import { VoyageurSessionService } from '../../../core/auth/voyageur-session.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { VoyageurResponse } from '../../../shared/models/voyageur.model';
+import { ReservationsApiService } from '../../../core/api/reservations-api.service';
+import { TrajetsApiService } from '../../../core/api/trajets-api.service';
+import { ReservationResponse } from '../../../shared/models/reservation.model';
+import { TrajetResponse } from '../../../shared/models/trajet.model';
 
 @Component({
   selector: 'app-voyageur-profile-page',
@@ -69,7 +73,7 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
 
           <div class="mt-6">
             <div class="mb-3 flex items-center gap-2">
-              <span class="text-xl">🎾</span>
+              <span class="text-xl">🚗</span>
               <h3 class="m-0 text-lg font-bold text-slate-800">{{ language.t('voyageur.profile.createQuick') }}</h3>
             </div>
             <div class="grid gap-3 md:grid-cols-2">
@@ -126,6 +130,22 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
           </div>
         </mat-card-content>
       </mat-card>
+      <div class="grid gap-4 mt-6 md:grid-cols-3" aria-label="Résumé de mes voyages">
+        <a routerLink="/voyageur/reservations" class="card-soft p-5 no-underline"><strong class="text-3xl">{{ prochainsVoyages().length }}</strong><p>Voyages à venir</p></a>
+        <a routerLink="/voyageur/reservations" class="card-soft p-5 no-underline"><strong class="text-3xl">{{ historique().length }}</strong><p>Réservations dans l'historique</p></a>
+        <a routerLink="/voyageur/payments" class="card-soft p-5 no-underline"><strong class="text-3xl">{{ paiementsValides() }}</strong><p>Paiements validés</p></a>
+      </div>
+      @if (trajetsProposes().length) {
+        <mat-card class="card-soft mt-6"><mat-card-header><mat-card-title>Mes trajets proposés</mat-card-title></mat-card-header><mat-card-content>
+          @for (trajet of trajetsProposes(); track trajet.id) {
+            <div class="flex flex-wrap justify-between gap-3 border-b border-slate-100 py-4">
+              <span>{{ trajet.villeDepart || 'Ville à préciser' }} → {{ trajet.villeArrivee || 'Ville à préciser' }} · {{ trajet.date }} {{ trajet.heureDebut }}</span>
+              <strong>{{ trajet.statut }} · {{ trajet.placesRestantes ?? (4 - trajet.nbPassagersActuels) }}/4 places restantes</strong>
+            </div>
+          }
+          <a mat-stroked-button routerLink="/voyageur/reservations">Gérer mes invitations privées</a>
+        </mat-card-content></mat-card>
+      }
     </section>
   `
 })
@@ -133,11 +153,18 @@ export class VoyageurProfilePage {
   private readonly voyageursApi = inject(VoyageursApiService);
   private readonly voyageurSession = inject(VoyageurSessionService);
   private readonly router = inject(Router);
+  private readonly reservationsApi = inject(ReservationsApiService);
+  private readonly trajetsApi = inject(TrajetsApiService);
   readonly language = inject(LanguageService);
 
   readonly loading = signal(false);
   readonly errorMessage = signal('');
   readonly profile = signal<VoyageurResponse | null>(null);
+  readonly reservations = signal<ReservationResponse[]>([]);
+  readonly trajetsProposes = signal<TrajetResponse[]>([]);
+  readonly prochainsVoyages = computed(() => this.reservations().filter(r => r.statut === 'CONFIRMEE' && new Date(r.trajetDateTime).getTime() > Date.now()));
+  readonly historique = computed(() => this.reservations().filter(r => r.statut === 'ANNULEE' || r.statut === 'EXPIREE' || new Date(r.trajetDateTime).getTime() <= Date.now()));
+  readonly paiementsValides = computed(() => this.reservations().filter(r => r.paiement?.statut === 'PAYE').length);
   readonly hasRestriction = signal(false);
   readonly hasBalance = signal(false);
   readonly voyageurId = computed(() => this.voyageurSession.voyageurId());
@@ -159,9 +186,13 @@ export class VoyageurProfilePage {
     forkJoin({
       profile: this.voyageursApi.getCurrent(),
       hasRestriction: this.voyageursApi.hasRestriction(voyageurId),
-      hasBalance: this.voyageursApi.hasBalance(voyageurId)
+      hasBalance: this.voyageursApi.hasBalance(voyageurId),
+      reservations: this.reservationsApi.getByVoyageur(voyageurId),
+      trajets: this.trajetsApi.getByOrganisateur(voyageurId)
     }).subscribe({
-      next: ({ profile, hasRestriction, hasBalance }) => {
+      next: ({ profile, hasRestriction, hasBalance, reservations, trajets }) => {
+        this.reservations.set(reservations);
+        this.trajetsProposes.set(trajets);
         this.profile.set(profile);
         this.voyageurSession.setVoyageur(profile, this.voyageurSession.token() ?? undefined);
         this.hasRestriction.set(hasRestriction);

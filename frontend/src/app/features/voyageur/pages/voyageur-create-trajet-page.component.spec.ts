@@ -5,6 +5,7 @@ import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TrajetsApiService } from '../../../core/api/trajets-api.service';
+import { VoyageursApiService } from '../../../core/api/voyageurs-api.service';
 import { ReservationsApiService } from '../../../core/api/reservations-api.service';
 import { AgencesApiService } from '../../../core/api/agences-api.service';
 import { VehiculesApiService } from '../../../core/api/vehicules-api.service';
@@ -31,6 +32,7 @@ describe('VoyageurCreateTrajetPage', () => {
     typeVoyageur: 'LOCAL',
     agenceId: 1,
     agenceNom: 'Agence Lyon',
+    peutProposerTrajet: true,
     solde: 0
   };
 
@@ -70,7 +72,7 @@ describe('VoyageurCreateTrajetPage', () => {
 
   let agencesApiMock: { getAll: ReturnType<typeof vi.fn> };
   let vehiculesApiMock: { getByAgence: ReturnType<typeof vi.fn> };
-  let trajetsApiMock: { create: ReturnType<typeof vi.fn> };
+  let trajetsApiMock: { getVilles: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn> };
   let reservationsApiMock: { createPrivateInvites: ReturnType<typeof vi.fn> };
   let voyageurSessionMock: {
     isAuthenticated: ReturnType<typeof vi.fn>;
@@ -86,6 +88,7 @@ describe('VoyageurCreateTrajetPage', () => {
       getByAgence: vi.fn().mockReturnValue(of(vehicules))
     };
     trajetsApiMock = {
+      getVilles: vi.fn().mockReturnValue(of([{code:'MONS',libelle:'Mons'},{code:'BRUXELLES',libelle:'Bruxelles'}])),
       create: vi.fn().mockReturnValue(of(createdTrajet))
     };
     reservationsApiMock = {
@@ -111,6 +114,7 @@ describe('VoyageurCreateTrajetPage', () => {
         { provide: AgencesApiService, useValue: agencesApiMock },
         { provide: VehiculesApiService, useValue: vehiculesApiMock },
         { provide: TrajetsApiService, useValue: trajetsApiMock },
+        { provide: VoyageursApiService, useValue: {getAll: vi.fn().mockReturnValue(of([]))} },
         { provide: ReservationsApiService, useValue: reservationsApiMock },
         { provide: VoyageurSessionService, useValue: voyageurSessionMock },
         { provide: ActivatedRoute, useValue: activatedRouteMock }
@@ -126,6 +130,7 @@ describe('VoyageurCreateTrajetPage', () => {
   it('initialise cette agence, le vehicule et la date minimale pour un voyageur LOCAL', () => {
     const fixture = TestBed.createComponent(VoyageurCreateTrajetPage);
     const component = fixture.componentInstance;
+    component.form.patchValue({villeDepart:'MONS',villeArrivee:'BRUXELLES'});
 
     expect(component.isAgenceVoyageur()).toBe(true);
     expect(component.form.controls.agenceId.value).toBe(1);
@@ -138,28 +143,18 @@ describe('VoyageurCreateTrajetPage', () => {
     activatedRouteMock.snapshot.queryParamMap.get.mockReturnValue('PRIVE');
     const fixture = TestBed.createComponent(VoyageurCreateTrajetPage);
     const component = fixture.componentInstance;
+    component.form.patchValue({villeDepart:'MONS',villeArrivee:'BRUXELLES'});
 
     expect(component.form.controls.typeTrajet.value).toBe('PRIVE');
   });
 
-  it('bloque la soumission si la date est au delà de la dernière date autorisée', () => {
+  it('refuse un départ et une destination identiques', () => {
     const fixture = TestBed.createComponent(VoyageurCreateTrajetPage);
     const component = fixture.componentInstance;
-    const tooLateDate = new Date(component.maxBookingDate());
-    tooLateDate.setDate(tooLateDate.getDate() + 1);
-
-    component.form.patchValue({
-      date: formatDate(tooLateDate),
-      heureDebut: '09:00',
-      typeTrajet: 'PUBLIC'
-    });
-
+    component.form.patchValue({villeDepart:'MONS',villeArrivee:'MONS',date:component.todayDate(),heureDebut:'10:00'});
     component.submit();
-
-    expect(component.form.controls.date.hasError('maxBookingDate')).toBe(true);
     expect(trajetsApiMock.create).not.toHaveBeenCalled();
-    expect(component.errorMessage()).toContain('Dernière date autorisée');
-    expect(component.errorMessage()).toContain(component.maxBookingDate());
+    expect(component.errorMessage()).toContain('deux villes différentes');
   });
 
   it('crée un trajet privé et ajoute les passagers invités', () => {
@@ -168,6 +163,7 @@ describe('VoyageurCreateTrajetPage', () => {
     vi.useFakeTimers();
     const fixture = TestBed.createComponent(VoyageurCreateTrajetPage);
     const component = fixture.componentInstance;
+    component.form.patchValue({villeDepart:'MONS',villeArrivee:'BRUXELLES'});
 
     component.form.patchValue({
       date: component.todayDate(),
@@ -183,6 +179,7 @@ describe('VoyageurCreateTrajetPage', () => {
       vehiculeId: 10,
       trajetDate: `${component.todayDate()}T09:00:00`,
       trajetType: 'PRIVE',
+      villeDepart:'MONS', villeArrivee:'BRUXELLES', publicationAutomatiqueAutorisee:false,
     });
     expect(reservationsApiMock.createPrivateInvites).toHaveBeenCalledWith({
       trajetId: 99,
@@ -190,29 +187,20 @@ describe('VoyageurCreateTrajetPage', () => {
     });
     expect(component.message()).toContain('Les invitations sont en attente de paiement');
     vi.runAllTimers();
-    expect(navigateSpy).toHaveBeenCalledWith('/voyageur/reservations');
+    expect(navigateSpy).toHaveBeenCalledWith('/voyageur/profile');
     vi.useRealTimers();
   });
 
-  it('traduit le message backend de délai en message frontend compréhensible', () => {
-    trajetsApiMock.create.mockReturnValue(
-      throwError(() => ({ error: { message: 'Le voyageur LOCAL ne peut pas réserver plus de 14 jours à l\'avance.' } }))
-    );
+  it('refuse une création si le compte ne peut pas proposer de trajet', () => {
+    voyageurSessionMock.voyageur.mockReturnValue({...voyageur,peutProposerTrajet:false});
     const fixture = TestBed.createComponent(VoyageurCreateTrajetPage);
     const component = fixture.componentInstance;
-
-    component.form.patchValue({
-      date: component.todayDate(),
-      heureDebut: '09:00',
-      typeTrajet: 'PUBLIC'
-    });
-
+    component.form.patchValue({villeDepart:'MONS',villeArrivee:'BRUXELLES',date:component.todayDate(),heureDebut:'10:00'});
     component.submit();
-
-    expect(component.loading()).toBe(false);
-    expect(component.errorMessage()).toContain('Le profil LOCAL ne peut pas réserver plus de 14 jours');
-    expect(component.errorMessage()).toContain(component.maxBookingDate());
+    expect(trajetsApiMock.create).not.toHaveBeenCalled();
+    expect(component.errorMessage()).toContain("n'est pas autorisé");
   });
+
   it('affiche une erreur métier sans code HTTP technique', () => {
     trajetsApiMock.create.mockReturnValue(
       throwError(() => ({
@@ -225,6 +213,7 @@ describe('VoyageurCreateTrajetPage', () => {
     );
     const fixture = TestBed.createComponent(VoyageurCreateTrajetPage);
     const component = fixture.componentInstance;
+    component.form.patchValue({villeDepart:'MONS',villeArrivee:'BRUXELLES'});
 
     component.form.patchValue({
       date: component.todayDate(),

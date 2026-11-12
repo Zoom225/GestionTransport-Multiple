@@ -62,7 +62,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
             <mat-label>{{ language.t('admin.vehicules.agence') }}</mat-label>
             <mat-select formControlName="agenceId" [disabled]="adminSession.isAgenceAdmin()">
               @for (agence of agences(); track agence.id) {
-                <mat-option [value]="agence.id">🏟️ {{ agence.nom }}</mat-option>
+                <mat-option [value]="agence.id">🏢 {{ agence.nom }}</mat-option>
               }
             </mat-select>
           </mat-form-field>
@@ -91,7 +91,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
             <div class="adm-ter-card-header">
               <span class="adm-ter-card-num">#{{ vehicule.id }}</span>
               <div class="adm-ter-card-name">📍 {{ vehicule.nom }}</div>
-              <div class="adm-ter-card-agence">🏟️ {{ vehicule.agenceNom }}</div>
+              <div class="adm-ter-card-agence">🏢 {{ vehicule.agenceNom }}</div>
             </div>
             <div class="adm-ter-card-actions">
               <button class="adm-ter-action-edit" type="button" (click)="edit(vehicule)">✏️ {{ language.t('common.edit') }}</button>

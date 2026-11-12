@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,36 +14,20 @@ import { AgencesApiService } from '../../../core/api/agences-api.service';
 import { VehiculesApiService } from '../../../core/api/vehicules-api.service';
 import { VoyageurSessionService } from '../../../core/auth/voyageur-session.service';
 import { LanguageService } from '../../../core/i18n/language.service';
-import { TypeVoyageur } from '../../../shared/models/enums.model';
+import { AdminSessionService } from '../../../core/auth/admin-session.service';
+import { VoyageursApiService } from '../../../core/api/voyageurs-api.service';
+import { VoyageurResponse } from '../../../shared/models/voyageur.model';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { VilleOption } from '../../../shared/models/trajet.model';
 import { TrajetResponse } from '../../../shared/models/trajet.model';
 import { AgenceResponse, VehiculeResponse } from '../../../shared/models/agence-vehicule.model';
 import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
-
-const BOOKING_MAX_DAYS: Record<TypeVoyageur, number> = {
-  VIP: 21,
-  LOCAL: 14,
-  LIBRE: 5
-};
 
 const formatDateForInput = (date: Date): string => {
   const year = date.getFullYear();
   const month = `${date.getMonth() + 1}`.padStart(2, '0');
   const day = `${date.getDate()}`.padStart(2, '0');
   return `${year}-${month}-${day}`;
-};
-
-const getMaxBookingDays = (voyageurType?: TypeVoyageur | null): number => BOOKING_MAX_DAYS[voyageurType ?? 'LIBRE'];
-
-const createMaxBookingDateValidator = (getMaxDate: () => string): ValidatorFn => {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const value = `${control.value ?? ''}`.trim();
-    if (!value) {
-      return null;
-    }
-
-    const maxDate = getMaxDate();
-    return value > maxDate ? { maxBookingDate: { maxDate, actualDate: value } } : null;
-  };
 };
 
 @Component({
@@ -57,6 +41,7 @@ const createMaxBookingDateValidator = (getMaxDate: () => string): ValidatorFn =>
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatCheckboxModule,
     MatButtonModule,
     MatProgressSpinnerModule
   ],
@@ -79,6 +64,19 @@ const createMaxBookingDateValidator = (getMaxDate: () => string): ValidatorFn =>
       <mat-card class="card-soft panel-gradient">
         <mat-card-content>
           <form [formGroup]="form" class="grid gap-4 pt-4 md:grid-cols-2" (ngSubmit)="submit()">
+            <mat-form-field appearance="outline"><mat-label>Ville de départ</mat-label><mat-select formControlName="villeDepart">
+              @for (ville of villes(); track ville.code) { <mat-option [value]="ville.code">{{ ville.libelle }}</mat-option> }
+            </mat-select></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Destination</mat-label><mat-select formControlName="villeArrivee">
+              @for (ville of villes(); track ville.code) { <mat-option [value]="ville.code">{{ ville.libelle }}</mat-option> }
+            </mat-select></mat-form-field>
+            @if (adminSession.isAuthenticated()) {
+              <mat-form-field appearance="outline"><mat-label>Chauffeur autorisé</mat-label><mat-select formControlName="chauffeurId">
+                @for (chauffeur of chauffeurs(); track chauffeur.id) { <mat-option [value]="chauffeur.id">{{ chauffeur.prenom }} {{ chauffeur.nom }}</mat-option> }
+              </mat-select></mat-form-field>
+            } @else {
+              <p class="md:col-span-2">Chauffeur : {{ voyageur()?.prenom }} {{ voyageur()?.nom }}. Vous ne réservez aucune des quatre places clients.</p>
+            }
             <mat-form-field appearance="outline">
               <mat-label>{{ language.t('voyageur.create.agence') }}</mat-label>
               <mat-select formControlName="agenceId" (valueChange)="onAgenceChange($event)" [disabled]="isAgenceVoyageur()">
@@ -92,18 +90,14 @@ const createMaxBookingDateValidator = (getMaxDate: () => string): ValidatorFn =>
               <mat-label>{{ language.t('voyageur.create.vehicule') }}</mat-label>
               <mat-select formControlName="vehiculeId" [disabled]="!vehicules().length">
                 @for (vehicule of vehicules(); track vehicule.id) {
-                  <mat-option [value]="vehicule.id">{{ vehicule.nom }}{{ vehicule.prix != null ? ' - ' + vehicule.prix + ' EUR' : '' }}</mat-option>
+                  <mat-option [value]="vehicule.id">{{ vehicule.nom }}</mat-option>
                 }
               </mat-select>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
               <mat-label>{{ language.t('voyageur.create.date') }}</mat-label>
-              <input matInput type="date" formControlName="date" [min]="todayDate()" [max]="maxBookingDate()" />
-              <mat-hint>{{ language.t('voyageur.create.dateHint') }} {{ todayDate() }} - {{ maxBookingDate() }}</mat-hint>
-              @if (form.controls.date.hasError('maxBookingDate') && (form.controls.date.dirty || form.controls.date.touched)) {
-                <mat-error>{{ bookingDelayErrorMessage() }}</mat-error>
-              }
+              <input matInput type="date" formControlName="date" [min]="todayDate()" />
             </mat-form-field>
 
             <mat-form-field appearance="outline">
@@ -126,7 +120,7 @@ const createMaxBookingDateValidator = (getMaxDate: () => string): ValidatorFn =>
                 <li>{{ language.t('voyageur.create.ruleAgence') }}</li>
                 <li>{{ language.t('voyageur.create.ruleLibre') }}</li>
               </ul>
-              <p class="mt-2 text-slate-500">{{ language.t('voyageur.create.bookingLimit') }} {{ maxBookingDate() }}</p>
+              <p class="mt-2 text-slate-500">Ces délais concernent les réservations clients. Votre trajet propose quatre places à 25 €.</p>
             </div>
 
             @if (errorMessage()) {
@@ -139,7 +133,7 @@ const createMaxBookingDateValidator = (getMaxDate: () => string): ValidatorFn =>
               <p class="status-info md:col-span-2">{{ language.t('voyageur.create.noVehicule') }}</p>
             }
 
-            @if (form.controls.typeTrajet.value === 'PRIVE') {
+            @if (form.controls.typeTrajet.value === 'PRIVE' && !adminSession.isAuthenticated()) {
               <div class="md:col-span-2">
                 <p class="mb-2 text-sm font-medium text-slate-800">{{ language.t('voyageur.create.privatePassagers') }}</p>
                 <div class="grid gap-3 md:grid-cols-3">
@@ -155,10 +149,12 @@ const createMaxBookingDateValidator = (getMaxDate: () => string): ValidatorFn =>
                     <mat-label>{{ language.t('voyageur.create.passager4') }}</mat-label>
                     <input matInput formControlName="passager3" />
                   </mat-form-field>
+                  <mat-form-field appearance="outline"><mat-label>Client 4 (matricule)</mat-label><input matInput formControlName="passager4" /></mat-form-field>
                 </div>
               </div>
             }
 
+            <mat-checkbox formControlName="publicationAutomatiqueAutorisee" class="md:col-span-2">J'autorise la publication des places restantes 24 h avant le départ d'un trajet privé.</mat-checkbox>
             @if (message()) {
               <p class="status-success md:col-span-2">{{ message() }}</p>
             }
@@ -188,6 +184,10 @@ export class VoyageurCreateTrajetPage {
   private readonly router = inject(Router);
   readonly language = inject(LanguageService);
 
+  readonly adminSession = inject(AdminSessionService);
+  private readonly voyageursApi = inject(VoyageursApiService);
+  readonly villes = signal<VilleOption[]>([]);
+  readonly chauffeurs = signal<VoyageurResponse[]>([]);
   readonly loading = signal(false);
   readonly message = signal('');
   readonly errorMessage = signal('');
@@ -200,33 +200,16 @@ export class VoyageurCreateTrajetPage {
     today.setHours(12, 0, 0, 0);
     return formatDateForInput(today);
   });
-  readonly maxBookingDate = computed(() => {
-    const today = new Date();
-    today.setHours(12, 0, 0, 0);
-    today.setDate(today.getDate() + getMaxBookingDays(this.voyageur()?.typeVoyageur));
-    return formatDateForInput(today);
-  });
-  readonly bookingDelayErrorMessage = computed(() => {
-    return this.language.t('voyageur.create.bookingLimitError', {
-      date: this.maxBookingDate()
-    });
-  });
-
-  readonly bookingDelayProfileErrorMessage = computed(() => {
-    const voyageurType = this.voyageur()?.typeVoyageur ?? 'LIBRE';
-    return this.language.t('voyageur.create.bookingLimitProfileError', {
-      type: voyageurType,
-      days: getMaxBookingDays(voyageurType),
-      date: this.maxBookingDate()
-    });
-  });
-
   readonly form = new FormGroup({
+    villeDepart: new FormControl('', {nonNullable:true, validators:[Validators.required]}),
+    villeArrivee: new FormControl('', {nonNullable:true, validators:[Validators.required]}),
+    publicationAutomatiqueAutorisee: new FormControl(false, {nonNullable:true}),
+    chauffeurId: new FormControl<number | null>(null),
     agenceId: new FormControl<number | null>(null, { validators: [Validators.required] }),
     vehiculeId: new FormControl<number | null>(null, { validators: [Validators.required] }),
     date: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, createMaxBookingDateValidator(() => this.maxBookingDate())]
+      validators: [Validators.required]
     }),
     heureDebut: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     typeTrajet: new FormControl<'PUBLIC' | 'PRIVE'>('PUBLIC', {
@@ -235,11 +218,12 @@ export class VoyageurCreateTrajetPage {
     }),
     passager1: new FormControl('', { nonNullable: true }),
     passager2: new FormControl('', { nonNullable: true }),
-    passager3: new FormControl('', { nonNullable: true })
+    passager3: new FormControl('', { nonNullable: true }),
+    passager4: new FormControl('', {nonNullable:true})
   });
 
   constructor() {
-    if (!this.voyageurSession.isAuthenticated()) {
+    if (!this.voyageurSession.isAuthenticated() && !this.adminSession.isAuthenticated()) {
       this.router.navigateByUrl('/voyageur');
       return;
     }
@@ -247,6 +231,11 @@ export class VoyageurCreateTrajetPage {
     this.applyPreferredTypeFromQuery();
     this.applyDefaultStartTime();
     this.applyDateBounds();
+    this.trajetsApi.getVilles().subscribe({next: villes => this.villes.set(villes), error: () => this.errorMessage.set('Impossible de charger les villes.')});
+    if (this.adminSession.isAuthenticated()) {
+      this.form.controls.chauffeurId.addValidators(Validators.required);
+      this.voyageursApi.getAll().subscribe({next: voyageurs => this.chauffeurs.set(voyageurs.filter(v => v.peutProposerTrajet)), error: () => this.errorMessage.set('Impossible de charger les chauffeurs.')});
+    }
     this.loadAgences();
   }
 
@@ -268,6 +257,7 @@ export class VoyageurCreateTrajetPage {
     this.errorMessage.set('');
     this.agencesApi.getAll().subscribe({
       next: (agences) => {
+        agences = this.adminSession.isAgenceAdmin() ? agences.filter(a => a.id === this.adminSession.agenceId()) : agences;
         this.agences.set(agences);
         const voyageur = this.voyageur();
         if (voyageur?.typeVoyageur === 'LOCAL' && voyageur.agenceId) {
@@ -326,13 +316,14 @@ export class VoyageurCreateTrajetPage {
     this.form.markAllAsTouched();
 
     if (this.form.invalid || this.loading()) {
-      if (this.form.controls.date.hasError('maxBookingDate')) {
-        this.errorMessage.set(this.bookingDelayErrorMessage());
-      }
       return;
     }
 
-    const { vehiculeId, date, heureDebut, typeTrajet } = this.form.getRawValue();
+    const { vehiculeId, date, heureDebut, typeTrajet, villeDepart, villeArrivee, publicationAutomatiqueAutorisee, chauffeurId } = this.form.getRawValue();
+    if (villeDepart === villeArrivee) { this.errorMessage.set('Choisissez deux villes différentes.'); return; }
+    if (!this.adminSession.isAuthenticated() && !this.voyageur()?.peutProposerTrajet) {
+      this.errorMessage.set("Votre compte n'est pas autorisé à proposer des trajets."); return;
+    }
 
     if (!vehiculeId) {
       this.errorMessage.set(this.language.t('voyageur.create.noVehicule'));
@@ -353,7 +344,8 @@ export class VoyageurCreateTrajetPage {
     const payload: import('../../../shared/models/trajet.model').CreateTrajetRequest = {
       vehiculeId,
       trajetDate,
-      trajetType: typeTrajet
+      trajetType: typeTrajet, villeDepart, villeArrivee, publicationAutomatiqueAutorisee,
+      ...(this.adminSession.isAuthenticated() && chauffeurId ? {chauffeurId} : {})
     };
 
     this.trajetsApi.create(payload).subscribe({
@@ -370,13 +362,10 @@ export class VoyageurCreateTrajetPage {
   private applyDateBounds(): void {
     const dateControl = this.form.controls.date;
     const minDate = this.todayDate();
-    const maxDate = this.maxBookingDate();
     const selectedDate = dateControl.getRawValue();
 
     if (!selectedDate || selectedDate < minDate) {
       dateControl.setValue(minDate);
-    } else if (selectedDate > maxDate) {
-      dateControl.setValue(maxDate);
     }
 
     dateControl.updateValueAndValidity({ emitEvent: false });
@@ -389,7 +378,6 @@ export class VoyageurCreateTrajetPage {
     const errorMappings: Record<string, string> = {
       'outstanding balance': this.language.t('voyageur.create.outstandingBalance'),
       'active restriction': this.language.t('voyageur.create.activeRestriction'),
-      'ne peut pas reserver plus de': this.bookingDelayProfileErrorMessage(),
       'ce créneau est déjà réservé': this.language.t('voyageur.create.slotTaken'),
       'agence est fermé': this.language.t('voyageur.create.agenceClosed'),
       'en dehors des heures d\'ouverture': this.language.t('voyageur.create.outOfHours'),
@@ -425,15 +413,16 @@ export class VoyageurCreateTrajetPage {
     const invitees = [
       this.form.controls.passager1.getRawValue(),
       this.form.controls.passager2.getRawValue(),
-      this.form.controls.passager3.getRawValue()
+      this.form.controls.passager3.getRawValue(),
+      this.form.controls.passager4.getRawValue()
     ]
       .map((value) => value.trim().toUpperCase())
       .filter(Boolean);
 
-    if (this.form.controls.typeTrajet.getRawValue() !== 'PRIVE' || !invitees.length) {
+    if (this.adminSession.isAuthenticated() || this.form.controls.typeTrajet.getRawValue() !== 'PRIVE' || !invitees.length) {
       this.loading.set(false);
       this.message.set(this.language.t('voyageur.create.success'));
-      setTimeout(() => this.router.navigateByUrl('/voyageur/reservations'), 1000);
+      setTimeout(() => this.router.navigateByUrl(this.adminSession.isAuthenticated() ? '/admin/trajets' : '/voyageur/profile'), 1000);
       return;
     }
 
@@ -444,13 +433,13 @@ export class VoyageurCreateTrajetPage {
       next: () => {
         this.loading.set(false);
         this.message.set(this.language.t('voyageur.create.successPrivate'));
-        setTimeout(() => this.router.navigateByUrl('/voyageur/reservations'), 1000);
+        setTimeout(() => this.router.navigateByUrl(this.adminSession.isAuthenticated() ? '/admin/trajets' : '/voyageur/profile'), 1000);
       },
       error: (error) => {
         this.loading.set(false);
         this.message.set(this.language.t('voyageur.create.partialSuccess'));
         this.errorMessage.set(extractApiErrorMessage(error, this.language.t('voyageur.create.addPassagersError')));
-        setTimeout(() => this.router.navigateByUrl('/voyageur/reservations'), 2000);
+        setTimeout(() => this.router.navigateByUrl(this.adminSession.isAuthenticated() ? '/admin/trajets' : '/voyageur/profile'), 2000);
       }
     });
   }

@@ -6,6 +6,7 @@ export interface LoginRequest {
 }
 
 export interface VoyageurRequest {
+  peutProposerTrajet?: boolean;
   matricule: string;
   nom: string;
   prenom: string;
@@ -16,6 +17,7 @@ export interface VoyageurRequest {
 }
 
 export interface VoyageurResponse {
+  peutProposerTrajet?: boolean;
   id: number;
   matricule: string;
   nom: string;
