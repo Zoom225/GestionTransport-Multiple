@@ -197,6 +197,21 @@ $env:DEMO_DATA_ENABLED = 'false'
 Conserver `DEMO_DATA_ENABLED=false` sur toute base métier.
 Pour une présentation, privilégier la base de démonstration isolée décrite ci-dessous.
 
+Dans IntelliJ, la configuration Spring Boot **GestionTransportApplication** doit
+elle aussi recevoir `JWT_SECRET`. Une variable `$env:JWT_SECRET` définie dans un
+terminal ne configure pas une instance IntelliJ déjà ouverte. Pour préparer cette
+configuration locale sans afficher ni publier de secret :
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/configure-intellij-jwt.ps1
+```
+
+Le script ajoute une clé aléatoire uniquement si elle manque dans `.idea/workspace.xml`,
+ignoré par Git, et préserve une clé déjà configurée. Relancer ensuite **GestionTransportApplication**.
+Il ne modifie ni la base, ni les autres variables de lancement. L'erreur
+`Could not resolve placeholder 'JWT_SECRET'` indique cette configuration manquante
+au démarrage. Aucun secret par défaut n'est ajouté à `application.properties`.
+
 | Variable                | Usage                                                         | Défaut                                 |
 | ----------------------- | ------------------------------------------------------------- | -------------------------------------- |
 | JWT_SECRET              | Clé JWT, au moins 32 octets, obligatoire                      | Aucun                                  |
@@ -416,6 +431,14 @@ La CI contrôle désormais les PR vers `develop` **et `master`**. La livraison v
 `master` se fait par PR distincte après validation de `develop`, sans fusion automatique.
 
 ## Dépannage
+
+- IntelliJ : utiliser la configuration partagée **GestionTransport-Multiple**
+  (`.run/GestionTransport-Multiple.run.xml`), qui exécute `spring-boot:run` via Maven
+  sans dépendre du nom local du module. Configurer les variables DB/JWT comme ci-dessus.
+  Pour une configuration Spring Boot personnelle, la classe principale est
+  `com.transport.gestiontransport.GestionTransportApplication` ; les tests se trouvent
+  dans `com.transport.gestiontransport`. Après un renommage, vérifier ces deux champs
+  dans **Run → Edit Configurations**, puis recharger le projet Maven.
 
 - Sous Windows, arrêter une instance lancée avec `java -jar` avant de régénérer
   son JAR : le processus peut empêcher Maven de renommer le fichier pendant l'empaquetage.
