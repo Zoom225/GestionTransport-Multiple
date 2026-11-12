@@ -27,7 +27,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
       <div class="admin-hero">
         <div>
           <p class="eyebrow">{{ language.t('admin.home.eyebrow') }}</p>
-          <h1>{{ language.t('admin.home.title') }}</h1>
+          <h1>{{ language.t(adminSession.isGlobalAdmin() ? 'premium.global' : 'premium.local') }}</h1>
           <p class="hero-subtitle">
             {{
               language.t('admin.home.subtitle', {

@@ -459,3 +459,8 @@ Le détail des vérifications, limites et commandes navigateur figure dans
 - Création refusée : vérifier la permission chauffeur, le véhicule, l'agence, les horaires et chevauchements.
 - Paiement refusé : actualiser la disponibilité, vérifier le délai, la catégorie, la zone et les restrictions.
 - Ancien montant ou trajet non qualifié : régularisation métier explicite, sans réécriture automatique des paiements.
+# Finition premium et accès administrateur
+
+Le header propose **Accès administrateur** avant connexion. Après connexion, le rôle affiche **Administration globale** ou **Administration de mon agence**, avec navigation dédiée responsive vers les pages existantes. Les recettes sont consultables au dashboard ; restrictions et absences dans la gestion des voyageurs.
+
+Chantier issue #6, branche `feature/issue-6-admin-ui-premium`, complément de #21 non fusionnée. [Rapport et captures](docs/covoiturage/issue-6-interface.md). Build et 72 tests Angular réussis ; 15 tests PostgreSQL isolés réussis ; parcours réel GLOBAL/AGENCE et réservation/paiement Angular réussi sur `transport_demo_premium_20261112234317`. Les 57 contrôles visuels avec API simulées sont distincts de cette intégration réelle. Aucune migration sur la base métier.

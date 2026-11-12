@@ -180,3 +180,22 @@ L'ancien dessin de terrain de sport sur l'accueil a été retiré.
 
 Essais sur PostgreSQL HTTP isolé, DEMO_DATA_ENABLED=false ; aucune insertion
 automatique de trajets ou de comptes dans la base métier.
+# Administration et finition premium — issue #6
+
+Branche `feature/issue-6-admin-ui-premium`, créée depuis `develop` b818392, puis reprise par fast-forward des commits de #21 (toujours ouverte). Aucune fusion dans develop. Cette PR complémentaire dépend de #21 et conserve ses corrections, sa fiche de trajet et son thème.
+
+Cause de l'accès peu visible : lien administrateur réservé au footer avant connexion et libellé générique du dashboard après connexion. L'accès est désormais dans le header public. Les sessions affichent « Administration globale » ou « Administration de mon agence ». Une navigation dédiée réutilise les pages existantes (latérale à 1440 px, empilée sur mobile), sans modifier les guards ni les contrats REST. Les recettes restent dans le dashboard, les restrictions/absences dans les voyageurs ; aucune page factice ni statistique inventée.
+
+L'accueil utilise une photo routière locale de 146 ko, avec dimensions, recadrage responsive, alternative traduite et secours SVG. Source et licence : `frontend/public/images/LICENCES.md`. Aucune affirmation qu'il s'agit d'un véhicule réel de la plateforme. La maquette « Ride Smarter » n'étant pas jointe, la finition suit la direction artistique décrite dans la demande sans prétendre reproduire une image non consultée.
+
+Validations exécutées le 12 novembre 2026 :
+
+- Référence : build Angular et 69 tests réussis ; `mvn -B verify` réussi, 140 tests exécutés et 15 PostgreSQL ignorés.
+- `npm ci` réussi : 533 paquets. Build relancé après la fin de l'installation (un lancement trop tôt avait échoué, commande ng temporairement absente).
+- Build final réussi : initial 551,15 ko / transfert estimé 138,05 ko. Suite Angular : 72 tests réussis, dont trois nouveaux contrôles de navigation GLOBAL/AGENCE et accès public. Leur montage JIT a nécessité de simuler AuthApiService ; aucun test supprimé. Compilation IntelliJ réussie.
+- PostgreSQL : premier essai interrompu par perte de connexion du moteur Docker (1 échec, 3 erreurs). Docker Desktop relancé sans réinitialisation ; nouvelle base isolée et nouvelle exécution : 15 tests réussis, zéro erreur/échec/ignoré.
+- Edge : 57 contrôles à 375/768/1440 px, aucun débordement ou erreur JS ; 20 analyses axe-core sans violation détectée sur les règles sélectionnées. APIs simulées pour ces contrôles visuels, distinction conservée avec l'intégration réelle. Revue visuelle des captures accueil et dashboard effectuée.
+
+Captures : [accueil ordinateur](../images/ui/premium-accueil-1440.jpg), [accueil mobile](../images/ui/premium-accueil-375.jpg), [dashboard global](../images/ui/premium-dashboard-1440.jpg), [agence mobile](../images/ui/premium-agence-375.jpg). Les captures précédentes restent disponibles pour comparaison. Aucun changement backend ou PostgreSQL dans ce chantier frontend ; pom.xml et le lock non suivi à la racine restent hors commit.
+
+Int?gration r?elle compl?mentaire : scripts/validation-covoiturage.cjs ex?cut? sur transport_demo_premium_20261112234317, backend et PostgreSQL r?els, donn?es dev isol?es. Connexions GLOBAL/AGENCE, filtrage local et refus de cr?ation hors p?rim?tre, r?servation Angular et paiement 25 ?, quatre paiements/100 ?, concurrence derni?re place, annulation/remboursement, historique et statistiques r?ussis ; douze contr?les responsive r?els sans d?bordement et aucune erreur JavaScript. Le premier lancement de pr?paration a refus? un mot de passe de d?monstration trop long pour BCrypt ; le g?n?rateur local a ?t? corrig? ? 32 octets al?atoires avant cette ex?cution r?ussie. Aucun secret publi?.

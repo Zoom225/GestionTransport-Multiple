@@ -38,10 +38,11 @@ import { RechercheTrajet, TrajetResponse } from '../../../shared/models/trajet.m
         </div>
         <aside class="hero-note" [attr.aria-label]="language.t('ui.illustration')">
           <img
-            src="images/covoiturage-belgique.svg"
+            [src]="photoFailed() ? 'images/covoiturage-belgique.svg' : 'images/route-partagee.jpg'"
+            (error)="photoFailed.set(true)"
             width="480"
             height="300"
-            alt=""
+            [alt]="language.t('premium.photoAlt')"
             fetchpriority="high"
           />
           <p>
@@ -212,7 +213,9 @@ import { RechercheTrajet, TrajetResponse } from '../../../shared/models/trajet.m
       .hero-note img {
         display: block;
         width: 100%;
-        height: auto;
+        height: 330px;
+        object-fit: cover;
+        border-radius: 20px;
       }
       .hero-note p {
         color: var(--ui-navy);
@@ -383,8 +386,9 @@ import { RechercheTrajet, TrajetResponse } from '../../../shared/models/trajet.m
           grid-template-columns: 1fr;
         }
         .hero-note {
-          display: none;
+          display: block;
         }
+        .hero-note img { height: 210px; }
         .content {
           padding: 0 1rem;
         }
@@ -410,6 +414,7 @@ import { RechercheTrajet, TrajetResponse } from '../../../shared/models/trajet.m
   ],
 })
 export class LandingPage {
+  readonly photoFailed = signal(false);
   readonly language = inject(LanguageService);
   private readonly api = inject(TrajetsApiService);
   private readonly router = inject(Router);

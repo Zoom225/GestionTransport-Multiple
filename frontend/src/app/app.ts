@@ -60,6 +60,7 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
             >{{ language.t('ui.searchNav') }}</a
           >
           @if (!voyageurSession.isAuthenticated() && !adminSession.isAuthenticated()) {
+            <a routerLink="/admin/login" class="nav-link">{{ language.t('premium.adminAccess') }}</a>
             <a routerLink="/voyageur" class="nav-btn-outline">{{ navText().voyageur }}</a>
           }
 
@@ -113,7 +114,7 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
               ariaCurrentWhenActive="page"
               [routerLinkActiveOptions]="{ exact: true }"
               class="nav-link"
-              >{{ navText().dashboard }}</a
+              >{{ language.t(adminSession.isGlobalAdmin() ? 'premium.global' : 'premium.local') }}</a
             >
             <a
               routerLink="/admin/voyageurs"
@@ -162,6 +163,19 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
     </header>
 
     <main id="main-content" tabindex="-1" class="app-main-shell">
+      @if (adminSession.isAuthenticated() && router.url.startsWith('/admin') && !router.url.startsWith('/admin/login')) {
+        <aside class="admin-navigation" [attr.aria-label]="language.t('premium.adminAccess')">
+          <strong>{{ language.t(adminSession.isGlobalAdmin() ? 'premium.global' : 'premium.local') }}</strong>
+          <nav>
+            <a routerLink="/admin" routerLinkActive="selected" [routerLinkActiveOptions]="{exact:true}" ariaCurrentWhenActive="page">{{ navText().dashboard }}</a>
+            <a routerLink="/admin/agences" routerLinkActive="selected" ariaCurrentWhenActive="page">{{ navText().agences }}</a>
+            <a routerLink="/admin/vehicules" routerLinkActive="selected" ariaCurrentWhenActive="page">{{ navText().vehicules }}</a>
+            <a routerLink="/admin/voyageurs" routerLinkActive="selected" ariaCurrentWhenActive="page">{{ language.t('premium.peopleRestrictions') }}</a>
+            <a routerLink="/admin/trajets" routerLinkActive="selected" ariaCurrentWhenActive="page">{{ language.t('premium.tripsBookings') }}</a>
+            <a routerLink="/admin/indisponibilites" routerLinkActive="selected" ariaCurrentWhenActive="page">{{ navText().indisponibilites }}</a>
+          </nav>
+        </aside>
+      }
       <router-outlet></router-outlet>
     </main>
     <footer class="app-footer">
@@ -185,7 +199,7 @@ export class App {
   readonly adminSession = inject(AdminSessionService);
   readonly voyageurSession = inject(VoyageurSessionService);
   readonly language = inject(LanguageService);
-  private readonly router = inject(Router);
+  readonly router = inject(Router);
   readonly navText = computed(() => ({
     home: this.language.t('nav.home'),
     admin: this.language.t('nav.admin'),

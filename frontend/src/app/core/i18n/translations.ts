@@ -1,6 +1,12 @@
 ﻿export type Locale = 'fr' | 'en';
 
 export type TranslationKey =
+  | 'premium.adminAccess'
+  | 'premium.global'
+  | 'premium.local'
+  | 'premium.peopleRestrictions'
+  | 'premium.tripsBookings'
+  | 'premium.photoAlt'
   | 'ui.sessionExpired'
   | 'ui.networkError'
   | 'ui.accessDenied'
@@ -480,6 +486,12 @@ export type TranslationParams = Record<string, string | number>;
 
 export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>>> = {
   fr: {
+    'premium.adminAccess': 'Accès administrateur',
+    'premium.global': 'Administration globale',
+    'premium.local': 'Administration de mon agence',
+    'premium.peopleRestrictions': 'Voyageurs · Restrictions et absences',
+    'premium.tripsBookings': 'Trajets · Réservations',
+    'premium.photoAlt': 'Automobile en déplacement sur une route, illustration de mobilité partagée',
     'ui.sessionExpired': 'Votre session a expiré. Reconnectez-vous pour continuer.',
     'ui.networkError': 'Connexion impossible. Vérifiez votre connexion puis réessayez.',
     'ui.accessDenied': 'Cette action n’est pas autorisée pour votre compte.',
@@ -987,6 +999,12 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.reservations.reservationCancelError': 'Annulation impossible.',
   },
   en: {
+    'premium.adminAccess': 'Administrator access',
+    'premium.global': 'Global administration',
+    'premium.local': 'My agency administration',
+    'premium.peopleRestrictions': 'Passengers · Restrictions and absences',
+    'premium.tripsBookings': 'Trips · Bookings',
+    'premium.photoAlt': 'Car travelling on a road, illustration of shared mobility',
     'ui.sessionExpired': 'Your session has expired. Sign in again to continue.',
     'ui.networkError': 'Unable to connect. Check your connection and try again.',
     'ui.accessDenied': 'This action is not allowed for your account.',

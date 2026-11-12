@@ -3,6 +3,31 @@ app-root {
   flex-direction: column;
   min-height: 100dvh;
 }
+.admin-navigation {
+  margin: 1.25rem auto 0;
+  width: min(1220px, calc(100% - 2rem));
+  padding: 1.25rem;
+  background: var(--ui-navy);
+  color: var(--ui-surface);
+  border-radius: var(--ui-radius);
+  box-shadow: var(--ui-shadow);
+}
+.admin-navigation strong { display: block; margin-bottom: .75rem; font-size: 1.15rem; }
+.admin-navigation nav { display: flex; gap: .5rem; flex-wrap: wrap; }
+.admin-navigation a {
+  display: flex; align-items: center; min-height: 44px; padding: .65rem 1rem;
+  color: var(--ui-surface); text-decoration: none; border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--ui-surface) 25%, transparent);
+}
+.admin-navigation a:hover, .admin-navigation .selected { background: var(--ui-primary-strong); }
+@media(min-width: 1440px) {
+  .app-main-shell:has(.admin-navigation) { display: grid; grid-template-columns: 255px minmax(0,1fr); align-items: start; }
+  .admin-navigation { position: sticky; top: 110px; width: auto; margin: 2rem 0 2rem 1rem; }
+  .admin-navigation nav { display: grid; }
+  .app-main-shell:has(.admin-navigation) > router-outlet { display: none; }
+  .app-main-shell:has(.admin-navigation) > :last-child { min-width: 0; }
+}
+@media(max-width: 600px) { .admin-navigation nav { display: grid; grid-template-columns: 1fr; } }
 .skip-link {
   position: fixed;
   inset: 0.5rem auto auto 0.5rem;
