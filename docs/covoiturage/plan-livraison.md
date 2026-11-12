@@ -37,8 +37,8 @@ Les PR #8, #9 et #10 ne sont pas fusionnées automatiquement par cette analyse.
   distincts, véhicule disponible et créneaux conducteur/véhicule compatibles.
 - Catégories : VIP à J+21 accepté et J+22 refusé ; local à J+14 et J+15 ; libre
   à J+5 et J+6 ; tous refusés après le départ ; local hors zone non réservable.
-- Capacité : véhicules à 4 et 8 places et autre valeur valide ; conducteur non
-  compté ; paiement confirmé sans dépasser les places réellement proposées.
+- Capacité : quatre clients au maximum ; chauffeur non compté ; confirmation
+  des quatre clients puis refus de la cinquième ; recettes 25/50/75/100 €.
 - Concurrence PostgreSQL : deux paiements sur dernière place, un seul accepté ;
   double paiement même réservation ; paiement/annulation ; paiement/expiration ;
   création de deux trajets incompatibles pour même conducteur ou véhicule.

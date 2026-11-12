@@ -10,7 +10,7 @@ Projet fullstack de gestion de matchs de padel.
 
 GestionTransport-Multiple évolue vers une application de covoiturage entre villes
 belges. La cible comprend recherche départ/destination/date, conducteur Voyageur,
-véhicules à capacité variable, réservations confirmées au paiement, restrictions
+un chauffeur et quatre places clients maximum, réservations confirmées au paiement, restrictions
 et administration. **Ces fonctions ne sont pas encore toutes implémentées.**
 
 L'énoncé PDF de cinq pages et le code existant ont été analysés. Consulter :
@@ -21,7 +21,8 @@ L'énoncé PDF de cinq pages et le code existant ont été analysés. Consulter 
 
 Le tarif actuel demandé est **100 € par trajet, soit 25 € par personne pour quatre
 places**, traité dans la PR #10 / issue #4. Les anciens montants restent conservés.
-La politique tarifaire des autres capacités sera validée avant sa mise en œuvre.
+Cette règle est définitive : le chauffeur ne compte pas parmi les quatre clients.
+Les recettes sont de 25, 50, 75 ou 100 € pour un à quatre clients payants.
 
 ### Versions et architecture
 

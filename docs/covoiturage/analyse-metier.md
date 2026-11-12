@@ -16,6 +16,8 @@ Les instructions du demandeur précisent la version académique : villes belges,
 conducteur réutilisant Voyageur, simulation de paiement, monolithe et interface
 responsive. La décision ultérieure fixe le tarif actuel à 100 € par trajet,
 soit 25 € par personne pour quatre places (issue #4, PR #10).
+La décision définitive du 12 novembre remplace le modèle à capacité variable :
+un chauffeur obligatoirement associé et quatre clients maximum, hors chauffeur.
 
 ## État réellement examiné
 
@@ -47,14 +49,13 @@ ne décrivent donc pas encore le contenu de develop. Aucun travail n'est refait 
 - **Conducteur** : rôle d'un Voyageur ayant le droit de proposer ; aucune table
   Conducteur ni deuxième authentification. Le siège conducteur est hors capacité.
 - **Vehicule** : immatriculation unique, marque, modèle, type, capacité passagers,
-  disponibilité et agence éventuelle.
+  disponibilité et agence éventuelle. Aucune gestion de capacité variable de flotte.
 - **Ville** : code et libellé d'une liste centralisée exposée par l'API ; pas de
   table d'itinéraires, Google Maps, distance calculée ou géolocalisation.
 - **Trajet** : départ, destination, départ daté, arrivée estimée, exactement un
-  conducteur, un véhicule, nombre de places offertes, prix, type et statut.
-- **Reservation** : demande d'un voyageur, nombre de places, date, montant,
-  échéance et statut. L'écran académique propose une place par demande ; le modèle
-  conserve un nombre de places explicite conforme au PDF.
+  chauffeur, un véhicule, quatre places clients maximum, prix, type et statut.
+- **Reservation** : demande d'un client pour une place, date, échéance et statut.
+  Le montant est porté par le paiement existant ; pas de gestion de sièges numérotés.
 - **Paiement** : simulation identifiée comme telle ; montant réellement validé,
   date, statut et lien avec la réservation, sans prestataire bancaire.
 - **Confirmation / billet** : présentation de la réservation payée avec son
@@ -71,7 +72,7 @@ ne décrivent donc pas encore le contenu de develop. Aucun travail n'est refait 
 | C03 | Conducteur obligatoire et unique ; pour un voyageur, identité issue de l'authentification | PDF p.2 ; tests anti-usurpation |
 | C04 | Un administrateur choisit un conducteur existant, autorisé et dans son périmètre | Demandeur ; tests administrateur local/global |
 | C05 | Pas de réservation automatique pour le conducteur ; il ne consomme pas de place passager | PDF p.2 ; création sans réservation implicite |
-| C06 | Places offertes positives et au plus égales à la capacité passagers du véhicule | PDF p.2 ; capacités 4, 8 et autres valeurs |
+| C06 | Quatre clients maximum, chauffeur exclu ; zéro réservation automatique du chauffeur | Décision définitive du 12 novembre ; refus de la cinquième confirmation |
 | C07 | Véhicule disponible ; pas de chevauchement conducteur/véhicule | PDF p.2 ; transactions et tests d'affectation concurrente |
 | C08 | Arrivée estimée après départ ; intervalle véhicule de référence 15 min, configurable | PDF p.2 ; trajets traversant minuit inclus |
 | C09 | Horaires et indisponibilités de l'agence effective respectés | PDF p.2 ; agence du véhicule, sinon du conducteur si présente |
@@ -140,12 +141,11 @@ flowchart LR
 
 ## Décisions métier à valider, sans valeurs inventées
 
-- **D01 — tarif/capacité** : la décision 100 €/25 € est appliquée pour les quatre
-  places actuelles. Pour un véhicule de capacité différente, conserver 100 € au
-  total et 25 € par personne serait incohérent si toutes les places sont vendues.
-  Le PDF privilégie un tarif par passager. Ne pas décider silencieusement entre
-  100 €/capacité et 25 € × places ; faire valider cette présentation avant codage
-  du modèle à capacité variable. Les anciennes sommes restent immuables.
+- **D01 — décision résolue et validée par le demandeur le 12 novembre** : quatre
+  clients maximum, 25 € par client, 100 € de référence si complet. Un seul tarif
+  central, calculs BigDecimal. Recettes : clients payants × 25 € ; aucune facturation
+  des places inoccupées. Aucun véhicule à six ou huit places à gérer. Les anciens
+  paiements restent immuables. Cette décision remplace la proposition précédente.
 - **D02 — délai impayé** : configurable ; aucune durée imposée par le PDF. Une
   valeur de démonstration devra être explicitement nommée et documentée.
 - **D03 — annulation/remboursement** : délai gratuit, frais et conditions tardives

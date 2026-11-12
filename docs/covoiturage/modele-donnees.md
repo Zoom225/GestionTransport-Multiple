@@ -19,7 +19,6 @@ classDiagram
         String immatriculation
         String marque
         String modele
-        int capacitePassagers
         boolean disponible
     }
     class Trajet {
@@ -28,14 +27,13 @@ classDiagram
         VilleBelge destination
         Instant departPrevu
         Instant arriveeEstimee
-        int placesOffertes
+        int maximumClientsQuatre
         Decimal prixParPassager
         TypeTrajet type
         boolean publicationAutomatiqueAutorisee
     }
     class Reservation {
         Long id
-        int nombrePlaces
         Instant dateDemande
         Instant expireLe
         Decimal montant
@@ -70,11 +68,10 @@ Par exemple, dateDebut/dateFin existants portent le départ et l'arrivée estim�
 L'association organisateur actuelle devient le conducteur autorisé : un seul
 lien JPA, pas deux liens contenant le même utilisateur.
 
-Le tarif total de référence 100 € reste tracé historiquement. La politique de
-présentation du total pour une capacité autre que quatre relève de D01 dans
-[l'analyse métier](analyse-metier.md). Le montant d'une réservation est un
-instantané du prix validé multiplié par son nombre de places, sans recalcul
-rétroactif lorsque le tarif du trajet change.
+Le tarif total de référence est 100 €, le prix client 25 €, le maximum quatre
+clients. Ce maximum est une règle centrale, pas une colonne supplémentaire par
+véhicule ou trajet ; le champ du diagramme est conceptuel. Le chauffeur est exclu.
+Le paiement conserve son montant historique, sans recalcul rétroactif.
 
 ## Modèle relationnel et correspondance physique
 
@@ -86,9 +83,9 @@ le renommage Java ne recrée ni tables ni relations.
 | sites | Agence : nom, localisation/adresse, horaires et intervalle entre utilisations |
 | membres | Voyageur : matricule unique, identité, mot de passe, catégorie, agence éventuelle ; ajout du droit de proposer |
 | administrateurs | Administrateur : comptes distincts déjà présents, type global/agence et agence éventuelle conservés |
-| terrains | Vehicule : ajouter immatriculation, marque, modèle, type, capacité et disponibilité ; agence facultative selon la version académique |
-| matches | Trajet : conserver terrain_id comme FK du véhicule et organisateur_id comme FK historique du futur conducteur ; ajouter villes, places offertes et consentement de publication |
-| reservations | Réutiliser match_id et membre_id ; ajouter nombre de places, échéance, date et montant de demande |
+| terrains | Vehicule : immatriculation, marque, modèle, type et disponibilité ; pas de capacité variable ni de gestion de flotte complexe |
+| matches | Trajet : conserver terrain_id et organisateur_id comme FK du véhicule et du chauffeur ; ajouter villes et consentement de publication ; maximum clients centralisé à quatre |
+| reservations | Réutiliser match_id, membre_id et date de création ; une place par réservation, échéance calculée et statut explicites |
 | paiements | Paiement : réservation, montant, date et statut ; historique remboursé conservé |
 | penalites | Restriction : conserver membre_id, date_fin, motif ; compléter fait déclencheur, date d'application et traçabilité |
 | jours_fermeture | IndisponibiliteService : date, motif, périmètre global/agence conservés |
@@ -109,8 +106,8 @@ démonstration, pas une liste de couples interdits/autorisés codée en dur.
   autorisé vérifié par le service, distinct des réservations passagers.
 - Immatriculation unique pour les véhicules qualifiés ; pas de plaque inventée
   lors de la reprise d'une ancienne ressource sportive.
-- Capacité positive, places offertes positives et dans la capacité du véhicule.
-  La relation entre tables doit être contrôlée dans la transaction métier.
+- Quatre confirmations clients maximum sous transaction/verrou. Le chauffeur
+  ne crée pas de réservation et ne peut pas acheter une place de son propre trajet.
 - Départ différent de destination ; arrivée strictement après départ ; prix
   positif ou nul selon politique validée, jamais un montant négatif.
 - Une seule demande active par paire trajet/voyageur, avec index unique partiel
@@ -138,7 +135,7 @@ avant toute écriture d'une nouvelle valeur.
    ddl-auto existant jusqu'à validation d'une autre stratégie ; ne pas ajouter
    Flyway/Liquibase simplement pour ce chantier.
 3. Ajouter les données nouvelles de façon compatible avec les anciennes lignes.
-   Une ancienne ressource sans plaque/capacité n'est pas un véhicule réservable.
+   Une ancienne ressource sportive non qualifiée n'est pas un véhicule réservable.
    Les nouveaux DTO imposent ces champs, les anciennes lignes restent consultables
    en historique et exclues de l'exploitation jusqu'à qualification explicite.
 4. Ne pas attribuer automatiquement le droit de conduire aux anciens voyageurs.
@@ -146,13 +143,15 @@ avant toute écriture d'une nouvelle valeur.
    Un ancien trajet sans villes ou véhicule qualifié n'est pas proposé à la vente.
 5. Conserver les montants des trajets, réservations, paiements et remboursements.
    Ne pas convertir les anciens montants 60/15 en 100/25 par UPDATE global.
-6. Les montants cibles nécessitent une représentation décimale. Un passage des
-   colonnes double actuelles à NUMERIC doit être audité, testé et accepté ; ne pas
-   arrondir silencieusement les valeurs historiques.
+6. Les calculs nouveaux utilisent BigDecimal. Préserver les anciennes colonnes
+   et paiements tant qu'une migration NUMERIC n'est pas validée ; convertir les
+   valeurs à la frontière, sans UPDATE global ni arrondi d'anciens paiements.
 7. Ne pas reprendre nbPassagersActuels comme vérité de capacité : le socle inclut
    des demandes impayées et l'organisateur. Les places confirmées sont calculées
-   depuis les réservations qualifiées sous verrou ; pas de deuxième compteur
-   métier divergent. Les anciennes lignes restent hors exploitation.
+   selon une règle unique sous verrou, sans compteur supplémentaire. Si le
+   compteur actuel est conservé, seules confirmation et annulation confirmée
+   le modifient dans la même transaction ; les demandes impayées ne le modifient pas.
+   Les anciennes lignes restent hors exploitation jusqu'à qualification.
 8. Comparer identifiants, sommes, relations et historiques avant/après ; démarrer
    avec ddl-auto=validate sur la copie ; obtenir validation avant base métier.
 
