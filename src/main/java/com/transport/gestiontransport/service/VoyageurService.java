@@ -14,5 +14,7 @@ public interface VoyageurService {
     boolean hasActiveRestriction(Long voyageurId);
     boolean hasOutstandingBalance(Long voyageurId);
     void addRestriction(Long voyageurId);
+    void addRestrictionPourEvenement(Long voyageurId, String source, String motif);
+    List<com.transport.gestiontransport.entity.Restriction> getRestrictions(Long voyageurId);
     Voyageur authenticate(String matricule, String password);
 }

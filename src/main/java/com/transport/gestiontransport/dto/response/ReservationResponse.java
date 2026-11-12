@@ -12,6 +12,8 @@ import java.time.LocalDateTime;
 @Builder
 public class ReservationResponse {
     private Long id;
+    private LocalDateTime absenceDeclareeLe;
+    private String motifAbsence;
     private Long trajetId;
     private LocalDateTime trajetDateTime;
     private Long voyageurId;

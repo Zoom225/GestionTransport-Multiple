@@ -36,8 +36,19 @@ public class ReservationServiceImpl implements ReservationService {
     @Value("${transport.reservation.delai-paiement:PT30M}")
     private Duration delaiPaiement = Duration.ofMinutes(30);
 
+    @Value("${transport.penalites.annulation-tardive.active:false}") private boolean annulationTardiveActive;
+    @Value("${transport.penalites.annulation-tardive.seuil-heures:0}") private int seuilAnnulationHeures;
+    @Value("${transport.penalites.absence.active:false}") private boolean absenceActive;
+    @Value("${transport.penalites.chauffeur.active:false}") private boolean annulationChauffeurActive;
+    @Value("${transport.penalites.chauffeur.seuil-nombre:0}") private int seuilAnnulationsChauffeur;
+    @Value("${transport.penalites.chauffeur.fenetre-jours:0}") private int fenetreChauffeurJours;
+
     @jakarta.annotation.PostConstruct
     void verifierDelaiPaiement() {
+        if ((annulationTardiveActive && seuilAnnulationHeures < 1)
+                || (annulationChauffeurActive && (seuilAnnulationsChauffeur < 1 || fenetreChauffeurJours < 1))) {
+            throw new IllegalStateException("Les seuils des pénalités activées doivent être explicitement configurés et positifs.");
+        }
         if (delaiPaiement.isZero() || delaiPaiement.isNegative()) {
             throw new IllegalStateException("Le délai de paiement doit être strictement positif.");
         }
@@ -179,11 +190,20 @@ public class ReservationServiceImpl implements ReservationService {
     @Transactional
     public void cancelForUser(Long reservationId, Long voyageurId) {
         Reservation reservation = getById(reservationId);
+        verrouillerTrajet(reservation.getTrajet().getId());
+        entityManager.refresh(reservation);
         if (!reservation.getVoyageur().getId().equals(voyageurId)
                 && !reservation.getTrajet().getChauffeur().getId().equals(voyageurId)) {
             throw new org.springframework.security.access.AccessDeniedException("Seul le client ou le chauffeur peut annuler cette réservation.");
         }
+        boolean tardive = annulationTardiveActive
+                && reservation.getVoyageur().getId().equals(voyageurId)
+                && reservation.getStatut() == StatutReservation.CONFIRMEE
+                && reservation.getTrajet().getDateDebut().isAfter(LocalDateTime.now())
+                && !reservation.getTrajet().getDateDebut().isAfter(LocalDateTime.now().plusHours(seuilAnnulationHeures));
         cancel(reservationId);
+        if (tardive) voyageurService.addRestrictionPourEvenement(voyageurId,
+                "annulation-client:" + reservationId, "Annulation tardive d'une réservation confirmée");
     }
 
     @Override
@@ -198,7 +218,41 @@ public class ReservationServiceImpl implements ReservationService {
             if (ACTIVES.contains(reservation.getStatut())) cancel(reservation.getId());
         }
         trajet.setStatut(StatutTrajet.ANNULE);
+        trajet.setDateAnnulation(LocalDateTime.now());
         trajetRepository.save(trajet);
+        if (annulationChauffeurActive && trajetRepository.countByChauffeurIdAndStatutAndDateAnnulationAfter(
+                chauffeurId, StatutTrajet.ANNULE, LocalDateTime.now().minusDays(fenetreChauffeurJours)) >= seuilAnnulationsChauffeur) {
+            voyageurService.addRestrictionPourEvenement(chauffeurId, "annulation-chauffeur:" + trajetId,
+                    "Seuil validé d'annulations de trajets par le chauffeur atteint");
+        }
+    }
+
+    @Override
+    @Transactional
+    public Reservation declarerAbsence(Long reservationId, String motif) {
+        if (!adminAuthorizationService.isAdmin()) {
+            throw new org.springframework.security.access.AccessDeniedException("Déclaration réservée aux administrateurs autorisés.");
+        }
+        if (motif == null || motif.isBlank() || motif.trim().length() > 500) {
+            throw new BusinessException("Le motif de l'absence est obligatoire (500 caractères maximum).");
+        }
+        Reservation reservation = getById(reservationId);
+        adminAuthorizationService.checkTrajetAccess(reservation.getTrajet().getId());
+        Trajet trajet = verrouillerTrajet(reservation.getTrajet().getId());
+        entityManager.refresh(reservation);
+        if (trajet.getStatut() == StatutTrajet.ANNULE || trajet.getDateDebut().isAfter(LocalDateTime.now())
+                || reservation.getStatut() != StatutReservation.CONFIRMEE || reservation.getPaiement() == null
+                || reservation.getPaiement().getStatut() != StatutPaiement.PAYE) {
+            throw new BusinessException("Une absence exige un départ passé et une réservation confirmée et payée sur un trajet non annulé.");
+        }
+        if (reservation.getAbsenceDeclareeLe() != null) return reservation;
+        reservation.setAbsenceDeclareeLe(LocalDateTime.now());
+        reservation.setMotifAbsence(motif.trim());
+        reservation.setAbsenceDeclareePar(adminAuthorizationService.currentAdmin());
+        reservationRepository.save(reservation);
+        if (absenceActive) voyageurService.addRestrictionPourEvenement(reservation.getVoyageur().getId(),
+                "absence:" + reservationId, "Absence injustifiée déclarée par un administrateur autorisé");
+        return reservation;
     }
 
     @Override

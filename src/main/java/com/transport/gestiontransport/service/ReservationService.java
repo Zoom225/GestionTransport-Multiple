@@ -17,4 +17,5 @@ public interface ReservationService {
     Reservation preparePaiement(Long reservationId, Long voyageurId);
     void expirePendingReservations();
     void cancelTrajet(Long trajetId, Long chauffeurId);
+    Reservation declarerAbsence(Long reservationId, String motif);
 }

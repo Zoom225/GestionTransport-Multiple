@@ -63,6 +63,7 @@ class PostgresBaselineTest {
     void appliquerLesInvariantsSurLaBasePostgresIsolee() throws java.io.IOException {
         jdbc.execute(java.nio.file.Files.readString(java.nio.file.Path.of("scripts/migrations/issue-4-reservation-expiration.sql")));
         jdbc.execute(java.nio.file.Files.readString(java.nio.file.Path.of("scripts/migrations/issue-7-invariants-covoiturage.sql")));
+        jdbc.execute(java.nio.file.Files.readString(java.nio.file.Path.of("scripts/migrations/issue-4-restrictions-soutenance.sql")));
     }
 
     @Test
@@ -97,6 +98,27 @@ class PostgresBaselineTest {
     private Voyageur voyageur() {
         return voyageurs.saveAndFlush(Voyageur.builder().matricule(UUID.randomUUID().toString())
                 .nom("Baseline").prenom("Test").typeVoyageur(TypeVoyageur.VIP).solde(0.0).build());
+    }
+
+    @Test
+    void restrictionsEvenementiellesIdempotentesEtHistoriqueExpireConserve() {
+        Voyageur client = voyageur();
+        String source = "absence:test:" + UUID.randomUUID();
+        voyageurService.addRestrictionPourEvenement(client.getId(), source, "Absence déclarée et vérifiée");
+        voyageurService.addRestrictionPourEvenement(client.getId(), source, "Autre texte à ignorer");
+        assertThat(voyageurService.getRestrictions(client.getId())).hasSize(1);
+        Restriction restriction = voyageurService.getRestrictions(client.getId()).getFirst();
+        assertThat(restriction.getDateDebut()).isEqualTo(java.time.LocalDate.now());
+        assertThat(restriction.getDateFin()).isEqualTo(java.time.LocalDate.now().plusDays(7));
+        assertThat(voyageurService.hasActiveRestriction(client.getId())).isTrue();
+        restriction.setDateFin(java.time.LocalDate.now());
+        restrictions.saveAndFlush(restriction);
+        assertThat(voyageurService.hasActiveRestriction(client.getId())).isFalse();
+        assertThat(voyageurService.getRestrictions(client.getId())).hasSize(1);
+        restriction.setDateDebut(java.time.LocalDate.now().plusDays(1));
+        restriction.setDateFin(java.time.LocalDate.now().plusDays(8));
+        restrictions.saveAndFlush(restriction);
+        assertThat(voyageurService.hasActiveRestriction(client.getId())).isFalse();
     }
 
     @Test
@@ -142,6 +164,79 @@ class PostgresBaselineTest {
     private Reservation demande(Trajet trajet) {
         Long client = voyageur().getId();
         return reservationService.create(trajet.getId(), client, client);
+    }
+
+    @Test
+    void deuxRestrictionsConcurrentesPourLeMemeFaitNeCreentQuUneLigne() throws Exception {
+        Voyageur client = voyageur();
+        String source = "absence:concurrence:" + UUID.randomUUID();
+        CyclicBarrier barriere = new CyclicBarrier(2);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Callable<Void> action = () -> {
+                barriere.await(10, TimeUnit.SECONDS);
+                voyageurService.addRestrictionPourEvenement(client.getId(), source, "Même fait vérifié");
+                return null;
+            };
+            Future<Void> a = executor.submit(action);
+            Future<Void> b = executor.submit(action);
+            a.get(30, TimeUnit.SECONDS);
+            b.get(30, TimeUnit.SECONDS);
+            assertThat(voyageurService.getRestrictions(client.getId())).hasSize(1);
+        } finally { executor.shutdownNow(); }
+    }
+
+    @Test
+    void apiAbsenceExigeUnAdministrateurDeLaBonneAgenceEtConserveLaDeclaration() throws Exception {
+        Trajet trajet = trajetVide();
+        Reservation reservation = demande(trajet);
+        paiementService.pay(reservation.getId(), reservation.getVoyageur().getId());
+        Administrateur admin = administrateurs.saveAndFlush(Administrateur.builder().matricule(UUID.randomUUID().toString())
+                .nom("Validation").prenom("Administrateur").email(UUID.randomUUID() + "@example.test")
+                .passwordHash("not-used-for-login").typeAdministrateur(TypeAdministrateur.AGENCE)
+                .agence(trajet.getVehicule().getAgence()).build());
+        String endpoint = "/api/reservations/" + reservation.getId() + "/absence";
+        var post = org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(endpoint);
+        mvc.perform(post.with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("client").roles("VOYAGEUR"))
+                .contentType("application/json").content("{\"motif\":\"Absence vérifiée\"}"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isForbidden());
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(endpoint)
+                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(admin.getEmail()).roles("ADMIN"))
+                .contentType("application/json").content("{\"motif\":\"Absence vérifiée\"}"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isBadRequest());
+        jdbc.update("UPDATE matches SET date_debut = ?, date_fin = ? WHERE id = ?",
+                java.sql.Timestamp.valueOf(LocalDateTime.now().minusHours(2)), java.sql.Timestamp.valueOf(LocalDateTime.now().minusMinutes(30)), trajet.getId());
+        for (int i = 0; i < 2; i++) {
+            mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(endpoint)
+                    .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(admin.getEmail()).roles("ADMIN"))
+                    .contentType("application/json").content("{\"motif\":\"Absence vérifiée\"}"))
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk())
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.motifAbsence").value("Absence vérifiée"));
+        }
+        assertThat(jdbc.queryForObject("SELECT absence_admin_id FROM reservations WHERE id = ?", Long.class, reservation.getId())).isEqualTo(admin.getId());
+        assertThat(voyageurService.getRestrictions(reservation.getVoyageur().getId())).isEmpty();
+        Administrateur autre = administrateurs.saveAndFlush(Administrateur.builder().matricule(UUID.randomUUID().toString())
+                .nom("Autre").prenom("Agence").email(UUID.randomUUID() + "@example.test")
+                .passwordHash("not-used-for-login").typeAdministrateur(TypeAdministrateur.AGENCE).build());
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(endpoint)
+                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(autre.getEmail()).roles("ADMIN"))
+                .contentType("application/json").content("{\"motif\":\"Non autorisé\"}"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isBadRequest());
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/voyageurs/" + reservation.getVoyageur().getId() + "/restrictions")
+                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("client").roles("VOYAGEUR")))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isForbidden());
+    }
+
+    @Test
+    void detteExigibleBloqueLePaiementSansConfondreLesDemandesEnAttente() {
+        Trajet trajet = trajetVide();
+        Reservation demande = demande(trajet);
+        Long clientId = demande.getVoyageur().getId();
+        assertThat(voyageurService.hasOutstandingBalance(clientId)).isFalse();
+        jdbc.update("UPDATE membres SET solde = 25 WHERE id = ?", clientId);
+        assertThatThrownBy(() -> paiementService.pay(demande.getId(), clientId)).isInstanceOf(BusinessException.class).hasMessageContaining("impayé");
+        assertThat(jdbc.queryForObject("SELECT statut FROM paiements WHERE reservation_id = ?", String.class, demande.getId())).isEqualTo("EN_ATTENTE");
+        assertThat(voyageurService.getRestrictions(clientId)).isEmpty();
     }
 
     @Test

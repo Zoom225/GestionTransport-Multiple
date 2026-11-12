@@ -31,4 +31,13 @@ public class Reservation extends BaseEntity {
     @OneToOne(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("reservation-paiement")
     private Paiement paiement;
+
+    private java.time.LocalDateTime absenceDeclareeLe;
+
+    @Column(length = 500)
+    private String motifAbsence;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "absence_admin_id")
+    private Administrateur absenceDeclareePar;
 }

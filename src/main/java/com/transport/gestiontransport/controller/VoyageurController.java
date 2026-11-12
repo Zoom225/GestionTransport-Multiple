@@ -38,6 +38,15 @@ import java.util.List;
 @Tag(name = "Voyageurs", description = "Endpoints de gestion des voyageurs de transport. " +
         "Les voyageurs se connectent avec leur matricule via /api/voyageurs/login.")
 public class VoyageurController {
+    @GetMapping("/{id}/restrictions")
+    public ResponseEntity<List<com.transport.gestiontransport.dto.response.RestrictionResponse>> restrictions(@PathVariable Long id) {
+        adminAuthorizationService.checkVoyageurAccess(voyageurService.getById(id));
+        java.time.LocalDate aujourdHui = java.time.LocalDate.now();
+        return ResponseEntity.ok(voyageurService.getRestrictions(id).stream().map(r ->
+                new com.transport.gestiontransport.dto.response.RestrictionResponse(r.getId(), r.getMotif(), r.getSourceEvenement(),
+                        r.getDateDebut(), r.getDateFin(), r.getDateFin().isAfter(aujourdHui)
+                        && (r.getDateDebut() == null || !r.getDateDebut().isAfter(aujourdHui)))).toList());
+    }
 
 
     private final VoyageurService voyageurService;

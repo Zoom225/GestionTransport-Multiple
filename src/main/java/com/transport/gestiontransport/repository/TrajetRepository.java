@@ -16,6 +16,7 @@ import java.util.Optional;
 
 @Repository
 public interface TrajetRepository extends JpaRepository<Trajet, Long> {
+    long countByChauffeurIdAndStatutAndDateAnnulationAfter(Long chauffeurId, StatutTrajet statut, LocalDateTime depuis);
 
     List<Trajet> findByTypeTrajetAndStatut(TypeTrajet type, StatutTrajet statut);
 

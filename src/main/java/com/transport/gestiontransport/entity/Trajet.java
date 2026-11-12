@@ -22,6 +22,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class Trajet extends BaseEntity {
+    private java.time.LocalDateTime dateAnnulation;
     public static final int MAX_CLIENTS = 4;
 
     @ManyToOne(fetch = FetchType.LAZY)
