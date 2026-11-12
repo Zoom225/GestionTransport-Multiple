@@ -41,7 +41,8 @@ utilisant l'ancien nom de compte doivent être reconfigurées.
 Pour vérifier l'authentification TCP depuis le conteneur sans imprimer le mot de passe :
 
 ```powershell
-docker compose exec -T postgres sh -c 'PGPASSWORD="$POSTGRES_PASSWORD" psql -h 127.0.0.1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT current_user, current_database();"'
+'SELECT current_user, current_database();' |
+    docker compose exec -T postgres sh -c 'PGPASSWORD=$POSTGRES_PASSWORD exec psql -h 127.0.0.1 -U transport -d transportService'
 ```
 
 ## Exécution vérifiée le 12 novembre 2026
