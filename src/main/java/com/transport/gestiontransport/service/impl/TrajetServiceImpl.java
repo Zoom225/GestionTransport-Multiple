@@ -70,7 +70,7 @@ public class TrajetServiceImpl implements TrajetService {
         }
 
         Trajet trajet = new Trajet();
-        trajet.setOrganisateur(organisateur);
+        trajet.setChauffeur(organisateur);
         trajet.setVehicule(vehicule);
         trajet.setDateDebut(dateDebut);
         trajet.setDateFin(dateFin);
@@ -105,7 +105,7 @@ public class TrajetServiceImpl implements TrajetService {
 
     @Override
     public List<TrajetDto> findByOrganisateur(Long organisateurId) {
-        return trajetRepository.findByOrganisateurId(organisateurId)
+        return trajetRepository.findByChauffeurId(organisateurId)
                 .stream()
                 .map(trajetMapper::toTrajetDto)
                 .collect(Collectors.toList());
@@ -140,7 +140,7 @@ public class TrajetServiceImpl implements TrajetService {
             throw new BusinessException("Impossible de modifier un trajet annulé.");
         }
         // Regle metier : seul l'organisateur peut modifier son trajet.
-        if (!trajet.getOrganisateur().getId().equals(request.getOrganisateurId())) {
+        if (!trajet.getChauffeur().getId().equals(request.getOrganisateurId())) {
             throw new BusinessException("Seul l'organisateur peut modifier ce trajet.");
         }
 
@@ -174,7 +174,7 @@ public class TrajetServiceImpl implements TrajetService {
             throw new BusinessException("Ce trajet est déjà annulé.");
         }
         // Regle metier : seul l'organisateur peut annuler son trajet.
-        if (!trajet.getOrganisateur().getId().equals(requesterId)) {
+        if (!trajet.getChauffeur().getId().equals(requesterId)) {
             throw new BusinessException("Seul l'organisateur peut annuler ce trajet.");
         }
 
@@ -215,8 +215,8 @@ public class TrajetServiceImpl implements TrajetService {
         trajet.setTypeTrajet(TypeTrajet.PUBLIC);
         trajet.setDateConversionPublic(LocalDateTime.now());
         trajetRepository.save(trajet);
-        voyageurService.addRestriction(trajet.getOrganisateur().getId());
-        log.info("Trajet {} converti en public, restriction appliquée à l'organisateur {}", trajetId, trajet.getOrganisateur().getId());
+        voyageurService.addRestriction(trajet.getChauffeur().getId());
+        log.info("Trajet {} converti en public, restriction appliquée à l'organisateur {}", trajetId, trajet.getChauffeur().getId());
     }
 
     @Override
@@ -281,8 +281,8 @@ public class TrajetServiceImpl implements TrajetService {
     private void validateBookingDelay(Voyageur voyageur, LocalDate trajetDate) {
         long daysUntilTrajet = ChronoUnit.DAYS.between(LocalDate.now(), trajetDate);
         int maxDaysAhead = switch (voyageur.getTypeVoyageur()) {
-            case GLOBAL -> 21;
-            case AGENCE -> 14;
+            case VIP -> 21;
+            case LOCAL -> 14;
             case LIBRE -> 5;
         };
 
@@ -316,7 +316,7 @@ public class TrajetServiceImpl implements TrajetService {
     }
 
     private void validateAgenceAccessForOrganizer(Voyageur organisateur, Vehicule vehicule) {
-        if (organisateur.getTypeVoyageur() == TypeVoyageur.AGENCE) {
+        if (organisateur.getTypeVoyageur() == TypeVoyageur.LOCAL) {
             // Regle metier : un voyageur AGENCE ne peut creer un trajet que sur sa propre agence.
             if (organisateur.getAgence() == null || !organisateur.getAgence().getId().equals(vehicule.getAgence().getId())) {
                 throw new BusinessException("Un voyageur AGENCE ne peut créer un trajet que sur sa propre agence.");

@@ -70,7 +70,7 @@ public class ReservationServiceImpl implements ReservationService {
         // Le requesterId est l'ID de la personne qui initie la demande de reservation.
         // Regle metier : seul l'organisateur peut inviter des passagers sur un trajet prive.
         if (trajet.getTypeTrajet() == TypeTrajet.PRIVE
-                && !trajet.getOrganisateur().getId().equals(requesterId)) {
+                && !trajet.getChauffeur().getId().equals(requesterId)) {
             throw new BusinessException("Pour un trajet privé, seul l'organisateur peut ajouter des passagers.");
         }
 
@@ -79,7 +79,7 @@ public class ReservationServiceImpl implements ReservationService {
             throw new BusinessException("Un voyageur ne peut réserver un trajet public que pour lui-même.");
         }
 
-        if (voyageur.getTypeVoyageur() == TypeVoyageur.AGENCE) {
+        if (voyageur.getTypeVoyageur() == TypeVoyageur.LOCAL) {
             Long voyageurAgenceId = voyageur.getAgence().getId();
             Long trajetAgenceId = trajet.getVehicule().getAgence().getId();
             // Regle metier : un voyageur AGENCE ne reserve que sur son agence.

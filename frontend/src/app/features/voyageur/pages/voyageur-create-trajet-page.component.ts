@@ -20,8 +20,8 @@ import { AgenceResponse, VehiculeResponse } from '../../../shared/models/agence-
 import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
 
 const BOOKING_MAX_DAYS: Record<TypeVoyageur, number> = {
-  GLOBAL: 21,
-  AGENCE: 14,
+  VIP: 21,
+  LOCAL: 14,
   LIBRE: 5
 };
 
@@ -194,7 +194,7 @@ export class VoyageurCreateTrajetPage {
   readonly agences = signal<AgenceResponse[]>([]);
   readonly vehicules = signal<VehiculeResponse[]>([]);
   readonly voyageur = computed(() => this.voyageurSession.voyageur());
-  readonly isAgenceVoyageur = computed(() => this.voyageur()?.typeVoyageur === 'AGENCE');
+  readonly isAgenceVoyageur = computed(() => this.voyageur()?.typeVoyageur === 'LOCAL');
   readonly todayDate = computed(() => {
     const today = new Date();
     today.setHours(12, 0, 0, 0);
@@ -270,7 +270,7 @@ export class VoyageurCreateTrajetPage {
       next: (agences) => {
         this.agences.set(agences);
         const voyageur = this.voyageur();
-        if (voyageur?.typeVoyageur === 'AGENCE' && voyageur.agenceId) {
+        if (voyageur?.typeVoyageur === 'LOCAL' && voyageur.agenceId) {
           this.form.controls.agenceId.setValue(voyageur.agenceId);
           this.onAgenceChange(voyageur.agenceId);
           return;

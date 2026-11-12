@@ -39,7 +39,7 @@ public class VoyageurServiceImpl implements VoyageurService {
             throw new BusinessException("L'email existe déjà : " + voyageur.getEmail());
         }
         // Regle metier : un voyageur AGENCE doit etre rattache a une agence.
-        if (voyageur.getTypeVoyageur() == TypeVoyageur.AGENCE && voyageur.getAgence() == null) {
+        if (voyageur.getTypeVoyageur() == TypeVoyageur.LOCAL && voyageur.getAgence() == null) {
             throw new BusinessException("Un voyageur AGENCE doit être lié à une agence.");
         }
 
@@ -123,8 +123,8 @@ public class VoyageurServiceImpl implements VoyageurService {
 
     private void validateMatricule(String matricule, TypeVoyageur type) {
         boolean valid = switch (type) {
-            case GLOBAL -> matricule.matches("^G\\d{4}$");
-            case AGENCE   -> matricule.matches("^S\\d{5}$");
+            case VIP -> matricule.matches("^G\\d{4}$");
+            case LOCAL -> matricule.matches("^S\\d{5}$");
             case LIBRE  -> matricule.matches("^L\\d{5}$");
         };
         // Regle metier : un matricule doit respecter le format du type de voyageur.

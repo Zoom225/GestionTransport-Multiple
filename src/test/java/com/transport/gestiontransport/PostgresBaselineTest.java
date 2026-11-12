@@ -53,11 +53,11 @@ class PostgresBaselineTest {
     @Test
     void agencyTypesRemainCompatibleWithLegacySqlValues() {
         Voyageur voyageur = voyageur();
-        voyageur.setTypeVoyageur(TypeVoyageur.AGENCE);
+        voyageur.setTypeVoyageur(TypeVoyageur.LOCAL);
         voyageurs.saveAndFlush(voyageur);
         assertThat(jdbc.queryForObject("SELECT type_membre FROM membres WHERE id = ?", String.class, voyageur.getId()))
                 .isEqualTo("SITE");
-        assertThat(voyageurs.findById(voyageur.getId()).orElseThrow().getTypeVoyageur()).isEqualTo(TypeVoyageur.AGENCE);
+        assertThat(voyageurs.findById(voyageur.getId()).orElseThrow().getTypeVoyageur()).isEqualTo(TypeVoyageur.LOCAL);
         Administrateur admin = administrateurs.saveAndFlush(Administrateur.builder()
                 .matricule(UUID.randomUUID().toString()).nom("Baseline").prenom("Agency")
                 .email(UUID.randomUUID() + "@example.test").passwordHash("not-used-for-login")
@@ -70,14 +70,14 @@ class PostgresBaselineTest {
 
     private Voyageur voyageur() {
         return voyageurs.saveAndFlush(Voyageur.builder().matricule(UUID.randomUUID().toString())
-                .nom("Baseline").prenom("Test").typeVoyageur(TypeVoyageur.GLOBAL).solde(0.0).build());
+                .nom("Baseline").prenom("Test").typeVoyageur(TypeVoyageur.VIP).solde(0.0).build());
     }
 
     @Test
     void postgresEnforcesUniqueVoyageurAndReservationForeignKeys() {
         Voyageur first = voyageur();
         assertThatThrownBy(() -> voyageurs.saveAndFlush(Voyageur.builder().matricule(first.getMatricule())
-                .nom("Duplicate").prenom("Test").typeVoyageur(TypeVoyageur.GLOBAL).solde(0.0).build()))
+                .nom("Duplicate").prenom("Test").typeVoyageur(TypeVoyageur.VIP).solde(0.0).build()))
                 .isInstanceOf(DataIntegrityViolationException.class);
         assertThatThrownBy(() -> new TransactionTemplate(transactionManager).execute(status -> {
             Reservation invalid = Reservation.builder().voyageur(first)
@@ -94,7 +94,7 @@ class PostgresBaselineTest {
         Vehicule vehicule = vehicules.saveAndFlush(Vehicule.builder().nom("Test").agence(agence).prix(60.0).build());
         Voyageur owner = voyageur();
         LocalDateTime start = LocalDateTime.now().plusDays(10);
-        Trajet trajet = trajets.saveAndFlush(Trajet.builder().vehicule(vehicule).organisateur(owner)
+        Trajet trajet = trajets.saveAndFlush(Trajet.builder().vehicule(vehicule).chauffeur(owner)
                 .dateDebut(start).dateFin(start.plusMinutes(90)).typeTrajet(TypeTrajet.PUBLIC)
                 .statut(StatutTrajet.PLANIFIE).nbPassagersActuels(3).prixTotal(60.0).prixParPassager(15.0).build());
         Long first = voyageur().getId();

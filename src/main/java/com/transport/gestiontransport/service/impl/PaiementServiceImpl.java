@@ -144,7 +144,7 @@ public class PaiementServiceImpl implements PaiementService {
                     reservationService.cancel(reservation.getId());
 
                     double partManquante = trajet.getPrixParPassager();
-                    Voyageur organisateur = trajet.getOrganisateur();
+                    Voyageur organisateur = trajet.getChauffeur();
                     organisateur.setSolde(organisateur.getSolde() + partManquante);
                     voyageurRepository.save(organisateur);
 

@@ -12,9 +12,9 @@ import { AdminVoyageursPage } from './admin-voyageurs-page.component';
 
 describe('AdminVoyageursPage', () => {
   const voyageurs: VoyageurResponse[] = [
-	{ id: 1, matricule: 'G1001', nom: 'Martin', prenom: 'Lucas', email: 'lucas@email.com', typeVoyageur: 'GLOBAL', agenceId: null, agenceNom: null, solde: 0 },
-	{ id: 2, matricule: 'S10001', nom: 'Bernard', prenom: 'Tom', email: 'tom@email.com', typeVoyageur: 'AGENCE', agenceId: 1, agenceNom: 'Agence Lyon', solde: 5 },
-	{ id: 3, matricule: 'S10002', nom: 'Leroy', prenom: 'Sarah', email: 'sarah@email.com', typeVoyageur: 'AGENCE', agenceId: 2, agenceNom: 'Agence Paris', solde: 0 }
+	{ id: 1, matricule: 'G1001', nom: 'Martin', prenom: 'Lucas', email: 'lucas@email.com', typeVoyageur: 'VIP', agenceId: null, agenceNom: null, solde: 0 },
+	{ id: 2, matricule: 'S10001', nom: 'Bernard', prenom: 'Tom', email: 'tom@email.com', typeVoyageur: 'LOCAL', agenceId: 1, agenceNom: 'Agence Lyon', solde: 5 },
+	{ id: 3, matricule: 'S10002', nom: 'Leroy', prenom: 'Sarah', email: 'sarah@email.com', typeVoyageur: 'LOCAL', agenceId: 2, agenceNom: 'Agence Paris', solde: 0 }
   ];
 
   const agences: AgenceResponse[] = [
@@ -92,9 +92,9 @@ describe('AdminVoyageursPage', () => {
 	expect(component.displayedVoyageurs()[0].matricule).toBe('S10002');
 
 	component.searchQuery.set('');
-	component.typeFilter.set('AGENCE');
+	component.typeFilter.set('LOCAL');
 	expect(component.displayedVoyageurs()).toHaveLength(2);
-	expect(component.countByType('AGENCE')).toBe(2);
+	expect(component.countByType('LOCAL')).toBe(2);
   });
 
   it('affiche le statut de restriction active d un voyageur', () => {
@@ -123,7 +123,7 @@ describe('AdminVoyageursPage', () => {
 
 	expect(voyageursApiMock.update).toHaveBeenCalledWith(
 	  2,
-	  expect.objectContaining({ matricule: 'S10001', nom: 'Bernard-Modifie', typeVoyageur: 'AGENCE', agenceId: 1 })
+	  expect.objectContaining({ matricule: 'S10001', nom: 'Bernard-Modifie', typeVoyageur: 'LOCAL', agenceId: 1 })
 	);
 	expect(component.message()).toContain('Voyageur mis à jour');
 	expect(component.editingId()).toBeNull();

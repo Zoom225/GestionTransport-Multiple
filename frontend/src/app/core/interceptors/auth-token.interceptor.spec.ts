@@ -76,7 +76,7 @@ describe('authTokenInterceptor', () => {
       nom: 'Doe',
       prenom: 'John',
       email: 'john@example.com',
-      typeVoyageur: 'GLOBAL',
+      typeVoyageur: 'VIP',
       agenceId: null,
       agenceNom: null,
       solde: 0,

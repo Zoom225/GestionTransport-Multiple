@@ -15,7 +15,7 @@ describe('VoyageurHomePage', () => {
     nom: 'Bernard',
     prenom: 'Tom',
     email: 'tom.bernard@email.com',
-    typeVoyageur: 'AGENCE',
+    typeVoyageur: 'LOCAL',
     agenceId: 1,
     agenceNom: 'Agence Lyon',
     solde: 0

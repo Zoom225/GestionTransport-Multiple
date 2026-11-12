@@ -79,7 +79,7 @@ class VoyageurControllerTest {
         voyageurRequest.setMatricule("L12345");
         voyageurRequest.setNom("Doe");
         voyageurRequest.setPrenom("John");
-        voyageurRequest.setTypeVoyageur(TypeVoyageur.GLOBAL);
+        voyageurRequest.setTypeVoyageur(TypeVoyageur.VIP);
 
         voyageurResponse = new VoyageurResponse();
         voyageurResponse.setId(1L);

@@ -181,10 +181,10 @@ export class VoyageurProfilePage {
   }
 
   voyageurTypeBadgeClass(type: VoyageurResponse['typeVoyageur']): string {
-    if (type === 'GLOBAL') {
+    if (type === 'VIP') {
       return 'ds-badge-info';
     }
-    if (type === 'AGENCE') {
+    if (type === 'LOCAL') {
       return 'ds-badge-success';
     }
     return 'ds-badge-warning';

@@ -62,7 +62,7 @@ class VoyageurMapperTest {
                 .nom("Smith")
                 .prenom("Jane")
                 .email("jane.smith@example.com")
-                .typeVoyageur(TypeVoyageur.AGENCE)
+                .typeVoyageur(TypeVoyageur.LOCAL)
                 .agence(agence)
                 .solde(25.5)
                 .build();
@@ -78,7 +78,7 @@ class VoyageurMapperTest {
                 () -> assertEquals("S54321", response.getMatricule()),
                 () -> assertEquals("Smith", response.getNom()),
                 () -> assertEquals("Jane", response.getPrenom()),
-                () -> assertEquals(TypeVoyageur.AGENCE, response.getTypeVoyageur()),
+                () -> assertEquals(TypeVoyageur.LOCAL, response.getTypeVoyageur()),
                 () -> assertEquals(1L, response.getAgenceId()),
                 () -> assertEquals("Agence Central", response.getAgenceNom()),
                 () -> assertEquals(25.5, response.getSolde())
@@ -92,7 +92,7 @@ class VoyageurMapperTest {
         // Correction : Construire l'objet, puis setter l'ID
         Voyageur voyageur = Voyageur.builder()
                 .matricule("G9876")
-                .typeVoyageur(TypeVoyageur.GLOBAL) // Un voyageur GLOBAL n'a pas de agence
+                .typeVoyageur(TypeVoyageur.VIP) // Un voyageur GLOBAL n'a pas de agence
                 .agence(null)
                 .solde(0.0) // Initialiser tous les champs non-null
                 .build();

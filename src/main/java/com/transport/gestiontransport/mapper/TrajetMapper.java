@@ -16,7 +16,7 @@ public class TrajetMapper {
         }
 
         Vehicule vehicule = trajet.getVehicule();
-        Voyageur organisateur = trajet.getOrganisateur();
+        Voyageur organisateur = trajet.getChauffeur();
         Agence agence = (vehicule != null) ? vehicule.getAgence() : null;
 
         Long vehiculeId = (vehicule != null) ? vehicule.getId() : null;

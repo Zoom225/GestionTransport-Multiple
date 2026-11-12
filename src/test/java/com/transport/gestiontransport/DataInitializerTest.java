@@ -44,7 +44,7 @@ class DataInitializerTest {
                 .nom("Martin")
                 .prenom("Lucas")
                 .email("lucas@email.com")
-                .typeVoyageur(TypeVoyageur.GLOBAL)
+                .typeVoyageur(TypeVoyageur.VIP)
                 .solde(0.0)
                 .passwordHash(null)
                 .build();

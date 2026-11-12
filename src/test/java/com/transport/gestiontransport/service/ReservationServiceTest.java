@@ -80,7 +80,7 @@ class ReservationServiceTest {
                 .matricule("G1001")
                 .nom("Martin")
                 .prenom("Lucas")
-                .typeVoyageur(TypeVoyageur.GLOBAL)
+                .typeVoyageur(TypeVoyageur.VIP)
                 .solde(0.0)
                 .agence(null)
                 .build();
@@ -90,7 +90,7 @@ class ReservationServiceTest {
                 .matricule("G1002")
                 .nom("Dupont")
                 .prenom("Julie")
-                .typeVoyageur(TypeVoyageur.GLOBAL)
+                .typeVoyageur(TypeVoyageur.VIP)
                 .solde(0.0)
                 .agence(null)
                 .build();
@@ -101,7 +101,7 @@ class ReservationServiceTest {
                 .matricule("S20001")
                 .nom("Leclerc")
                 .prenom("Paul")
-                .typeVoyageur(TypeVoyageur.AGENCE)
+                .typeVoyageur(TypeVoyageur.LOCAL)
                 .solde(0.0)
                 .agence(agenceB)
                 .build();
@@ -109,7 +109,7 @@ class ReservationServiceTest {
 
         trajetPrive = Trajet.builder()
                 .vehicule(vehicule)
-                .organisateur(organisateur)
+                .chauffeur(organisateur)
                 .dateDebut(java.time.LocalDateTime.of(LocalDate.now().plusDays(25), LocalTime.of(15, 0)))
                 .dateFin(java.time.LocalDateTime.of(LocalDate.now().plusDays(25), LocalTime.of(16, 30)))
                 .typeTrajet(TypeTrajet.PRIVE)
@@ -122,7 +122,7 @@ class ReservationServiceTest {
 
         trajetPublic = Trajet.builder()
                 .vehicule(vehicule)
-                .organisateur(organisateur)
+                .chauffeur(organisateur)
                 .dateDebut(java.time.LocalDateTime.of(LocalDate.now().plusDays(25), LocalTime.of(17, 0)))
                 .dateFin(java.time.LocalDateTime.of(LocalDate.now().plusDays(25), LocalTime.of(18, 30)))
                 .typeTrajet(TypeTrajet.PUBLIC)
@@ -135,7 +135,7 @@ class ReservationServiceTest {
 
         trajetComplet = Trajet.builder()
                 .vehicule(vehicule)
-                .organisateur(organisateur)
+                .chauffeur(organisateur)
                 .dateDebut(java.time.LocalDateTime.of(LocalDate.now().plusDays(25), LocalTime.of(19, 0)))
                 .dateFin(java.time.LocalDateTime.of(LocalDate.now().plusDays(25), LocalTime.of(20, 30)))
                 .typeTrajet(TypeTrajet.PUBLIC)

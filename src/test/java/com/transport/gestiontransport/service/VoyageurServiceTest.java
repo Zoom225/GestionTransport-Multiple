@@ -59,7 +59,7 @@ class VoyageurServiceTest {
                 .nom("Martin")
                 .prenom("Lucas")
                 .email("lucas@email.com")
-                .typeVoyageur(TypeVoyageur.GLOBAL)
+                .typeVoyageur(TypeVoyageur.VIP)
                 .solde(0.0)
                 .passwordHash("$2a$10$somehashedpassword") // Added a password hash for tests
                 .build();
@@ -69,7 +69,7 @@ class VoyageurServiceTest {
                 .nom("Bernard")
                 .prenom("Tom")
                 .email("tom@email.com")
-                .typeVoyageur(TypeVoyageur.AGENCE)
+                .typeVoyageur(TypeVoyageur.LOCAL)
                 .solde(0.0)
                 .agence(agence)
                 .passwordHash("$2a$10$somehashedpassword") // Added a password hash for tests
@@ -104,7 +104,7 @@ class VoyageurServiceTest {
 
             assertThat(result).isNotNull();
             assertThat(result.getMatricule()).isEqualTo("G1001");
-            assertThat(result.getTypeVoyageur()).isEqualTo(TypeVoyageur.GLOBAL);
+            assertThat(result.getTypeVoyageur()).isEqualTo(TypeVoyageur.VIP);
             assertThat(result.getSolde()).isEqualTo(0.0);
             verify(voyageurRepository, times(1)).save(voyageurGlobal);
         }
@@ -117,7 +117,7 @@ class VoyageurServiceTest {
                     .nom("Martin")
                     .prenom("Lucas")
                     .email("lucas@email.com")
-                    .typeVoyageur(TypeVoyageur.GLOBAL)
+                    .typeVoyageur(TypeVoyageur.VIP)
                     .solde(0.0)
                     .passwordHash("$2a$10$somehashedpassword")
                     .build();
@@ -142,7 +142,7 @@ class VoyageurServiceTest {
 
             Voyageur result = voyageurService.create(voyageurAgence);
 
-            assertThat(result.getTypeVoyageur()).isEqualTo(TypeVoyageur.AGENCE);
+            assertThat(result.getTypeVoyageur()).isEqualTo(TypeVoyageur.LOCAL);
             assertThat(result.getAgence()).isNotNull();
             assertThat(result.getAgence().getNom()).isEqualTo("Agence Lyon");
         }
@@ -191,7 +191,7 @@ class VoyageurServiceTest {
                     .matricule("S10002")
                     .nom("Test")
                     .prenom("Test")
-                    .typeVoyageur(TypeVoyageur.AGENCE)
+                    .typeVoyageur(TypeVoyageur.LOCAL)
                     .solde(0.0)
                     .agence(null) // ← pas de agence
                     .build();
@@ -208,7 +208,7 @@ class VoyageurServiceTest {
         void shouldThrowWhenGlobalMatriculeFormatIsWrong() {
             Voyageur badVoyageur = Voyageur.builder()
                     .matricule("G12") // ← trop court, doit être G + 4 chiffres
-                    .typeVoyageur(TypeVoyageur.GLOBAL)
+                    .typeVoyageur(TypeVoyageur.VIP)
                     .solde(0.0)
                     .build();
 
@@ -222,7 +222,7 @@ class VoyageurServiceTest {
         void shouldThrowWhenAgenceMatriculeFormatIsWrong() {
             Voyageur badVoyageur = Voyageur.builder()
                     .matricule("S123") // ← doit être S + 5 chiffres
-                    .typeVoyageur(TypeVoyageur.AGENCE)
+                    .typeVoyageur(TypeVoyageur.LOCAL)
                     .solde(0.0)
                     .agence(agence)
                     .build();

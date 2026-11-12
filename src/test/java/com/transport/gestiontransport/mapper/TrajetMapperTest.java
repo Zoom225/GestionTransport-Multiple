@@ -53,7 +53,7 @@ class TrajetMapperTest {
         trajet = new Trajet();
         trajet.setId(1L);
         trajet.setVehicule(vehicule);
-        trajet.setOrganisateur(organisateur);
+        trajet.setChauffeur(organisateur);
         trajet.setDateDebut(FIXED_DATE);
         trajet.setDateFin(FIXED_DATE.plusMinutes(agence.getDureeTrajetMinutes()));
         trajet.setTypeTrajet(TypeTrajet.PUBLIC);
@@ -73,7 +73,7 @@ class TrajetMapperTest {
                 () -> assertEquals(trajet.getVehicule().getId(), resultDto.vehiculeId()),
                 () -> assertEquals(trajet.getVehicule().getNom(), resultDto.vehiculeNom()),
                 () -> assertEquals(agence.getNom(), resultDto.agenceNom()),
-                () -> assertEquals(trajet.getOrganisateur().getId(), resultDto.organisateurId()),
+                () -> assertEquals(trajet.getChauffeur().getId(), resultDto.organisateurId()),
                 () -> assertEquals("John Doe", resultDto.organisateurNom(), "Le nom de l'organisateur doit être concaténé"),
                 () -> assertEquals(FIXED_DATE.toLocalDate(), resultDto.date()),
                 () -> assertEquals(FIXED_DATE.toLocalTime(), resultDto.heureDebut()),
@@ -100,7 +100,7 @@ class TrajetMapperTest {
         Trajet trajetWithNulls = new Trajet();
         trajetWithNulls.setId(2L);
         trajetWithNulls.setVehicule(null);
-        trajetWithNulls.setOrganisateur(null);
+        trajetWithNulls.setChauffeur(null);
         trajetWithNulls.setDateDebut(FIXED_DATE);
         trajetWithNulls.setDateFin(FIXED_DATE.plusMinutes(90));
         trajetWithNulls.setNbPassagersActuels(0);
