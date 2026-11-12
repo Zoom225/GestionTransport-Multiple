@@ -24,6 +24,7 @@ import com.transport.gestiontransport.repository.RestrictionRepository;
 import com.transport.gestiontransport.repository.ReservationRepository;
 import com.transport.gestiontransport.repository.AgenceRepository;
 import com.transport.gestiontransport.repository.VehiculeRepository;
+import com.transport.gestiontransport.service.TrajetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -368,8 +369,8 @@ public class DataInitializer implements CommandLineRunner {
                 .typeTrajet(typeTrajet)
                 .statut(statut)
                 .nbPassagersActuels(nbPassagersActuels)
-                .prixTotal(60.0)
-                .prixParPassager(15.0)
+                .prixTotal(TrajetService.PRIX_TRAJET_EUROS)
+                .prixParPassager(TrajetService.PRIX_TRAJET_EUROS / TrajetService.REQUIRED_PASSAGERS_PER_TRAJET)
                 .build());
     }
 

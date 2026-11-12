@@ -11,6 +11,7 @@ public interface TrajetService {
 
     // Règle héritée du socle : quatre passagers. À remplacer par la capacité du véhicule lors de la phase métier.
     int REQUIRED_PASSAGERS_PER_TRAJET = 4;
+    double PRIX_TRAJET_EUROS = 100.0;
 
     TrajetDto createTrajet(CreateTrajetRequest request, String username);
 

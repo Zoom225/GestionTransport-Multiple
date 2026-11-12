@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -103,7 +104,7 @@ class TrajetServiceTest {
                 TypeTrajet.PUBLIC,
                 StatutTrajet.PLANIFIE,
                 1,
-                15.0,
+                25.0,
                 null  // dateConversionPublic
         );
     }
@@ -129,9 +130,12 @@ class TrajetServiceTest {
         assertNotNull(result);
         assertEquals(1, result.nbPassagersActuels());
         assertEquals(TypeTrajet.PUBLIC, result.typeTrajet());
-        verify(trajetRepository, times(1)).save(any(Trajet.class));
+        assertEquals(25.0, result.prixParPassager());
+        verify(trajetRepository, times(1)).save(argThat(trajet ->
+                Double.valueOf(100.0).equals(trajet.getPrixTotal())
+                        && Double.valueOf(25.0).equals(trajet.getPrixParPassager())));
         verify(reservationRepository, times(1)).save(any(Reservation.class));
-        verify(paiementRepository, times(1)).save(any(Paiement.class));
+        verify(paiementRepository, times(1)).save(argThat(paiement -> Double.valueOf(25.0).equals(paiement.getMontant())));
     }
 
     @Test

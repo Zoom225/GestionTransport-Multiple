@@ -79,8 +79,8 @@ class PaiementServiceTest {
                 .typeTrajet(TypeTrajet.PUBLIC)
                 .statut(StatutTrajet.PLANIFIE)
                 .nbPassagersActuels(1)
-                .prixTotal(60.0)
-                .prixParPassager(15.0)
+                .prixTotal(100.0)
+                .prixParPassager(25.0)
                 .build();
         trajet.setId(10L);
 
@@ -89,7 +89,7 @@ class PaiementServiceTest {
         reservation.setId(1L);
 
         paiement = Paiement.builder()
-                .reservation(reservation).montant(15.0).statut(StatutPaiement.EN_ATTENTE).build();
+                .reservation(reservation).montant(25.0).statut(StatutPaiement.EN_ATTENTE).build();
         paiement.setId(1L);
 
         reservation.setPaiement(paiement);
@@ -108,6 +108,7 @@ class PaiementServiceTest {
             Paiement result = paiementService.pay(1L, 2L);
 
             assertThat(result.getStatut()).isEqualTo(StatutPaiement.PAYE);
+            assertThat(result.getMontant()).isEqualTo(25.0);
             verify(reservationService).confirm(1L);
         }
 
@@ -122,7 +123,7 @@ class PaiementServiceTest {
 
             Paiement result = paiementService.pay(1L, 2L);
 
-            assertThat(result.getMontant()).isEqualTo(30.0);
+            assertThat(result.getMontant()).isEqualTo(40.0);
             assertThat(passager.getSolde()).isEqualTo(0.0);
             verify(voyageurRepository).save(passager);
         }
@@ -189,7 +190,7 @@ class PaiementServiceTest {
             paiementService.checkUnpaidBeforeTrajet();
 
             verify(reservationService).cancel(reservation.getId());
-            assertThat(organisateur.getSolde()).isEqualTo(15.0);
+            assertThat(organisateur.getSolde()).isEqualTo(25.0);
             verify(voyageurRepository).save(organisateur);
         }
 

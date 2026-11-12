@@ -2,6 +2,16 @@
 
 Application Spring Boot et Angular en cours de transformation vers le transport public et privé.
 
+## Tarif actuel — décision métier (issue #4)
+
+Le montant d'un nouveau trajet est de **100 €**, soit **25 € par personne pour
+quatre places**. Le backend applique ce tarif à la création du trajet et du
+paiement associé. Les nouvelles données de démonstration utilisent le même tarif.
+Les trajets et paiements déjà enregistrés conservent leurs montants historiques.
+
+Cette décision concerne le fonctionnement actuel à quatre places ; la future
+capacité variable des véhicules sera traitée dans la refonte covoiturage.
+
 Le guide actuel est [Exécution Transport](docs/transport-execution.md), avec les
 nouveaux packages, routes et contrats. Le périmètre et les exceptions de
 compatibilité sont décrits dans [Nomenclature Transport](docs/nomenclature-transport.md).
