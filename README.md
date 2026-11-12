@@ -417,6 +417,14 @@ La CI contrôle désormais les PR vers `develop` **et `master`**. La livraison v
 
 ## Dépannage
 
+- IntelliJ : utiliser la configuration partagée **GestionTransport-Multiple**
+  (`.run/GestionTransport-Multiple.run.xml`), qui exécute `spring-boot:run` via Maven
+  sans dépendre du nom local du module. Configurer les variables DB/JWT comme ci-dessus.
+  Pour une configuration Spring Boot personnelle, la classe principale est
+  `com.transport.gestiontransport.GestionTransportApplication` ; les tests se trouvent
+  dans `com.transport.gestiontransport`. Après un renommage, vérifier ces deux champs
+  dans **Run → Edit Configurations**, puis recharger le projet Maven.
+
 - Sous Windows, arrêter une instance lancée avec `java -jar` avant de régénérer
   son JAR : le processus peut empêcher Maven de renommer le fichier pendant l'empaquetage.
 

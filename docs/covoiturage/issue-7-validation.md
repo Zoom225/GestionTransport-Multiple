@@ -1,5 +1,32 @@
 # Issue #7 — Intégration et validation
 
+## Correction des configurations IntelliJ — issue #7
+
+Branche : `fix/issue-7-intellij-transport`, depuis `develop` à `b818392`.
+Le signalement sur DataInitializer a conduit à vérifier aussi les configurations
+locales ignorées par Git : le lancement Spring Boot visait encore l'ancienne
+classe principale et une configuration JUnit ciblait l'ancien package.
+
+- Classe principale locale corrigée : `com.transport.gestiontransport.GestionTransportApplication`.
+- Configuration JUnit locale corrigée : package `com.transport.gestiontransport`,
+  filtre et références de configuration cohérents. Module local `industri` conservé.
+- Les deux dossiers historiques vides sous `src/main/java/com` et `src/test/java/com`
+  sont supprimés après contrôle de leur contenu ; aucune classe ni aucun test supprimé.
+- `.run/Unnamed.run.xml`, lié au nom de module `padelmultiple`, est remplacé par
+  `.run/GestionTransport-Multiple.run.xml` : lancement Maven `spring-boot:run`,
+  indépendant de l'artifactId local. Aucun secret ajouté à cette configuration.
+- README : classe de lancement, package des tests et utilisation de la configuration partagée.
+
+Les réglages personnels de `.idea/workspace.xml` ne sont pas publiés ; leur sauvegarde
+locale reste dans `.local-validation/intellij-refactoring`. Le diff de `pom.xml`
+(`industri`) est conservé hors commit. Aucune donnée PostgreSQL ni règle métier modifiée.
+
+Validation exécutée : reconstruction IntelliJ réussie ; puis
+`mvn -B -Dtest=DataInitializerTest clean test` réussi, **91 sources Java et 21 sources
+de tests recompilées**, **4 tests réussis**, zéro échec/erreur/ignoré. Aucun build IDE
+simultané à Maven. Les avertissements MockBean préexistants restent non bloquants.
+Recherche finale : aucune référence à l'ancien package dans `src`, `.idea` et `.run`.
+
 ## Finalisation soutenance du 12 novembre 2026 — PR #18
 
 Branche : `feature/issue-4-soutenance-finalisation`, depuis `develop` après fusion
