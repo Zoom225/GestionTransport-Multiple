@@ -5,7 +5,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
@@ -24,14 +23,13 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatIconModule,
     MatProgressSpinnerModule,
-    MatChipsModule
+    MatChipsModule,
   ],
   template: `
     <div class="gestiontransport-hero">
       <div class="gestiontransport-hero-content">
-        <div class="gestiontransport-ball">🚗</div>
+        <div class="gestiontransport-ball"></div>
         <h1 class="gestiontransport-hero-title">{{ language.t('voyageur.home.title') }}</h1>
         <p class="gestiontransport-hero-sub">{{ language.t('voyageur.home.subtitle') }}</p>
       </div>
@@ -39,8 +37,10 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
 
     <section class="page-shell max-w-4xl">
       <div class="gestiontransport-login-card">
-        <div class="gestiontransport-login-icon">🏓</div>
-        <h2 class="gestiontransport-login-title">{{ language.t('voyageur.home.identification') }}</h2>
+        <div class="gestiontransport-login-icon"></div>
+        <h2 class="gestiontransport-login-title">
+          {{ language.t('voyageur.home.identification') }}
+        </h2>
         <p class="gestiontransport-login-sub">{{ language.t('voyageur.home.loginHint') }}</p>
 
         <form [formGroup]="form" class="gestiontransport-form" (ngSubmit)="submit()">
@@ -67,44 +67,72 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
               matSuffix
               type="button"
               class="password-toggle-button"
-              [attr.aria-label]="showVoyageurPassword ? language.t('voyageur.home.hidePassword') : language.t('voyageur.home.showPassword')"
+              [attr.aria-label]="
+                showVoyageurPassword
+                  ? language.t('voyageur.home.hidePassword')
+                  : language.t('voyageur.home.showPassword')
+              "
               (click)="toggleVoyageurPassword()"
             >
-              <mat-icon>{{ showVoyageurPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              <svg class="ui-icon" aria-hidden="true" width="24" height="24">
+                <use
+                  [attr.href]="
+                    showVoyageurPassword ? 'images/ui-icons.svg#eye-off' : 'images/ui-icons.svg#eye'
+                  "
+                />
+              </svg>
             </button>
           </mat-form-field>
 
           <div class="gestiontransport-types-grid">
             <div class="gestiontransport-type-badge gestiontransport-type-global">
-              <span class="gestiontransport-type-icon">🌍</span>
+              <span class="gestiontransport-type-icon" aria-hidden="true"
+                ><svg class="ui-icon"><use href="images/ui-icons.svg#user" /></svg
+              ></span>
               <div>
-                <div class="gestiontransport-type-name">{{ language.t('voyageur.home.global') }}</div>
-                <div class="gestiontransport-type-hint">{{ language.t('voyageur.home.globalHint') }}</div>
+                <div class="gestiontransport-type-name">
+                  {{ language.t('voyageur.home.global') }}
+                </div>
+                <div class="gestiontransport-type-hint">
+                  {{ language.t('voyageur.home.globalHint') }}
+                </div>
               </div>
             </div>
             <div class="gestiontransport-type-badge gestiontransport-type-agence">
-              <span class="gestiontransport-type-icon">🏢</span>
+              <span class="gestiontransport-type-icon" aria-hidden="true"
+                ><svg class="ui-icon"><use href="images/ui-icons.svg#agency" /></svg
+              ></span>
               <div>
-                <div class="gestiontransport-type-name">{{ language.t('voyageur.home.agence') }}</div>
-                <div class="gestiontransport-type-hint">{{ language.t('voyageur.home.agenceHint') }}</div>
+                <div class="gestiontransport-type-name">
+                  {{ language.t('voyageur.home.agence') }}
+                </div>
+                <div class="gestiontransport-type-hint">
+                  {{ language.t('voyageur.home.agenceHint') }}
+                </div>
               </div>
             </div>
             <div class="gestiontransport-type-badge gestiontransport-type-libre">
-              <span class="gestiontransport-type-icon">⚡</span>
+              <span class="gestiontransport-type-icon" aria-hidden="true"
+                ><svg class="ui-icon"><use href="images/ui-icons.svg#user" /></svg
+              ></span>
               <div>
-                <div class="gestiontransport-type-name">{{ language.t('voyageur.home.livre') }}</div>
-                <div class="gestiontransport-type-hint">{{ language.t('voyageur.home.livreHint') }}</div>
+                <div class="gestiontransport-type-name">
+                  {{ language.t('voyageur.home.livre') }}
+                </div>
+                <div class="gestiontransport-type-hint">
+                  {{ language.t('voyageur.home.livreHint') }}
+                </div>
               </div>
             </div>
           </div>
 
           @if (errorMessage()) {
-            <div class="gestiontransport-error"><span>❌</span> {{ errorMessage() }}</div>
+            <div role="alert" class="gestiontransport-error">{{ errorMessage() }}</div>
           }
 
           @if (foundVoyageur()) {
             <div class="gestiontransport-found-card">
-              <div class="gestiontransport-found-icon">✅</div>
+              <div class="gestiontransport-found-icon"></div>
               <div>
                 <div class="gestiontransport-found-name">
                   {{ foundVoyageur()!.prenom }} {{ foundVoyageur()!.nom }}
@@ -112,25 +140,35 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
                 <div class="gestiontransport-found-details">
                   <span
                     class="gestiontransport-badge-type"
-                    [class]="'gestiontransport-badge-' + foundVoyageur()!.typeVoyageur.toLowerCase()"
+                    [class]="
+                      'gestiontransport-badge-' + foundVoyageur()!.typeVoyageur.toLowerCase()
+                    "
                   >
                     {{ foundVoyageur()!.typeVoyageur }}
                   </span>
-                  <span>· {{ foundVoyageur()!.agenceNom || language.t('voyageur.home.allAgences') }}</span>
+                  <span
+                    >·
+                    {{ foundVoyageur()!.agenceNom || language.t('voyageur.home.allAgences') }}</span
+                  >
                 </div>
               </div>
             </div>
           }
 
           <div class="gestiontransport-form-actions">
-            <button class="gestiontransport-btn-primary" type="submit" [disabled]="form.invalid || loading()">
+            <button
+              class="gestiontransport-btn-primary"
+              type="submit"
+              [disabled]="form.invalid || loading()"
+            >
               @if (loading()) {
                 <mat-spinner
+                  [attr.aria-label]="language.t('transport.searching')"
                   diameter="20"
                   style="display:inline-block; margin-right:8px;"
                 ></mat-spinner>
               }
-              🚗 {{ language.t('voyageur.home.cta') }}
+              {{ language.t('voyageur.home.cta') }}
             </button>
           </div>
         </form>
@@ -139,7 +177,7 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
 
     <style>
       .gestiontransport-hero {
-        background: linear-gradient(135deg, #166534 0%, #15803d 40%, #16a34a 70%, #86efac 100%);
+        background: linear-gradient(120deg, var(--ui-navy), var(--ui-primary-strong));
         padding: 3rem 1.5rem 4rem;
         text-align: center;
         position: relative;
@@ -154,15 +192,15 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
             0deg,
             transparent,
             transparent 40px,
-            rgba(255, 255, 255, 0.04) 40px,
-            rgba(255, 255, 255, 0.04) 42px
+            color-mix(in srgb, var(--ui-surface) 4%, transparent) 40px,
+            color-mix(in srgb, var(--ui-surface) 4%, transparent) 42px
           ),
           repeating-linear-gradient(
             90deg,
             transparent,
             transparent 40px,
-            rgba(255, 255, 255, 0.04) 40px,
-            rgba(255, 255, 255, 0.04) 42px
+            color-mix(in srgb, var(--ui-surface) 4%, transparent) 40px,
+            color-mix(in srgb, var(--ui-surface) 4%, transparent) 42px
           );
       }
       .gestiontransport-hero-content {
@@ -185,25 +223,23 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
       .gestiontransport-hero-title {
         font-size: 2.2rem;
         font-weight: 800;
-        color: #fff;
+        color: var(--ui-surface);
         margin: 0 0 0.5rem;
-        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        text-shadow: 0 2px 8px color-mix(in srgb, var(--ui-navy) 30%, transparent);
       }
       .gestiontransport-hero-sub {
-        color: rgba(255, 255, 255, 0.88);
+        color: color-mix(in srgb, var(--ui-surface) 88%, transparent);
         font-size: 1.05rem;
         margin: 0;
       }
 
       .gestiontransport-login-card {
-        background: #fff;
+        background: var(--ui-surface);
         border-radius: 1.5rem;
-        box-shadow:
-          0 20px 60px rgba(22, 101, 52, 0.15),
-          0 4px 16px rgba(0, 0, 0, 0.08);
+        box-shadow: var(--ui-shadow);
         padding: 2.5rem 2rem;
         text-align: center;
-        border-top: 5px solid #16a34a;
+        border-top: 5px solid var(--ui-teal-strong);
         margin-top: -2.5rem;
       }
       .gestiontransport-login-icon {
@@ -213,11 +249,11 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
       .gestiontransport-login-title {
         font-size: 1.6rem;
         font-weight: 700;
-        color: #14532d;
+        color: var(--ui-navy);
         margin: 0 0 0.3rem;
       }
       .gestiontransport-login-sub {
-        color: #6b7280;
+        color: var(--ui-text-secondary);
         margin: 0 0 1.5rem;
       }
       .gestiontransport-form {
@@ -245,16 +281,16 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
         transform: translateY(-2px);
       }
       .gestiontransport-type-global {
-        background: #eff6ff;
-        border-color: #93c5fd;
+        background: var(--ui-surface-subtle);
+        border-color: var(--ui-primary-strong);
       }
       .gestiontransport-type-agence {
-        background: #f0fdf4;
-        border-color: #86efac;
+        background: var(--ui-surface-subtle);
+        border-color: var(--ui-teal-strong);
       }
       .gestiontransport-type-libre {
-        background: #fefce8;
-        border-color: #fde047;
+        background: var(--ui-surface-subtle);
+        border-color: var(--ui-warning);
       }
       .gestiontransport-type-icon {
         font-size: 1.5rem;
@@ -262,27 +298,27 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
       .gestiontransport-type-name {
         font-weight: 700;
         font-size: 0.85rem;
-        color: #1e293b;
+        color: var(--ui-navy);
       }
       .gestiontransport-type-hint {
         font-size: 0.72rem;
-        color: #64748b;
+        color: var(--ui-text-secondary);
       }
 
       .gestiontransport-error {
-        background: #fef2f2;
-        border: 1px solid #fca5a5;
+        background: var(--ui-surface);
+        border: 1px solid var(--ui-danger);
         border-radius: 0.75rem;
         padding: 0.75rem 1rem;
-        color: #991b1b;
+        color: var(--ui-danger);
         font-size: 0.9rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
       }
       .gestiontransport-found-card {
-        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-        border: 2px solid #4ade80;
+        background: linear-gradient(120deg, var(--ui-primary-soft), var(--ui-surface));
+        border: 2px solid var(--ui-teal-strong);
         border-radius: 1rem;
         padding: 1rem 1.25rem;
         display: flex;
@@ -295,14 +331,14 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
       .gestiontransport-found-name {
         font-weight: 700;
         font-size: 1.1rem;
-        color: #14532d;
+        color: var(--ui-navy);
       }
       .gestiontransport-found-details {
         display: flex;
         align-items: center;
         gap: 0.5rem;
         font-size: 0.85rem;
-        color: #374151;
+        color: var(--ui-text-secondary);
         margin-top: 0.25rem;
       }
 
@@ -315,16 +351,16 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
         letter-spacing: 0.05em;
       }
       .gestiontransport-badge-global {
-        background: #dbeafe;
-        color: #1d4ed8;
+        background: var(--ui-primary-soft);
+        color: var(--ui-primary-strong);
       }
       .gestiontransport-badge-agence {
-        background: #dcfce7;
-        color: #15803d;
+        background: var(--ui-teal-soft);
+        color: var(--ui-teal-strong);
       }
       .gestiontransport-badge-libre {
-        background: #fef9c3;
-        color: #a16207;
+        background: var(--ui-warning-soft);
+        color: var(--ui-warning);
       }
 
       .gestiontransport-form-actions {
@@ -333,8 +369,8 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
         padding-top: 0.5rem;
       }
       .gestiontransport-btn-primary {
-        background: linear-gradient(135deg, #15803d, #16a34a);
-        color: #fff;
+        background: var(--ui-primary);
+        color: var(--ui-surface);
         border: none;
         border-radius: 0.75rem;
         padding: 0.85rem 2.5rem;
@@ -344,17 +380,18 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        box-shadow: 0 4px 15px rgba(21, 128, 61, 0.35);
+        box-shadow: var(--ui-shadow);
         transition:
           transform 0.15s,
           box-shadow 0.15s;
       }
       .gestiontransport-btn-primary:hover:not(:disabled) {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(21, 128, 61, 0.45);
+        box-shadow: var(--ui-shadow);
       }
       .gestiontransport-btn-primary:disabled {
-        opacity: 0.5;
+        background: var(--ui-disabled);
+        color: var(--ui-text-secondary);
         cursor: not-allowed;
       }
 
@@ -362,7 +399,7 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
         width: 40px;
         height: 40px;
         line-height: 40px;
-        color: #64748b;
+        color: var(--ui-text-secondary);
       }
     </style>
   `,
@@ -381,12 +418,12 @@ export class VoyageurHomePage {
   readonly form = new FormGroup({
     matricule: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.pattern(/^(G\d{4}|S\d{5}|L\d{5})$/i)]
+      validators: [Validators.required, Validators.pattern(/^(G\d{4}|S\d{5}|L\d{5})$/i)],
     }),
     password: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required]
-    })
+      validators: [Validators.required],
+    }),
   });
 
   constructor() {
@@ -416,7 +453,7 @@ export class VoyageurHomePage {
       error: () => {
         this.loading.set(false);
         this.errorMessage.set(this.language.t('voyageur.home.invalid'));
-      }
+      },
     });
   }
 

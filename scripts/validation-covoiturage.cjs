@@ -381,7 +381,7 @@ function depart(jours, heure) {
 
   const {
     chromium,
-  } = require("../target/browser-validation/node_modules/playwright");
+  } = require(process.env.PLAYWRIGHT_MODULE || "../target/browser-validation/node_modules/playwright");
   const browser = await chromium.launch({
     executablePath:
       process.env.EDGE_PATH ||
@@ -512,7 +512,7 @@ function depart(jours, heure) {
     for (const width of [375, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page
-        .getByText("Administration GestionTransport", { exact: true })
+        .getByRole("heading", { name: "Administration globale", exact: true })
         .waitFor();
       assert.equal(
         await page.evaluate(() => document.documentElement.scrollWidth),
@@ -525,6 +525,21 @@ function depart(jours, heure) {
       });
     }
     ok("Administration et statistiques réelles chargées dans le navigateur");
+    await page.evaluate(() => localStorage.removeItem("gestiontransport_admin_session"));
+    await page.goto(front + "/admin/login", { waitUntil: "networkidle" });
+    await page.locator("[formcontrolname=email]").fill("agence@example.test");
+    await page.locator("[formcontrolname=password]").fill(password);
+    await page.locator("button[type=submit]").click();
+    await page.waitForURL("**/admin");
+    await page.getByRole("heading", {name:"Administration de mon agence",exact:true}).waitFor();
+    for (const width of [375,768,1440]) {
+      await page.setViewportSize({width,height:900});
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth),width);
+      report.responsive.push({page:"administration agence authentifiée",width,debordement:false});
+    }
+    await page.goto(front + "/admin/vehicules", {waitUntil:"networkidle"});
+    assert.ok(!(await page.locator("main").innerText()).includes(voitureEtrangere.nom));
+    ok("Connexion navigateur AGENCE, dashboard local et véhicule hors périmètre absent");
     await page.evaluate(() =>
       localStorage.removeItem("gestiontransport_admin_session"),
     );
