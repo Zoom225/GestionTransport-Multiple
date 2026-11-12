@@ -23,7 +23,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
           <p class="login-hero-sub">{{ language.t('admin.login.heroSubtitle') }}</p>
           <div class="login-hero-badges">
             <span class="login-badge login-badge-global">{{ language.t('admin.login.globalBadge') }}</span>
-            <span class="login-badge login-badge-site">{{ language.t('admin.login.siteBadge') }}</span>
+            <span class="login-badge login-badge-agence">{{ language.t('admin.login.agenceBadge') }}</span>
           </div>
         </div>
       </div>
@@ -104,7 +104,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
         border: 2px solid rgba(255,255,255,0.4);
       }
       .login-badge-global { background: rgba(255,255,255,0.15); color: #fff; }
-      .login-badge-site   { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); }
+      .login-badge-agence   { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); }
 
       .login-form-panel {
         flex: 1; display: flex; align-items: center; justify-content: center;

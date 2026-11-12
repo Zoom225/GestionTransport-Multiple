@@ -1,6 +1,6 @@
-export type TypeAdministrateur = 'GLOBAL' | 'SITE';
-export type TypeMembre = 'GLOBAL' | 'SITE' | 'LIBRE';
-export type TypeMatch = 'PRIVE' | 'PUBLIC';
-export type StatutMatch = 'PLANIFIE' | 'COMPLET' | 'ANNULE';
+export type TypeAdministrateur = 'GLOBAL' | 'AGENCE';
+export type TypeVoyageur = 'GLOBAL' | 'AGENCE' | 'LIBRE';
+export type TypeTrajet = 'PRIVE' | 'PUBLIC';
+export type StatutTrajet = 'PLANIFIE' | 'COMPLET' | 'ANNULE';
 export type StatutPaiement = 'EN_ATTENTE' | 'PAYE' | 'REMBOURSE' | 'ANNULE';
 export type StatutReservation = 'EN_ATTENTE' | 'CONFIRMEE' | 'ANNULEE';

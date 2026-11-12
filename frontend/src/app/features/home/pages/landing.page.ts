@@ -4,8 +4,8 @@ import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatchesApiService } from '../../../core/api/matches-api.service';
-import { MemberSessionService } from '../../../core/auth/member-session.service';
+import { TrajetsApiService } from '../../../core/api/trajets-api.service';
+import { VoyageurSessionService } from '../../../core/auth/voyageur-session.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 
 @Component({
@@ -27,8 +27,8 @@ import { LanguageService } from '../../../core/i18n/language.service';
           <p class="lead">{{ copy().lead }}</p>
 
           <div class="hero-actions">
-            <a mat-flat-button color="primary" routerLink="/member">
-              {{ memberSession.isAuthenticated() ? copy().memberCtaConnected : copy().memberCta }}
+            <a mat-flat-button color="primary" routerLink="/voyageur">
+              {{ voyageurSession.isAuthenticated() ? copy().voyageurCtaConnected : copy().voyageurCta }}
             </a>
             <a mat-stroked-button routerLink="/admin/login">{{ copy().adminCta }}</a>
             <button mat-stroked-button type="button" (click)="checkApi()" [disabled]="loading()">
@@ -37,17 +37,17 @@ import { LanguageService } from '../../../core/i18n/language.service';
           </div>
         </div>
 
-        <div class="court-panel" [attr.aria-label]="copy().matchPreviewLabel">
-          <div class="court-lines">
+        <div class="vehicule-panel" [attr.aria-label]="copy().trajetPreviewLabel">
+          <div class="vehicule-lines">
             <span></span>
             <span></span>
           </div>
-          <div class="match-card live">
-            <p>{{ copy().matchPublic }}</p>
+          <div class="trajet-card live">
+            <p>{{ copy().trajetPublic }}</p>
             <strong>{{ count() ?? '--' }}</strong>
-            <span>{{ copy().matchAvailable }}</span>
+            <span>{{ copy().trajetAvailable }}</span>
           </div>
-          <div class="match-card">
+          <div class="trajet-card">
             <p>{{ copy().reservation }}</p>
             <strong>{{ copy().simpleReservation }}</strong>
             <span>{{ copy().reservationBody }}</span>
@@ -168,7 +168,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
       margin-top: 2rem;
     }
 
-    .court-panel {
+    .vehicule-panel {
       position: relative;
       overflow: hidden;
       min-height: 420px;
@@ -182,30 +182,30 @@ import { LanguageService } from '../../../core/i18n/language.service';
       box-shadow: 0 24px 60px rgba(4, 120, 87, 0.16);
     }
 
-    .court-lines {
+    .vehicule-lines {
       position: absolute;
       inset: 42px;
       border: 2px solid rgba(255, 255, 255, 0.72);
     }
 
-    .court-lines::before,
-    .court-lines::after {
+    .vehicule-lines::before,
+    .vehicule-lines::after {
       content: '';
       position: absolute;
       background: rgba(255, 255, 255, 0.72);
     }
 
-    .court-lines::before {
+    .vehicule-lines::before {
       inset: 0 auto 0 50%;
       width: 2px;
     }
 
-    .court-lines::after {
+    .vehicule-lines::after {
       inset: 50% 0 auto;
       height: 2px;
     }
 
-    .court-lines span {
+    .vehicule-lines span {
       position: absolute;
       top: 0;
       bottom: 0;
@@ -213,15 +213,15 @@ import { LanguageService } from '../../../core/i18n/language.service';
       background: rgba(255, 255, 255, 0.52);
     }
 
-    .court-lines span:first-child {
+    .vehicule-lines span:first-child {
       left: 25%;
     }
 
-    .court-lines span:last-child {
+    .vehicule-lines span:last-child {
       right: 25%;
     }
 
-    .match-card {
+    .trajet-card {
       position: absolute;
       right: 1.2rem;
       bottom: 1.2rem;
@@ -233,14 +233,14 @@ import { LanguageService } from '../../../core/i18n/language.service';
       backdrop-filter: blur(12px);
     }
 
-    .match-card.live {
+    .trajet-card.live {
       top: 1.2rem;
       bottom: auto;
       left: 1.2rem;
       right: auto;
     }
 
-    .match-card p {
+    .trajet-card p {
       margin: 0 0 0.35rem;
       color: #64748b;
       font-size: 0.78rem;
@@ -248,14 +248,14 @@ import { LanguageService } from '../../../core/i18n/language.service';
       text-transform: uppercase;
     }
 
-    .match-card strong {
+    .trajet-card strong {
       display: block;
       color: #0f172a;
       font-size: 2rem;
       line-height: 1;
     }
 
-    .match-card span {
+    .trajet-card span {
       display: block;
       margin-top: 0.35rem;
       color: #475569;
@@ -317,15 +317,15 @@ import { LanguageService } from '../../../core/i18n/language.service';
         grid-template-columns: 1fr;
       }
 
-      .court-panel {
+      .vehicule-panel {
         min-height: 360px;
       }
     }
   `]
 })
 export class LandingPage {
-  private readonly matchesApi = inject(MatchesApiService);
-  readonly memberSession = inject(MemberSessionService);
+  private readonly trajetsApi = inject(TrajetsApiService);
+  readonly voyageurSession = inject(VoyageurSessionService);
   private readonly language = inject(LanguageService);
 
   readonly loading = signal(false);
@@ -349,14 +349,14 @@ export class LandingPage {
     eyebrow: this.language.t('landing.eyebrow'),
     title: this.language.t('landing.title'),
     lead: this.language.t('landing.lead'),
-    memberCta: this.language.t('landing.memberCta'),
-    memberCtaConnected: this.language.t('landing.memberCtaConnected'),
+    voyageurCta: this.language.t('landing.voyageurCta'),
+    voyageurCtaConnected: this.language.t('landing.voyageurCtaConnected'),
     adminCta: this.language.t('landing.adminCta'),
     testApi: this.language.t('landing.testApi'),
     loadingApi: this.language.t('landing.loadingApi'),
-    matchPreviewLabel: this.language.t('landing.matchPreviewLabel'),
-    matchPublic: this.language.t('landing.matchPublic'),
-    matchAvailable: this.language.t('landing.matchAvailable'),
+    trajetPreviewLabel: this.language.t('landing.trajetPreviewLabel'),
+    trajetPublic: this.language.t('landing.trajetPublic'),
+    trajetAvailable: this.language.t('landing.trajetAvailable'),
     reservation: this.language.t('landing.reservation'),
     reservationBody: this.language.t('landing.reservationBody'),
     simpleReservation: this.language.t('landing.simpleReservation'),
@@ -374,9 +374,9 @@ export class LandingPage {
     this.loading.set(true);
     this.errorCode.set('');
 
-    this.matchesApi.getPublic().subscribe({
-      next: (matches) => {
-        this.count.set(matches.length);
+    this.trajetsApi.getPublic().subscribe({
+      next: (trajets) => {
+        this.count.set(trajets.length);
         this.loading.set(false);
       },
       error: () => {

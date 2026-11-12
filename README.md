@@ -1,6 +1,25 @@
-# PadelPlay
+# GestionTransport-Multiple
 
-Projet fullstack de gestion de matchs de padel.
+Application Spring Boot et Angular en cours de transformation vers le transport public et privé.
+
+## Tarif actuel — décision métier (issue #4)
+
+Le montant d'un nouveau trajet est de **100 €**, soit **25 € par personne pour
+quatre places**. Le backend applique ce tarif à la création du trajet et du
+paiement associé. Les nouvelles données de démonstration utilisent le même tarif.
+Les trajets et paiements déjà enregistrés conservent leurs montants historiques.
+
+Cette décision est définitive : un chauffeur déjà associé, quatre clients maximum,
+25 € par client, 100 € si complet. La capacité variable est abandonnée.
+
+Le guide actuel est [Exécution Transport](docs/transport-execution.md), avec les
+nouveaux packages, routes et contrats. Le périmètre et les exceptions de
+compatibilité sont décrits dans [Nomenclature Transport](docs/nomenclature-transport.md).
+
+Les sections ci-dessous sont conservées comme documentation historique du socle.
+Le volume existant doit être préservé ; le nom de base et le compte sont migrés
+explicitement selon la procédure ci-dessous. Les
+anciennes routes et les anciens noms de classes ne décrivent plus le code courant.
 
 - Backend : Spring Boot 3.5, Java 21, Maven
 - Frontend : Angular 21, Angular Material, Tailwind, Vitest
@@ -207,6 +226,11 @@ Port local : 5440
 Port Docker: 5432
 ```
 
+Ces identifiants sont ceux du développement local. DB_USER et DB_PASSWORD
+permettent de fournir d'autres valeurs. Pour un volume déjà initialisé, modifier
+le Compose ne change ni le compte ni le nom de base PostgreSQL : utiliser la
+[migration des identifiants de développement](docs/identifiants-postgresql.md).
+
 Demarrer PostgreSQL :
 
 ```bash
@@ -225,11 +249,8 @@ Arreter PostgreSQL :
 docker compose down
 ```
 
-Supprimer aussi les donnees de la base :
-
-```bash
-docker compose down -v
-```
+Conserver le volume PostgreSQL : ne pas utiliser l'option `-v` de `down` pour
+changer les identifiants ou dépanner un démarrage.
 
 ## Backend Spring Boot
 
@@ -250,7 +271,7 @@ src/main/resources/application.properties
 Connexion a la base :
 
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5440/transportService
+spring.datasource.url=${DB_URL:jdbc:postgresql://localhost:5440/transportService}
 spring.datasource.username=${DB_USER:transport}
 spring.datasource.password=${DB_PASSWORD:transport}
 server.port=8080
