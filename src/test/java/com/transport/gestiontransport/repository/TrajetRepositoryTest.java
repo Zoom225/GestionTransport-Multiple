@@ -93,7 +93,7 @@ class TrajetRepositoryTest {
                 .nom("Martin")
                 .prenom("Lucas")
                 .email(matricule.toLowerCase() + "@example.com")
-                .typeVoyageur(TypeVoyageur.GLOBAL)
+                .typeVoyageur(TypeVoyageur.VIP)
                 .solde(0.0)
                 .build();
     }
@@ -101,7 +101,7 @@ class TrajetRepositoryTest {
     private Trajet trajet(Vehicule vehicule, Voyageur organisateur, LocalDateTime start, StatutTrajet statut) {
         return Trajet.builder()
                 .vehicule(vehicule)
-                .organisateur(organisateur)
+                .chauffeur(organisateur)
                 .dateDebut(start)
                 .dateFin(start.plusMinutes(90))
                 .typeTrajet(TypeTrajet.PUBLIC)

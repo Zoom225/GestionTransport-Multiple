@@ -35,7 +35,7 @@ describe('voyageurGuard', () => {
           nom: 'Doe',
           prenom: 'Jane',
           email: 'jane@example.com',
-          typeVoyageur: 'GLOBAL',
+          typeVoyageur: 'VIP',
           agenceId: null,
           agenceNom: null,
           solde: 0,

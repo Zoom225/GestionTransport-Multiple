@@ -18,15 +18,26 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class Trajet extends BaseEntity {
+    public static final int MAX_CLIENTS = 4;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "terrain_id", nullable = false)
     @JsonBackReference("vehicule-trajets")
     private Vehicule vehicule;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "organisateur_id", nullable = false)
-    private Voyageur organisateur;
+    private Voyageur chauffeur;
+
+    @Enumerated(EnumType.STRING)
+    private com.transport.gestiontransport.entity.enums.VilleBelge villeDepart;
+
+    @Enumerated(EnumType.STRING)
+    private com.transport.gestiontransport.entity.enums.VilleBelge villeArrivee;
+
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean publicationAutomatiqueAutorisee = false;
 
     @Column(nullable = false)
     private LocalDateTime dateDebut;
@@ -43,6 +54,8 @@ public class Trajet extends BaseEntity {
     private StatutTrajet statut;
 
     @Column(name = "nb_joueurs_actuels", nullable = false)
+    @jakarta.validation.constraints.Min(0)
+    @jakarta.validation.constraints.Max(MAX_CLIENTS)
     private Integer nbPassagersActuels;
 
     @Column(nullable = false)

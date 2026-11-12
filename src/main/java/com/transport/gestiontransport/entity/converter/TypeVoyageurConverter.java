@@ -4,16 +4,26 @@ import com.transport.gestiontransport.entity.enums.TypeVoyageur;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-/** Retains the legacy SQL value while exposing AGENCE in Java and JSON. */
+/** Exposes VIP/LOCAL while preserving the existing GLOBAL/SITE SQL values. */
 @Converter
 public class TypeVoyageurConverter implements AttributeConverter<TypeVoyageur, String> {
     @Override
     public String convertToDatabaseColumn(TypeVoyageur type) {
-        return type == null ? null : type == TypeVoyageur.AGENCE ? "SITE" : type.name();
+        if (type == null) return null;
+        return switch (type) {
+            case VIP -> "GLOBAL";
+            case LOCAL -> "SITE";
+            case LIBRE -> "LIBRE";
+        };
     }
 
     @Override
     public TypeVoyageur convertToEntityAttribute(String value) {
-        return value == null ? null : "SITE".equals(value) ? TypeVoyageur.AGENCE : TypeVoyageur.valueOf(value);
+        if (value == null) return null;
+        return switch (value) {
+            case "GLOBAL" -> TypeVoyageur.VIP;
+            case "SITE", "AGENCE" -> TypeVoyageur.LOCAL;
+            default -> TypeVoyageur.valueOf(value);
+        };
     }
 }

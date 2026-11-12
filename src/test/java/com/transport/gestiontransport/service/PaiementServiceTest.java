@@ -61,19 +61,19 @@ class PaiementServiceTest {
 
         organisateur = Voyageur.builder()
                 .matricule("G1001").nom("Martin").prenom("Lucas")
-                .typeVoyageur(TypeVoyageur.GLOBAL).solde(0.0).build();
+                .typeVoyageur(TypeVoyageur.VIP).solde(0.0).build();
         organisateur.setId(1L);
 
         passager = Voyageur.builder()
                 .matricule("G1002").nom("Dupont").prenom("Julie")
-                .typeVoyageur(TypeVoyageur.GLOBAL).solde(0.0).build();
+                .typeVoyageur(TypeVoyageur.VIP).solde(0.0).build();
         passager.setId(2L);
 
         // Correction : Utiliser uniquement dateDebut et dateFin
         LocalDateTime trajetStart = LocalDate.now().plusDays(25).atTime(15, 0);
         trajet = Trajet.builder()
                 .vehicule(vehicule)
-                .organisateur(organisateur)
+                .chauffeur(organisateur)
                 .dateDebut(trajetStart)
                 .dateFin(trajetStart.plusMinutes(90))
                 .typeTrajet(TypeTrajet.PUBLIC)

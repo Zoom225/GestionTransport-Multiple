@@ -27,7 +27,7 @@ describe('VoyageurSessionService', () => {
       nom: 'Doe',
       prenom: 'John',
       email: 'john@example.com',
-      typeVoyageur: 'GLOBAL',
+      typeVoyageur: 'VIP',
       agenceId: null,
       agenceNom: null,
       solde: 0
@@ -48,7 +48,7 @@ describe('VoyageurSessionService', () => {
           nom: 'Smith',
           prenom: 'Anna',
           email: 'anna@example.com',
-          typeVoyageur: 'AGENCE',
+          typeVoyageur: 'LOCAL',
           agenceId: 5,
           agenceNom: 'Transport Bruxelles',
           solde: 12,
@@ -85,7 +85,7 @@ describe('VoyageurSessionService', () => {
       nom: 'Smith',
       prenom: 'Anna',
       email: 'anna@example.com',
-      typeVoyageur: 'AGENCE',
+      typeVoyageur: 'LOCAL',
       agenceId: 1,
       agenceNom: 'Agence A',
       solde: 10

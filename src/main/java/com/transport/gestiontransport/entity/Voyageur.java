@@ -34,6 +34,10 @@ public class Voyageur extends BaseEntity {
     @Column(name = "type_membre", nullable = false)
     private TypeVoyageur typeVoyageur;
 
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private Boolean peutProposerTrajet = false;
+
     @Column(nullable = false)
     private Double solde;
 
@@ -41,7 +45,7 @@ public class Voyageur extends BaseEntity {
     @JoinColumn(name = "site_id")
     private Agence agence;
 
-    @OneToMany(mappedBy = "organisateur", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "chauffeur", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<Trajet> trajetsOrganises = new HashSet<>();
 

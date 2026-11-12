@@ -28,7 +28,7 @@ describe('VoyageurCreateTrajetPage', () => {
     nom: 'Bernard',
     prenom: 'Tom',
     email: 'tom.bernard@email.com',
-    typeVoyageur: 'AGENCE',
+    typeVoyageur: 'LOCAL',
     agenceId: 1,
     agenceNom: 'Agence Lyon',
     solde: 0
@@ -123,7 +123,7 @@ describe('VoyageurCreateTrajetPage', () => {
     TestBed.resetTestingModule();
   });
 
-  it('initialise cette agence, le vehicule et la date minimale pour un voyageur AGENCE', () => {
+  it('initialise cette agence, le vehicule et la date minimale pour un voyageur LOCAL', () => {
     const fixture = TestBed.createComponent(VoyageurCreateTrajetPage);
     const component = fixture.componentInstance;
 
@@ -196,7 +196,7 @@ describe('VoyageurCreateTrajetPage', () => {
 
   it('traduit le message backend de délai en message frontend compréhensible', () => {
     trajetsApiMock.create.mockReturnValue(
-      throwError(() => ({ error: { message: 'Le voyageur AGENCE ne peut pas réserver plus de 14 jours à l\'avance.' } }))
+      throwError(() => ({ error: { message: 'Le voyageur LOCAL ne peut pas réserver plus de 14 jours à l\'avance.' } }))
     );
     const fixture = TestBed.createComponent(VoyageurCreateTrajetPage);
     const component = fixture.componentInstance;
@@ -210,7 +210,7 @@ describe('VoyageurCreateTrajetPage', () => {
     component.submit();
 
     expect(component.loading()).toBe(false);
-    expect(component.errorMessage()).toContain('Le profil AGENCE ne peut pas réserver plus de 14 jours');
+    expect(component.errorMessage()).toContain('Le profil LOCAL ne peut pas réserver plus de 14 jours');
     expect(component.errorMessage()).toContain(component.maxBookingDate());
   });
   it('affiche une erreur métier sans code HTTP technique', () => {

@@ -70,7 +70,7 @@ class ReservationRepositoryTest {
                 .nom("Martin")
                 .prenom("Lucas")
                 .email(matricule.toLowerCase() + "@example.com")
-                .typeVoyageur(TypeVoyageur.GLOBAL)
+                .typeVoyageur(TypeVoyageur.VIP)
                 .solde(0.0)
                 .build();
     }
@@ -79,7 +79,7 @@ class ReservationRepositoryTest {
         LocalDateTime start = LocalDateTime.of(2026, 7, 10, 10, 0);
         return Trajet.builder()
                 .vehicule(vehicule)
-                .organisateur(organisateur)
+                .chauffeur(organisateur)
                 .dateDebut(start)
                 .dateFin(start.plusMinutes(90))
                 .typeTrajet(TypeTrajet.PUBLIC)

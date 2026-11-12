@@ -70,8 +70,8 @@ import { LanguageService } from '../../../core/i18n/language.service';
           <mat-form-field appearance="outline">
             <mat-label>{{ language.t('admin.voyageurs.type') }}</mat-label>
             <mat-select formControlName="typeVoyageur" [disabled]="editingId() !== null">
-              <mat-option value="GLOBAL">{{ language.t('admin.voyageurs.typeGlobal') }}</mat-option>
-              <mat-option value="AGENCE">{{ language.t('admin.voyageurs.typeAgence') }}</mat-option>
+              <mat-option value="VIP">{{ language.t('admin.voyageurs.typeGlobal') }}</mat-option>
+              <mat-option value="LOCAL">{{ language.t('admin.voyageurs.typeAgence') }}</mat-option>
               <mat-option value="LIBRE">{{ language.t('admin.voyageurs.typeLibre') }}</mat-option>
             </mat-select>
           </mat-form-field>
@@ -140,11 +140,11 @@ import { LanguageService } from '../../../core/i18n/language.service';
         <button class="adm-filter-btn" [class.active]="typeFilter() === ''" (click)="typeFilter.set('')">
           {{ language.t('admin.voyageurs.filterAll') }} ({{ filteredVoyageurs().length }})
         </button>
-        <button class="adm-filter-btn adm-filter-global" [class.active]="typeFilter() === 'GLOBAL'" (click)="typeFilter.set('GLOBAL')">
-          🌍 {{ language.t('admin.voyageurs.filterGlobal') }} ({{ countByType('GLOBAL') }})
+        <button class="adm-filter-btn adm-filter-global" [class.active]="typeFilter() === 'VIP'" (click)="typeFilter.set('VIP')">
+          🌍 {{ language.t('admin.voyageurs.filterGlobal') }} ({{ countByType('VIP') }})
         </button>
-        <button class="adm-filter-btn adm-filter-agence" [class.active]="typeFilter() === 'AGENCE'" (click)="typeFilter.set('AGENCE')">
-          🏟️ {{ language.t('admin.voyageurs.filterAgence') }} ({{ countByType('AGENCE') }})
+        <button class="adm-filter-btn adm-filter-agence" [class.active]="typeFilter() === 'LOCAL'" (click)="typeFilter.set('LOCAL')">
+          🏟️ {{ language.t('admin.voyageurs.filterAgence') }} ({{ countByType('LOCAL') }})
         </button>
         <button class="adm-filter-btn adm-filter-libre" [class.active]="typeFilter() === 'LIBRE'" (click)="typeFilter.set('LIBRE')">
           ⚡ {{ language.t('admin.voyageurs.filterLibre') }} ({{ countByType('LIBRE') }})
@@ -167,7 +167,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
           <div class="adm-voyageur-card" [class]="'adm-voyageur-' + voyageur.typeVoyageur.toLowerCase()">
             <div class="adm-voyageur-top">
               <div class="adm-voyageur-avatar">
-                {{ voyageur.typeVoyageur === 'GLOBAL' ? '🌍' : voyageur.typeVoyageur === 'AGENCE' ? '🏟️' : '⚡' }}
+                {{ voyageur.typeVoyageur === 'VIP' ? '🌍' : voyageur.typeVoyageur === 'LOCAL' ? '🏟️' : '⚡' }}
               </div>
               <div class="adm-voyageur-info">
                 <div class="adm-voyageur-name">{{ voyageur.prenom }} {{ voyageur.nom }}</div>
@@ -376,10 +376,10 @@ export class AdminVoyageursPage {
   }
 
   typeBadgeClass(type: TypeVoyageur): string {
-    if (type === 'GLOBAL') {
+    if (type === 'VIP') {
       return 'ds-badge-info';
     }
-    if (type === 'AGENCE') {
+    if (type === 'LOCAL') {
       return 'ds-badge-success';
     }
     return 'ds-badge-warning';
@@ -394,7 +394,7 @@ export class AdminVoyageursPage {
     nom: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     prenom: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     email: new FormControl('', { nonNullable: true, validators: [Validators.email] }),
-    typeVoyageur: new FormControl<TypeVoyageur>('GLOBAL', { nonNullable: true, validators: [Validators.required] }),
+    typeVoyageur: new FormControl<TypeVoyageur>('VIP', { nonNullable: true, validators: [Validators.required] }),
     agenceId: new FormControl<number | null>(null)
   });
 
@@ -465,7 +465,7 @@ export class AdminVoyageursPage {
       nom: '',
       prenom: '',
       email: '',
-      typeVoyageur: this.adminSession.isAgenceAdmin() ? 'AGENCE' : 'GLOBAL',
+      typeVoyageur: this.adminSession.isAgenceAdmin() ? 'LOCAL' : 'VIP',
       agenceId: this.adminSession.isAgenceAdmin() ? this.adminSession.agenceId() : null
     });
   }
@@ -480,7 +480,7 @@ export class AdminVoyageursPage {
     const payload = this.form.getRawValue() as VoyageurRequest;
     if (this.adminSession.isAgenceAdmin()) {
       payload.agenceId = this.adminSession.agenceId() ?? undefined;
-      payload.typeVoyageur = 'AGENCE';
+      payload.typeVoyageur = 'LOCAL';
     }
 
     const request$ = this.editingId()

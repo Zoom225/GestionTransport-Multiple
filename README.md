@@ -12,6 +12,10 @@ Les trajets et paiements déjà enregistrés conservent leurs montants historiqu
 Cette décision est définitive : un chauffeur déjà associé, quatre clients maximum,
 25 € par client, 100 € si complet. La capacité variable est abandonnée.
 
+L'[étape modèle de l'issue #3](docs/covoiturage/issue-3-modele-simple.md) prépare
+le chauffeur, les villes et les catégories VIP/local/libre. Les règles de
+confirmation au paiement et l'interface finale restent en cours de réalisation.
+
 Le guide actuel est [Exécution Transport](docs/transport-execution.md), avec les
 nouveaux packages, routes et contrats. Le périmètre et les exceptions de
 compatibilité sont décrits dans [Nomenclature Transport](docs/nomenclature-transport.md).
