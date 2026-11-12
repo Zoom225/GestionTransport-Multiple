@@ -10,65 +10,175 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, RouterModule, MatToolbarModule, MatButtonModule, LanguageSwitcherComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatToolbarModule,
+    MatButtonModule,
+    LanguageSwitcherComponent,
+  ],
   template: `
-<a class="skip-link" href="#main-content">{{ language.t('ui.skip') }}</a>
-<header class="app-header" (keydown.escape)="menuOuvert.set(false); menuButton.focus()">
-  <div class="app-header-inner">
-    <a routerLink="/" class="app-logo">
-      <span class="app-logo-badge" aria-hidden="true">↗</span>
-      <span class="app-logo-text">GestionTransport-Multiple</span>
-    </a>
+    <a class="skip-link" href="#main-content">{{ language.t('ui.skip') }}</a>
+    <header class="app-header" (keydown.escape)="menuOuvert.set(false); menuButton.focus()">
+      <div class="app-header-inner">
+        <a routerLink="/" class="app-logo">
+          <span class="app-logo-badge" aria-hidden="true">↗</span>
+          <span class="app-logo-text">GestionTransport-Multiple</span>
+        </a>
 
-    <button #menuButton type="button" class="menu-toggle" (click)="menuOuvert.set(!menuOuvert())" [attr.aria-expanded]="menuOuvert()" aria-controls="navigation">{{ language.t('ui.menu') }}</button>
-    <nav id="navigation" [attr.aria-label]="language.t('ui.mainNav')" class="app-nav" [class.open]="menuOuvert()" (click)="menuOuvert.set(false)">
-      <a routerLink="/" routerLinkActive="nav-active" ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">
-        {{ navText().home }}
-      </a>
+        <button
+          #menuButton
+          type="button"
+          class="menu-toggle"
+          (click)="menuOuvert.set(!menuOuvert())"
+          [attr.aria-expanded]="menuOuvert()"
+          aria-controls="navigation"
+        >
+          {{ language.t('ui.menu') }}
+        </button>
+        <nav
+          id="navigation"
+          [attr.aria-label]="language.t('ui.mainNav')"
+          class="app-nav"
+          [class.open]="menuOuvert()"
+          (click)="menuOuvert.set(false)"
+        >
+          <a
+            routerLink="/"
+            routerLinkActive="nav-active"
+            ariaCurrentWhenActive="page"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="nav-link"
+          >
+            {{ navText().home }}
+          </a>
 
+          <a
+            [routerLink]="voyageurSession.isAuthenticated() ? '/voyageur/trajets' : '/'"
+            [fragment]="voyageurSession.isAuthenticated() ? undefined : 'trajets'"
+            class="nav-link"
+            >{{ language.t('ui.searchNav') }}</a
+          >
+          @if (!voyageurSession.isAuthenticated() && !adminSession.isAuthenticated()) {
+            <a routerLink="/voyageur" class="nav-btn-outline">{{ navText().voyageur }}</a>
+          }
 
+          @if (voyageurSession.isAuthenticated()) {
+            <div class="nav-divider"></div>
+            <a
+              routerLink="/voyageur/profile"
+              routerLinkActive="nav-active"
+              ariaCurrentWhenActive="page"
+              class="nav-link"
+              >{{ navText().profile }}</a
+            >
+            <a
+              routerLink="/voyageur/trajets"
+              routerLinkActive="nav-active"
+              ariaCurrentWhenActive="page"
+              class="nav-link"
+              >{{ navText().trajets }}</a
+            >
+            <a
+              routerLink="/voyageur/reservations"
+              routerLinkActive="nav-active"
+              ariaCurrentWhenActive="page"
+              class="nav-link"
+              >{{ navText().reservations }}</a
+            >
+            <a
+              routerLink="/voyageur/payments"
+              routerLinkActive="nav-active"
+              ariaCurrentWhenActive="page"
+              class="nav-link"
+              >{{ navText().payments }}</a
+            >
+            <div class="nav-divider"></div>
+            @if (voyageurSession.voyageur()?.peutProposerTrajet) {
+              <a routerLink="/voyageur/trajets/new" class="nav-btn-create">{{
+                navText().create
+              }}</a>
+            }
+            <div class="nav-divider"></div>
+            <button class="nav-btn-logout" type="button" (click)="logoutVoyageur()">
+              {{ navText().logout }}
+            </button>
+          }
 
-      <a [routerLink]="voyageurSession.isAuthenticated() ? '/voyageur/trajets' : '/'" [fragment]="voyageurSession.isAuthenticated() ? undefined : 'trajets'" class="nav-link">{{ language.t('ui.searchNav') }}</a>
-      @if (!voyageurSession.isAuthenticated() && !adminSession.isAuthenticated()) {
-        <a routerLink="/voyageur" class="nav-btn-outline">{{ navText().voyageur }}</a>
-      }
+          @if (adminSession.isAuthenticated()) {
+            <div class="nav-divider"></div>
+            <a
+              routerLink="/admin"
+              routerLinkActive="nav-active"
+              ariaCurrentWhenActive="page"
+              [routerLinkActiveOptions]="{ exact: true }"
+              class="nav-link"
+              >{{ navText().dashboard }}</a
+            >
+            <a
+              routerLink="/admin/voyageurs"
+              routerLinkActive="nav-active"
+              ariaCurrentWhenActive="page"
+              class="nav-link"
+              >{{ navText().voyageurs }}</a
+            >
+            <a
+              routerLink="/admin/trajets"
+              routerLinkActive="nav-active"
+              ariaCurrentWhenActive="page"
+              class="nav-link"
+              >{{ navText().trajets }}</a
+            >
+            <a
+              routerLink="/admin/agences"
+              routerLinkActive="nav-active"
+              ariaCurrentWhenActive="page"
+              class="nav-link"
+              >{{ navText().agences }}</a
+            >
+            <a
+              routerLink="/admin/vehicules"
+              routerLinkActive="nav-active"
+              ariaCurrentWhenActive="page"
+              class="nav-link"
+              >{{ navText().vehicules }}</a
+            >
+            <a
+              routerLink="/admin/indisponibilites"
+              routerLinkActive="nav-active"
+              ariaCurrentWhenActive="page"
+              class="nav-link"
+              >{{ navText().indisponibilites }}</a
+            >
+            <div class="nav-divider"></div>
+            <button class="nav-btn-logout" type="button" (click)="logoutAdmin()">
+              {{ navText().logout }}
+            </button>
+          }
+        </nav>
 
-      @if (voyageurSession.isAuthenticated()) {
-        <div class="nav-divider"></div>
-        <a routerLink="/voyageur/profile" routerLinkActive="nav-active" ariaCurrentWhenActive="page" class="nav-link">{{ navText().profile }}</a>
-        <a routerLink="/voyageur/trajets" routerLinkActive="nav-active" ariaCurrentWhenActive="page" class="nav-link">{{ navText().trajets }}</a>
-        <a routerLink="/voyageur/reservations" routerLinkActive="nav-active" ariaCurrentWhenActive="page" class="nav-link">{{ navText().reservations }}</a>
-        <a routerLink="/voyageur/payments" routerLinkActive="nav-active" ariaCurrentWhenActive="page" class="nav-link">{{ navText().payments }}</a>
-        <div class="nav-divider"></div>
-        @if (voyageurSession.voyageur()?.peutProposerTrajet) {
-          <a routerLink="/voyageur/trajets/new" class="nav-btn-create">{{ navText().create }}</a>
-        }
-        <div class="nav-divider"></div>
-        <button class="nav-btn-logout" type="button" (click)="logoutVoyageur()">{{ navText().logout }}</button>
-      }
+        <app-language-switcher class="app-lang-switcher"></app-language-switcher>
+      </div>
+    </header>
 
-      @if (adminSession.isAuthenticated()) {
-        <div class="nav-divider"></div>
-        <a routerLink="/admin" routerLinkActive="nav-active" ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">{{ navText().dashboard }}</a>
-        <a routerLink="/admin/voyageurs" routerLinkActive="nav-active" ariaCurrentWhenActive="page" class="nav-link">{{ navText().voyageurs }}</a>
-        <a routerLink="/admin/trajets" routerLinkActive="nav-active" ariaCurrentWhenActive="page" class="nav-link">{{ navText().trajets }}</a>
-        <a routerLink="/admin/agences" routerLinkActive="nav-active" ariaCurrentWhenActive="page" class="nav-link">{{ navText().agences }}</a>
-        <a routerLink="/admin/vehicules" routerLinkActive="nav-active" ariaCurrentWhenActive="page" class="nav-link">{{ navText().vehicules }}</a>
-        <a routerLink="/admin/indisponibilites" routerLinkActive="nav-active" ariaCurrentWhenActive="page" class="nav-link">{{ navText().indisponibilites }}</a>
-        <div class="nav-divider"></div>
-        <button class="nav-btn-logout" type="button" (click)="logoutAdmin()">{{ navText().logout }}</button>
-      }
-    </nav>
-
-    <app-language-switcher class="app-lang-switcher"></app-language-switcher>
-  </div>
-</header>
-
-<main id="main-content" tabindex="-1" class="app-main-shell">
-  <router-outlet></router-outlet>
-</main>
-<footer class="app-footer"><div class="footer-inner"><div><strong>GestionTransport-Multiple</strong><p>{{ language.t('ui.footerTagline') }}</p></div><div class="footer-links"><a routerLink="/">{{ navText().home }}</a><a routerLink="/voyageur">{{ language.t('transport.myArea') }}</a><a routerLink="/admin/login">{{ language.t('transport.admin') }}</a></div></div></footer>
-`,
+    <main id="main-content" tabindex="-1" class="app-main-shell">
+      <router-outlet></router-outlet>
+    </main>
+    <footer class="app-footer">
+      <div class="footer-inner">
+        <div>
+          <strong>GestionTransport-Multiple</strong>
+          <p>{{ language.t('ui.footerTagline') }}</p>
+        </div>
+        <div class="footer-links">
+          <a routerLink="/">{{ navText().home }}</a><a routerLink="/voyageur">{{
+            language.t('transport.myArea')
+          }}</a
+          ><a routerLink="/admin/login">{{ language.t('transport.admin') }}</a>
+        </div>
+      </div>
+    </footer>
+  `,
 })
 export class App {
   readonly menuOuvert = signal(false);
@@ -92,7 +202,7 @@ export class App {
     create: this.language.t('nav.create'),
     public: this.language.t('nav.public'),
     private: this.language.t('nav.private'),
-    logout: this.language.t('nav.logout')
+    logout: this.language.t('nav.logout'),
   }));
 
   logoutAdmin(): void {

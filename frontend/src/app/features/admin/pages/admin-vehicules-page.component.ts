@@ -41,7 +41,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
     <div class="adm-ter-header">
       <div class="adm-ter-header-inner">
         <div class="adm-ter-title-block">
-          <span class="adm-ter-icon">📍</span>
+          <span class="adm-ter-icon"></span>
           <div>
             <h1 class="adm-ter-title">{{ language.t('admin.vehicules.title') }}</h1>
             <p class="adm-ter-sub">{{ language.t('admin.vehicules.subtitle') }}</p>
@@ -73,16 +73,16 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
             <mat-label>{{ language.t('admin.vehicules.agence') }}</mat-label>
             <mat-select formControlName="agenceId" [disabled]="adminSession.isAgenceAdmin()">
               @for (agence of agences(); track agence.id) {
-                <mat-option [value]="agence.id">🏢 {{ agence.nom }}</mat-option>
+                <mat-option [value]="agence.id"> {{ agence.nom }}</mat-option>
               }
             </mat-select>
           </mat-form-field>
 
           @if (message()) {
-            <div class="status-success md:col-span-2">✅ {{ message() }}</div>
+            <div class="status-success md:col-span-2">{{ message() }}</div>
           }
           @if (errorMessage()) {
-            <div class="status-error md:col-span-2">❌ {{ errorMessage() }}</div>
+            <div class="status-error md:col-span-2">{{ errorMessage() }}</div>
           }
 
           <div class="flex flex-wrap items-center gap-3 md:col-span-2">
@@ -97,7 +97,10 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
               {{ language.t('common.reset') }}
             </button>
             @if (loading()) {
-              <mat-spinner diameter="24"></mat-spinner>
+              <mat-spinner
+                [attr.aria-label]="language.t('transport.searching')"
+                diameter="24"
+              ></mat-spinner>
             }
           </div>
         </form>
@@ -109,21 +112,21 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
           <div class="adm-ter-card">
             <div class="adm-ter-card-header">
               <span class="adm-ter-card-num">#{{ vehicule.id }}</span>
-              <div class="adm-ter-card-name">📍 {{ vehicule.nom }}</div>
-              <div class="adm-ter-card-agence">🏢 {{ vehicule.agenceNom }}</div>
+              <div class="adm-ter-card-name">{{ vehicule.nom }}</div>
+              <div class="adm-ter-card-agence">{{ vehicule.agenceNom }}</div>
             </div>
             <div class="adm-ter-card-actions">
               <button class="adm-ter-action-edit" type="button" (click)="edit(vehicule)">
-                ✏️ {{ language.t('common.edit') }}
+                {{ language.t('common.edit') }}
               </button>
               <button class="adm-ter-action-delete" type="button" (click)="remove(vehicule.id)">
-                🗑️ {{ language.t('common.delete') }}
+                {{ language.t('common.delete') }}
               </button>
             </div>
           </div>
         } @empty {
           <div class="adm-ter-empty md:col-span-2 lg:col-span-3">
-            <span>📍</span>
+            <span></span>
             <p>{{ language.t('admin.vehicules.empty') }}</p>
           </div>
         }
@@ -132,9 +135,9 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
 
     <style>
       .adm-ter-header {
-        background: linear-gradient(135deg, #134e4a 0%, #0f766e 50%, #0d9488 100%);
+        background: linear-gradient(120deg, var(--ui-navy), var(--ui-primary-strong));
         padding: 1.5rem 2rem;
-        box-shadow: 0 4px 16px rgba(15, 118, 110, 0.3);
+        box-shadow: var(--ui-shadow);
       }
       .adm-ter-header-inner {
         display: flex;
@@ -156,18 +159,18 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
       .adm-ter-title {
         font-size: 1.6rem;
         font-weight: 800;
-        color: #fff;
+        color: var(--ui-surface);
         margin: 0;
       }
       .adm-ter-sub {
-        color: rgba(255, 255, 255, 0.75);
+        color: color-mix(in srgb, var(--ui-surface) 75%, transparent);
         font-size: 0.85rem;
         margin: 0;
       }
       .adm-ter-back-btn {
-        background: rgba(255, 255, 255, 0.15);
-        color: #fff;
-        border: 2px solid rgba(255, 255, 255, 0.35);
+        background: color-mix(in srgb, var(--ui-surface) 15%, transparent);
+        color: var(--ui-surface);
+        border: 2px solid color-mix(in srgb, var(--ui-surface) 35%, transparent);
         border-radius: 9999px;
         padding: 0.45rem 1.1rem;
         font-weight: 700;
@@ -177,15 +180,15 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         white-space: nowrap;
       }
       .adm-ter-back-btn:hover {
-        background: rgba(255, 255, 255, 0.25);
+        background: color-mix(in srgb, var(--ui-surface) 25%, transparent);
       }
 
       .adm-ter-form-card {
-        background: #fff;
+        background: var(--ui-surface);
         border-radius: 1.25rem;
-        box-shadow: 0 4px 20px rgba(15, 118, 110, 0.1);
+        box-shadow: var(--ui-shadow);
         padding: 1.5rem;
-        border-left: 5px solid #0d9488;
+        border-left: 5px solid var(--ui-teal-strong);
       }
       .adm-ter-form-header {
         display: flex;
@@ -197,19 +200,19 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
       .adm-ter-form-title {
         font-size: 1.2rem;
         font-weight: 700;
-        color: #134e4a;
+        color: var(--ui-navy);
         margin: 0;
       }
 
       .adm-ter-btn-primary {
-        background: linear-gradient(135deg, #0f766e, #0d9488);
-        color: #fff;
+        background: linear-gradient(120deg, var(--ui-primary-soft), var(--ui-surface));
+        color: var(--ui-surface);
         border: none;
         border-radius: 0.6rem;
         padding: 0.65rem 1.5rem;
         font-weight: 700;
         cursor: pointer;
-        box-shadow: 0 3px 10px rgba(15, 118, 110, 0.3);
+        box-shadow: var(--ui-shadow);
         transition: transform 0.15s;
       }
       .adm-ter-btn-primary:hover:not(:disabled) {
@@ -220,9 +223,9 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         cursor: not-allowed;
       }
       .adm-ter-btn-secondary {
-        background: #f0fdfa;
-        color: #0f766e;
-        border: 1.5px solid #99f6e4;
+        background: var(--ui-surface-subtle);
+        color: var(--ui-primary-strong);
+        border: 1.5px solid var(--ui-teal-strong);
         border-radius: 0.6rem;
         padding: 0.65rem 1.25rem;
         font-weight: 600;
@@ -230,33 +233,33 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         transition: background 0.15s;
       }
       .adm-ter-btn-secondary:hover {
-        background: #ccfbf1;
+        background: var(--ui-teal-soft);
       }
 
       .adm-ter-card {
-        background: #fff;
+        background: var(--ui-surface);
         border-radius: 1.25rem;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+        box-shadow: var(--ui-shadow);
         overflow: hidden;
         transition:
           transform 0.15s,
           box-shadow 0.15s;
-        border-top: 4px solid #0d9488;
+        border-top: 4px solid var(--ui-teal-strong);
       }
       .adm-ter-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+        box-shadow: var(--ui-shadow);
       }
       .adm-ter-card-header {
         padding: 1rem 1.25rem 0.75rem;
-        background: linear-gradient(135deg, #f0fdfa, #ccfbf1);
+        background: linear-gradient(120deg, var(--ui-primary-soft), var(--ui-surface));
       }
       .adm-ter-card-num {
         display: inline-block;
         font-size: 0.72rem;
         font-weight: 800;
-        color: #0f766e;
-        background: #99f6e4;
+        color: var(--ui-primary-strong);
+        background: var(--ui-primary-soft);
         border-radius: 9999px;
         padding: 0.15rem 0.6rem;
         margin-bottom: 0.4rem;
@@ -264,11 +267,11 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
       .adm-ter-card-name {
         font-size: 1.05rem;
         font-weight: 700;
-        color: #134e4a;
+        color: var(--ui-navy);
       }
       .adm-ter-card-agence {
         font-size: 0.85rem;
-        color: #0f766e;
+        color: var(--ui-primary-strong);
         margin-top: 0.2rem;
       }
 
@@ -276,15 +279,15 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         display: flex;
         gap: 0.75rem;
         padding: 0.75rem 1.25rem;
-        border-top: 1px solid #f0fdfa;
+        border-top: 1px solid var(--ui-surface-subtle);
         flex-wrap: wrap;
       }
       .adm-ter-action-edit {
         flex: 1;
         min-width: 100px;
-        background: #eff6ff;
-        color: #1d4ed8;
-        border: 1.5px solid #bfdbfe;
+        background: var(--ui-surface-subtle);
+        color: var(--ui-primary-strong);
+        border: 1.5px solid var(--ui-primary-soft);
         border-radius: 0.5rem;
         padding: 0.45rem 0.75rem;
         font-size: 0.82rem;
@@ -293,14 +296,14 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         transition: background 0.15s;
       }
       .adm-ter-action-edit:hover {
-        background: #dbeafe;
+        background: var(--ui-primary-soft);
       }
       .adm-ter-action-delete {
         flex: 1;
         min-width: 100px;
-        background: #fef2f2;
-        color: #dc2626;
-        border: 1.5px solid #fecaca;
+        background: var(--ui-surface);
+        color: var(--ui-danger);
+        border: 1.5px solid var(--ui-danger-soft);
         border-radius: 0.5rem;
         padding: 0.45rem 0.75rem;
         font-size: 0.82rem;
@@ -309,13 +312,13 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         transition: background 0.15s;
       }
       .adm-ter-action-delete:hover {
-        background: #fee2e2;
+        background: var(--ui-surface-subtle);
       }
 
       .adm-ter-empty {
         text-align: center;
         padding: 3rem;
-        color: #94a3b8;
+        color: var(--ui-text-secondary);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -381,7 +384,9 @@ export class AdminVehiculesPage {
       error: (error) => {
         this.loading.set(false);
         this.errorMessage.set(
-          extractApiErrorMessage(error, this.language.t('admin.vehicules.loadError')),
+          extractApiErrorMessage(error, this.language.t('admin.vehicules.loadError'), (key) =>
+            this.language.t(key),
+          ),
         );
       },
     });
@@ -438,7 +443,9 @@ export class AdminVehiculesPage {
       error: (error) => {
         this.loading.set(false);
         this.errorMessage.set(
-          extractApiErrorMessage(error, this.language.t('admin.vehicules.saveError')),
+          extractApiErrorMessage(error, this.language.t('admin.vehicules.saveError'), (key) =>
+            this.language.t(key),
+          ),
         );
       },
     });
@@ -459,7 +466,9 @@ export class AdminVehiculesPage {
       },
       error: (error) => {
         this.errorMessage.set(
-          extractApiErrorMessage(error, this.language.t('admin.vehicules.deleteError')),
+          extractApiErrorMessage(error, this.language.t('admin.vehicules.deleteError'), (key) =>
+            this.language.t(key),
+          ),
         );
       },
     });

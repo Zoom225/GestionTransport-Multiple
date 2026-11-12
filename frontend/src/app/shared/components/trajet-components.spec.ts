@@ -116,27 +116,45 @@ it('désactive la réservation et indique complet à zéro place restante', asyn
 });
 
 it('ouvre une fiche avec les données existantes et transmet la réservation après validation', async () => {
-  await TestBed.configureTestingModule({ imports: [TrajetCardComponent], providers: [provideNoopAnimations()] }).compileComponents();
+  await TestBed.configureTestingModule({
+    imports: [TrajetCardComponent],
+    providers: [provideNoopAnimations()],
+  }).compileComponents();
   const fixture = TestBed.createComponent(TrajetCardComponent);
   const dialog = fixture.debugElement.injector.get(MatDialog);
-  vi.spyOn(dialog, 'open').mockReturnValue({ afterClosed: () => of(true) } as MatDialogRef<TrajetDetailComponent, boolean>);
+  vi.spyOn(dialog, 'open').mockReturnValue({ afterClosed: () => of(true) } as MatDialogRef<
+    TrajetDetailComponent,
+    boolean
+  >);
   fixture.componentRef.setInput('trajet', trajet);
   const reservation = vi.fn();
   fixture.componentInstance.reservationDemandee.subscribe(reservation);
   fixture.componentInstance.openDetails();
-  expect(dialog.open).toHaveBeenCalledWith(TrajetDetailComponent, expect.objectContaining({ data: { trajet, disabled: false } }));
+  expect(dialog.open).toHaveBeenCalledWith(
+    TrajetDetailComponent,
+    expect.objectContaining({ data: { trajet, disabled: false } }),
+  );
   expect(reservation).toHaveBeenCalledWith(trajet);
 });
 
 it('conserve le blocage de réservation dans la fiche et ne réserve pas à sa fermeture', async () => {
-  await TestBed.configureTestingModule({ imports: [TrajetCardComponent], providers: [provideNoopAnimations()] }).compileComponents();
+  await TestBed.configureTestingModule({
+    imports: [TrajetCardComponent],
+    providers: [provideNoopAnimations()],
+  }).compileComponents();
   const fixture = TestBed.createComponent(TrajetCardComponent);
   const dialog = fixture.debugElement.injector.get(MatDialog);
-  vi.spyOn(dialog, 'open').mockReturnValue({ afterClosed: () => of(undefined) } as MatDialogRef<TrajetDetailComponent, boolean>);
+  vi.spyOn(dialog, 'open').mockReturnValue({ afterClosed: () => of(undefined) } as MatDialogRef<
+    TrajetDetailComponent,
+    boolean
+  >);
   fixture.componentRef.setInput('trajet', { ...trajet, statut: 'COMPLET', placesRestantes: 0 });
   const reservation = vi.fn();
   fixture.componentInstance.reservationDemandee.subscribe(reservation);
   fixture.componentInstance.openDetails();
-  expect(dialog.open).toHaveBeenCalledWith(TrajetDetailComponent, expect.objectContaining({ data: expect.objectContaining({ disabled: true }) }));
+  expect(dialog.open).toHaveBeenCalledWith(
+    TrajetDetailComponent,
+    expect.objectContaining({ data: expect.objectContaining({ disabled: true }) }),
+  );
   expect(reservation).not.toHaveBeenCalled();
 });

@@ -14,7 +14,10 @@ import { IndisponibilitesServiceApiService } from '../../../core/api/indisponibi
 import { AgencesApiService } from '../../../core/api/agences-api.service';
 import { AdminSessionService } from '../../../core/auth/admin-session.service';
 import { LanguageService } from '../../../core/i18n/language.service';
-import { IndisponibiliteServiceResponse, AgenceResponse } from '../../../shared/models/agence-vehicule.model';
+import {
+  IndisponibiliteServiceResponse,
+  AgenceResponse,
+} from '../../../shared/models/agence-vehicule.model';
 import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
 
 @Component({
@@ -30,14 +33,16 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
     MatSelectModule,
     MatCheckboxModule,
     MatButtonModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
   ],
   template: `
     <!-- En-tête fermetures -->
     <div class="adm-fer-header">
       <div class="adm-fer-header-inner">
         <div class="adm-fer-title-block">
-          <span class="adm-fer-icon">🔒</span>
+          <span class="adm-fer-icon" aria-hidden="true"
+            ><svg class="ui-icon"><use href="images/ui-icons.svg#lock" /></svg
+          ></span>
           <div>
             <h1 class="adm-fer-title">{{ language.t('admin.indisponibilites.title') }}</h1>
             <p class="adm-fer-sub">{{ language.t('admin.indisponibilites.subtitle') }}</p>
@@ -51,7 +56,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
       <!-- Formulaire -->
       <div class="adm-fer-form-card">
         <div class="adm-fer-form-header">
-          <span>➕</span>
+          <span></span>
           <h2 class="adm-fer-form-title">{{ language.t('common.create') }}</h2>
         </div>
         <form [formGroup]="form" class="grid gap-4 pt-4 md:grid-cols-2" (ngSubmit)="save()">
@@ -68,7 +73,9 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
           <mat-form-field appearance="outline">
             <mat-label>{{ language.t('admin.indisponibilites.agence') }}</mat-label>
             <mat-select formControlName="agenceId" [disabled]="form.controls.global.value">
-              <mat-option [value]="null">{{ language.t('admin.indisponibilites.noneGlobal') }}</mat-option>
+              <mat-option [value]="null">{{
+                language.t('admin.indisponibilites.noneGlobal')
+              }}</mat-option>
               @for (agence of agences(); track agence.id) {
                 <mat-option [value]="agence.id">{{ agence.nom }}</mat-option>
               }
@@ -82,19 +89,28 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
           </div>
 
           @if (message()) {
-            <div class="status-success md:col-span-2">✅ {{ message() }}</div>
+            <div class="status-success md:col-span-2">{{ message() }}</div>
           }
           @if (errorMessage()) {
-            <div class="status-error md:col-span-2">❌ {{ errorMessage() }}</div>
+            <div class="status-error md:col-span-2">{{ errorMessage() }}</div>
           }
 
           <div class="flex flex-wrap items-center gap-3 md:col-span-2">
-            <button class="adm-fer-btn-primary" type="submit" [disabled]="loading() || form.invalid">
+            <button
+              class="adm-fer-btn-primary"
+              type="submit"
+              [disabled]="loading() || form.invalid"
+            >
               {{ language.t('admin.indisponibilites.add') }}
             </button>
-            <button class="adm-fer-btn-secondary" type="button" (click)="resetForm()">{{ language.t('admin.indisponibilites.reset') }}</button>
+            <button class="adm-fer-btn-secondary" type="button" (click)="resetForm()">
+              {{ language.t('admin.indisponibilites.reset') }}
+            </button>
             @if (loading()) {
-              <mat-spinner diameter="24"></mat-spinner>
+              <mat-spinner
+                [attr.aria-label]="language.t('transport.searching')"
+                diameter="24"
+              ></mat-spinner>
             }
           </div>
         </form>
@@ -105,25 +121,35 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         @for (jour of filteredJours(); track jour.id) {
           <div class="adm-fer-card" [class.adm-fer-card-global]="jour.global">
             <div class="adm-fer-card-top">
-              <div class="adm-fer-date">📅 {{ jour.date }}</div>
-              <span class="adm-fer-badge" [class.adm-fer-badge-global]="jour.global" [class.adm-fer-badge-agence]="!jour.global">
-                {{ jour.global ? language.t('admin.indisponibilites.global') : language.t('admin.voyageurs.agence') }}
+              <div class="adm-fer-date">{{ jour.date }}</div>
+              <span
+                class="adm-fer-badge"
+                [class.adm-fer-badge-global]="jour.global"
+                [class.adm-fer-badge-agence]="!jour.global"
+              >
+                {{
+                  jour.global
+                    ? language.t('admin.indisponibilites.global')
+                    : language.t('admin.voyageurs.agence')
+                }}
               </span>
             </div>
             @if (!jour.global) {
-              <div class="adm-fer-agence">🏢 {{ jour.agenceNom }}</div>
+              <div class="adm-fer-agence">{{ jour.agenceNom }}</div>
             }
             <div class="adm-fer-raison">
-              📝 {{ jour.raison || language.t('admin.indisponibilites.reasonEmpty') }}
+              {{ jour.raison || language.t('admin.indisponibilites.reasonEmpty') }}
             </div>
             <div class="adm-fer-card-actions">
-<button class="adm-fer-action-delete" type="button" (click)="remove(jour.id)">🗑️ {{ language.t('common.delete') }}</button>
+              <button class="adm-fer-action-delete" type="button" (click)="remove(jour.id)">
+                {{ language.t('common.delete') }}
+              </button>
             </div>
           </div>
         } @empty {
           @if (!loading()) {
             <div class="adm-fer-empty md:col-span-2 lg:col-span-3">
-              <span>🔓</span>
+              <span></span>
               <p>{{ language.t('admin.indisponibilites.empty') }}</p>
             </div>
           }
@@ -133,88 +159,196 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
 
     <style>
       .adm-fer-header {
-        background: linear-gradient(135deg, #78350f 0%, #b45309 50%, #d97706 100%);
+        background: linear-gradient(120deg, var(--ui-primary-soft), var(--ui-surface));
         padding: 1.5rem 2rem;
-        box-shadow: 0 4px 16px rgba(180,83,9,0.3);
+        box-shadow: var(--ui-shadow);
       }
       .adm-fer-header-inner {
-        display: flex; align-items: center; justify-content: space-between;
-        max-width: 1200px; margin: 0 auto; gap: 1rem; flex-wrap: wrap;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 1200px;
+        margin: 0 auto;
+        gap: 1rem;
+        flex-wrap: wrap;
       }
-      .adm-fer-title-block { display: flex; align-items: center; gap: 1rem; }
-      .adm-fer-icon { font-size: 2.5rem; }
-      .adm-fer-title { font-size: 1.6rem; font-weight: 800; color: #fff; margin: 0; }
-      .adm-fer-sub { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
+      .adm-fer-title-block {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .adm-fer-icon {
+        font-size: 2.5rem;
+      }
+      .adm-fer-title {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--ui-surface);
+        margin: 0;
+      }
+      .adm-fer-sub {
+        color: color-mix(in srgb, var(--ui-surface) 75%, transparent);
+        font-size: 0.85rem;
+        margin: 0;
+      }
       .adm-fer-back-btn {
-        background: rgba(255,255,255,0.15); color: #fff; border: 2px solid rgba(255,255,255,0.35);
-        border-radius: 9999px; padding: 0.45rem 1.1rem; font-weight: 700;
-        font-size: 0.85rem; text-decoration: none; transition: background 0.15s; white-space: nowrap;
+        background: color-mix(in srgb, var(--ui-surface) 15%, transparent);
+        color: var(--ui-surface);
+        border: 2px solid color-mix(in srgb, var(--ui-surface) 35%, transparent);
+        border-radius: 9999px;
+        padding: 0.45rem 1.1rem;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-decoration: none;
+        transition: background 0.15s;
+        white-space: nowrap;
       }
-      .adm-fer-back-btn:hover { background: rgba(255,255,255,0.25); }
+      .adm-fer-back-btn:hover {
+        background: color-mix(in srgb, var(--ui-surface) 25%, transparent);
+      }
 
       .adm-fer-form-card {
-        background: #fff; border-radius: 1.25rem;
-        box-shadow: 0 4px 20px rgba(180,83,9,0.1);
-        padding: 1.5rem; border-left: 5px solid #d97706;
+        background: var(--ui-surface);
+        border-radius: 1.25rem;
+        box-shadow: var(--ui-shadow);
+        padding: 1.5rem;
+        border-left: 5px solid var(--ui-warning);
       }
-      .adm-fer-form-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; font-size: 1.5rem; }
-      .adm-fer-form-title { font-size: 1.2rem; font-weight: 700; color: #78350f; margin: 0; }
+      .adm-fer-form-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+        font-size: 1.5rem;
+      }
+      .adm-fer-form-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--ui-warning);
+        margin: 0;
+      }
 
       .adm-fer-btn-primary {
-        background: linear-gradient(135deg, #b45309, #d97706); color: #fff; border: none;
-        border-radius: 0.6rem; padding: 0.65rem 1.5rem; font-weight: 700; cursor: pointer;
-        box-shadow: 0 3px 10px rgba(180,83,9,0.3); transition: transform 0.15s;
+        background: linear-gradient(120deg, var(--ui-primary-soft), var(--ui-surface));
+        color: var(--ui-surface);
+        border: none;
+        border-radius: 0.6rem;
+        padding: 0.65rem 1.5rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: var(--ui-shadow);
+        transition: transform 0.15s;
       }
-      .adm-fer-btn-primary:hover:not(:disabled) { transform: translateY(-1px); }
-      .adm-fer-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+      .adm-fer-btn-primary:hover:not(:disabled) {
+        transform: translateY(-1px);
+      }
+      .adm-fer-btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
       .adm-fer-btn-secondary {
-        background: #fffbeb; color: #b45309; border: 1.5px solid #fde68a;
-        border-radius: 0.6rem; padding: 0.65rem 1.25rem; font-weight: 600; cursor: pointer;
+        background: var(--ui-surface-subtle);
+        color: var(--ui-warning);
+        border: 1.5px solid var(--ui-warning);
+        border-radius: 0.6rem;
+        padding: 0.65rem 1.25rem;
+        font-weight: 600;
+        cursor: pointer;
         transition: background 0.15s;
       }
-      .adm-fer-btn-secondary:hover { background: #fef3c7; }
+      .adm-fer-btn-secondary:hover {
+        background: var(--ui-warning-soft);
+      }
 
       .adm-fer-card {
-        background: #fff; border-radius: 1.25rem;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.07); overflow: hidden;
-        transition: transform 0.15s, box-shadow 0.15s;
-        border-top: 4px solid #d97706;
+        background: var(--ui-surface);
+        border-radius: 1.25rem;
+        box-shadow: var(--ui-shadow);
+        overflow: hidden;
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s;
+        border-top: 4px solid var(--ui-warning);
       }
-      .adm-fer-card-global { border-top-color: #dc2626; }
-      .adm-fer-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.12); }
+      .adm-fer-card-global {
+        border-top-color: var(--ui-danger);
+      }
+      .adm-fer-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--ui-shadow);
+      }
       .adm-fer-card-top {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 1rem 1.25rem 0.4rem; gap: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.25rem 0.4rem;
+        gap: 0.5rem;
       }
-      .adm-fer-date { font-size: 1.05rem; font-weight: 700; color: #1e293b; }
+      .adm-fer-date {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--ui-navy);
+      }
       .adm-fer-badge {
-        font-size: 0.72rem; font-weight: 800; padding: 0.2rem 0.7rem;
-        border-radius: 9999px; white-space: nowrap;
+        font-size: 0.72rem;
+        font-weight: 800;
+        padding: 0.2rem 0.7rem;
+        border-radius: 9999px;
+        white-space: nowrap;
       }
-      .adm-fer-badge-global { background: #fee2e2; color: #dc2626; }
-      .adm-fer-badge-agence   { background: #fef3c7; color: #b45309; }
+      .adm-fer-badge-global {
+        background: var(--ui-surface-subtle);
+        color: var(--ui-danger);
+      }
+      .adm-fer-badge-agence {
+        background: var(--ui-warning-soft);
+        color: var(--ui-warning);
+      }
       .adm-fer-agence {
-        padding: 0 1.25rem 0.2rem; font-size: 0.85rem; color: #64748b;
+        padding: 0 1.25rem 0.2rem;
+        font-size: 0.85rem;
+        color: var(--ui-text-secondary);
       }
       .adm-fer-raison {
-        padding: 0.4rem 1.25rem 0.75rem; font-size: 0.88rem; color: #475569;
-        border-bottom: 1px solid #fef3c7;
+        padding: 0.4rem 1.25rem 0.75rem;
+        font-size: 0.88rem;
+        color: var(--ui-text-secondary);
+        border-bottom: 1px solid var(--ui-warning-soft);
       }
-      .adm-fer-card-actions { padding: 0.75rem 1.25rem; }
+      .adm-fer-card-actions {
+        padding: 0.75rem 1.25rem;
+      }
       .adm-fer-action-delete {
-        width: 100%; background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca;
-        border-radius: 0.5rem; padding: 0.5rem; font-size: 0.85rem; font-weight: 700;
-        cursor: pointer; transition: background 0.15s;
+        width: 100%;
+        background: var(--ui-surface);
+        color: var(--ui-danger);
+        border: 1.5px solid var(--ui-danger-soft);
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s;
       }
-      .adm-fer-action-delete:hover { background: #fee2e2; }
+      .adm-fer-action-delete:hover {
+        background: var(--ui-surface-subtle);
+      }
 
       .adm-fer-empty {
-        text-align: center; padding: 3rem; color: #94a3b8;
-        display: flex; flex-direction: column; align-items: center; gap: 0.5rem; font-size: 1.1rem;
+        text-align: center;
+        padding: 3rem;
+        color: var(--ui-text-secondary);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.1rem;
       }
-      .adm-fer-empty span { font-size: 3rem; }
+      .adm-fer-empty span {
+        font-size: 3rem;
+      }
     </style>
-  `
+  `,
 })
 export class AdminIndisponibilitesServicePage {
   private readonly indisponibilitesServiceApi = inject(IndisponibilitesServiceApiService);
@@ -240,7 +374,7 @@ export class AdminIndisponibilitesServicePage {
     date: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     raison: new FormControl('', { nonNullable: true }),
     global: new FormControl(false, { nonNullable: true }),
-    agenceId: new FormControl<number | null>(null)
+    agenceId: new FormControl<number | null>(null),
   });
 
   constructor() {
@@ -254,17 +388,27 @@ export class AdminIndisponibilitesServicePage {
     this.loading.set(true);
     forkJoin({
       jours: this.indisponibilitesServiceApi.getAll(),
-      agences: this.agencesApi.getAll()
+      agences: this.agencesApi.getAll(),
     }).subscribe({
       next: ({ jours, agences }) => {
         this.jours.set(jours);
-        this.agences.set(this.adminSession.isGlobalAdmin() ? agences : agences.filter((s) => s.id === this.adminSession.agenceId()));
+        this.agences.set(
+          this.adminSession.isGlobalAdmin()
+            ? agences
+            : agences.filter((s) => s.id === this.adminSession.agenceId()),
+        );
         this.loading.set(false);
       },
       error: (error) => {
         this.loading.set(false);
-        this.errorMessage.set(extractApiErrorMessage(error, this.language.t('admin.indisponibilites.loadError')));
-      }
+        this.errorMessage.set(
+          extractApiErrorMessage(
+            error,
+            this.language.t('admin.indisponibilites.loadError'),
+            (key) => this.language.t(key),
+          ),
+        );
+      },
     });
   }
 
@@ -281,7 +425,7 @@ export class AdminIndisponibilitesServicePage {
       date: '',
       raison: '',
       global: false,
-      agenceId: this.adminSession.isAgenceAdmin() ? this.adminSession.agenceId() : null
+      agenceId: this.adminSession.isAgenceAdmin() ? this.adminSession.agenceId() : null,
     });
   }
 
@@ -295,23 +439,31 @@ export class AdminIndisponibilitesServicePage {
     this.errorMessage.set('');
 
     const raw = this.form.getRawValue();
-    this.indisponibilitesServiceApi.create({
-      date: raw.date,
-      raison: raw.raison,
-      global: raw.global,
-      agenceId: raw.global ? null : raw.agenceId
-    }).subscribe({
-      next: () => {
-        this.loading.set(false);
-        this.resetForm();
-        this.message.set(this.language.t('admin.indisponibilites.addSuccess'));
-        this.loadData();
-      },
-      error: (error) => {
-        this.loading.set(false);
-        this.errorMessage.set(extractApiErrorMessage(error, this.language.t('admin.indisponibilites.addError')));
-      }
-    });
+    this.indisponibilitesServiceApi
+      .create({
+        date: raw.date,
+        raison: raw.raison,
+        global: raw.global,
+        agenceId: raw.global ? null : raw.agenceId,
+      })
+      .subscribe({
+        next: () => {
+          this.loading.set(false);
+          this.resetForm();
+          this.message.set(this.language.t('admin.indisponibilites.addSuccess'));
+          this.loadData();
+        },
+        error: (error) => {
+          this.loading.set(false);
+          this.errorMessage.set(
+            extractApiErrorMessage(
+              error,
+              this.language.t('admin.indisponibilites.addError'),
+              (key) => this.language.t(key),
+            ),
+          );
+        },
+      });
   }
 
   remove(id: number): void {
@@ -324,8 +476,14 @@ export class AdminIndisponibilitesServicePage {
         this.loadData();
       },
       error: (error) => {
-        this.errorMessage.set(extractApiErrorMessage(error, this.language.t('admin.indisponibilites.deleteError')));
-      }
+        this.errorMessage.set(
+          extractApiErrorMessage(
+            error,
+            this.language.t('admin.indisponibilites.deleteError'),
+            (key) => this.language.t(key),
+          ),
+        );
+      },
     });
   }
 }
