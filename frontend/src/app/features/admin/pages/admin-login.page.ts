@@ -85,7 +85,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
             </mat-form-field>
 
             @if (errorMessage()) {
-              <div class="login-error">{{ errorMessage() }}</div>
+              <div role="alert" class="login-error">{{ errorMessage() }}</div>
             }
 
             <div class="login-actions">

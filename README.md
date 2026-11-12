@@ -340,6 +340,7 @@ Toutes les PR ciblent `develop`. Les branches fonctionnelles partent du dernier
 | #5    | feature/issue-5-transport-api               | [#15](https://github.com/Zoom225/GestionTransport-Multiple/pull/15)                                                                    |
 | #6    | feature/issue-6-transport-frontend          | [#16](https://github.com/Zoom225/GestionTransport-Multiple/pull/16)                                                                    |
 | #7 | feature/issue-7-integration-validation | [#17](https://github.com/Zoom225/GestionTransport-Multiple/pull/17) |
+| #6 | feature/issue-6-ui-professionnelle | [#21](https://github.com/Zoom225/GestionTransport-Multiple/pull/21) |
 | #4, #6, #7 | feature/issue-4-soutenance-finalisation | [#18](https://github.com/Zoom225/GestionTransport-Multiple/pull/18) |
 
 Documents à lire pour présenter le projet :
@@ -414,6 +415,36 @@ Les commandes et preuves de validation figurent dans
 
 La CI contrôle désormais les PR vers `develop` **et `master`**. La livraison vers
 `master` se fait par PR distincte après validation de `develop`, sans fusion automatique.
+
+## Refonte UX/UI — issue #6
+
+La [PR #21](https://github.com/Zoom225/GestionTransport-Multiple/pull/21), sur
+`feature/issue-6-ui-professionnelle`, harmonise le frontend : thème marine/bleu/turquoise,
+navigation mobile, pied de page commun, formulaires, cartes, espaces voyageur/chauffeur
+et administration. **Voir le trajet** ouvre une fiche accessible avec les informations
+déjà disponibles et la même action de réservation. Les services API, guards, interceptor,
+contrats REST et règles backend sont conservés.
+
+Les couleurs et composants communs sont centralisés dans `frontend/src/styles.scss`,
+le header/footer dans `frontend/src/app/app.scss`. Les SVG sont locaux et la police
+utilise Inter lorsqu'elle est installée, puis les polices système : aucune police
+distante requise. Les nouveaux libellés, erreurs de session/réseau et statuts sont FR/EN.
+
+Comparaisons avec réponses API de démonstration **simulées dans le navigateur** :
+
+| Écran | Avant | Après |
+| --- | --- | --- |
+| Accueil ordinateur | [Avant](docs/images/ui/avant-accueil-1440.jpg) | [Après](docs/images/ui/apres-accueil-1440.jpg) |
+| Accueil mobile | [Avant](docs/images/ui/avant-accueil-375.jpg) | [Après](docs/images/ui/apres-accueil-375.jpg) |
+| Administration | [Avant](docs/images/ui/avant-dashboard-1440.jpg) | [Après](docs/images/ui/apres-dashboard-1440.jpg) |
+
+Build et tests : `cd frontend`, `npm ci`, `npm run build`, `npm test`.
+Validation de cette refonte : **69 tests Angular**, build réussi, **57 contrôles
+responsive** et **20 analyses axe-core** sans violation signalée sur les règles
+sélectionnées. Parcours de réservation/paiement vérifié avec des API simulées,
+sans accès aux données PostgreSQL.
+Le détail des vérifications, limites et commandes navigateur figure dans
+[le compte rendu UI](docs/covoiturage/issue-6-interface.md).
 
 ## Dépannage
 

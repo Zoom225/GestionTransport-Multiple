@@ -391,7 +391,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
       }
 
       .adm-btn-primary {
-        background: linear-gradient(120deg, var(--ui-primary-soft), var(--ui-surface));
+        background: var(--ui-primary);
         color: var(--ui-surface);
         border: none;
         border-radius: 0.6rem;

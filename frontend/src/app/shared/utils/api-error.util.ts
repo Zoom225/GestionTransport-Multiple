@@ -40,7 +40,9 @@ export const extractApiErrorMessage = (
   const candidate = error as any;
 
   if (translate) {
-    if (candidate.status === 401) return translate('ui.sessionExpired');
+    if (candidate.status === 401 && !String(candidate.url ?? '').includes('/login')) {
+      return translate('ui.sessionExpired');
+    }
     if (candidate.status === 403) return translate('ui.accessDenied');
     if (candidate.status === 0) return translate('ui.networkError');
   }

@@ -132,7 +132,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
                         @if (absenceSelectionnee() === reservation.id) {
                           <form
                             class="grid gap-2 min-w-0 w-full"
-                            (ngSubmit)="declarerAbsence(reservation)"
+                            (submit)="$event.preventDefault(); declarerAbsence(reservation)"
                           >
                             <label [for]="'absence-' + reservation.id">{{
                               language.t('ui.absenceReason')
@@ -209,9 +209,10 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
 
     <style>
       .adm-trajet-header {
-        background: linear-gradient(120deg, var(--ui-primary-soft), var(--ui-surface));
+        background: var(--ui-navy);
         padding: 1.5rem 2rem;
         box-shadow: var(--ui-shadow);
+        color: var(--ui-surface);
       }
       .adm-trajet-header-inner {
         display: flex;
@@ -260,7 +261,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         border-radius: 1.25rem !important;
         border: 1px solid color-mix(in srgb, var(--ui-warning) 15%, transparent) !important;
         overflow: hidden;
-        border-top: 4px solid var(--ui-warning) !important;
+        border-top: 4px solid var(--ui-primary);
         transition:
           transform 0.15s,
           box-shadow 0.15s;
@@ -335,7 +336,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
       }
       .adm-passagers-fill {
         height: 100%;
-        background: linear-gradient(120deg, var(--ui-primary-soft), var(--ui-surface));
+        background: var(--ui-primary);
         border-radius: 9999px;
         display: flex;
         align-items: center;
@@ -402,7 +403,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         min-width: 160px;
         padding: 0.5rem 1rem;
         border-radius: 0.6rem;
-        background: linear-gradient(120deg, var(--ui-primary-soft), var(--ui-surface));
+        background: var(--ui-primary);
         color: var(--ui-surface);
         border: none;
         font-weight: 700;

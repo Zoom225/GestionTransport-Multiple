@@ -118,6 +118,9 @@ a {
 button:disabled {
   cursor: not-allowed;
 }
+button {
+  min-height: 44px;
+}
 img,
 svg {
   max-width: 100%;

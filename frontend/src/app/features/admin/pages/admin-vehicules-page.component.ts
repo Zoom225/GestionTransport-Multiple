@@ -135,9 +135,10 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
 
     <style>
       .adm-ter-header {
-        background: linear-gradient(120deg, var(--ui-navy), var(--ui-primary-strong));
+        background: var(--ui-navy);
         padding: 1.5rem 2rem;
         box-shadow: var(--ui-shadow);
+        color: var(--ui-surface);
       }
       .adm-ter-header-inner {
         display: flex;
@@ -205,7 +206,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
       }
 
       .adm-ter-btn-primary {
-        background: linear-gradient(120deg, var(--ui-primary-soft), var(--ui-surface));
+        background: var(--ui-primary);
         color: var(--ui-surface);
         border: none;
         border-radius: 0.6rem;

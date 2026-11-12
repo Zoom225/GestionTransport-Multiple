@@ -159,9 +159,10 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
 
     <style>
       .adm-fer-header {
-        background: linear-gradient(120deg, var(--ui-primary-soft), var(--ui-surface));
+        background: var(--ui-navy);
         padding: 1.5rem 2rem;
         box-shadow: var(--ui-shadow);
+        color: var(--ui-surface);
       }
       .adm-fer-header-inner {
         display: flex;
@@ -229,7 +230,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
       }
 
       .adm-fer-btn-primary {
-        background: linear-gradient(120deg, var(--ui-primary-soft), var(--ui-surface));
+        background: var(--ui-primary);
         color: var(--ui-surface);
         border: none;
         border-radius: 0.6rem;

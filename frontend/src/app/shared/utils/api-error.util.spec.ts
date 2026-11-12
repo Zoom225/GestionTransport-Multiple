@@ -2,6 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { extractApiErrorMessage } from './api-error.util';
 import { TRANSLATIONS } from '../../core/i18n/translations';
 
+it('préserve le refus de connexion sans le présenter comme une session expirée', () => {
+  expect(
+    extractApiErrorMessage(
+      { status: 401, url: '/api/voyageurs/login', error: { message: 'Identifiants invalides.' } },
+      'Connexion impossible.',
+      (key) => TRANSLATIONS.fr[key] ?? key,
+    ),
+  ).toBe('Identifiants invalides.');
+});
+
 it('présente une reconnexion compréhensible pour une réponse 401', () => {
   expect(
     extractApiErrorMessage(

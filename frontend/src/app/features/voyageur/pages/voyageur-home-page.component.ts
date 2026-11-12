@@ -127,7 +127,7 @@ import { VoyageurResponse } from '../../../shared/models/voyageur.model';
           </div>
 
           @if (errorMessage()) {
-            <div class="gestiontransport-error"><span></span> {{ errorMessage() }}</div>
+            <div role="alert" class="gestiontransport-error">{{ errorMessage() }}</div>
           }
 
           @if (foundVoyageur()) {
