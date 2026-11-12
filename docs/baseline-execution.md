@@ -50,8 +50,8 @@ Exemple PowerShell, après création explicite d'une base isolée :
 
 ```powershell
 $env:POSTGRES_BASELINE_URL='jdbc:postgresql://localhost:5440/issue1_validation_pg_20261111'
-$env:DB_USER='padel'
-$env:DB_PASSWORD='padel' # uniquement le serveur de développement Compose
+$env:DB_USER='transport'
+$env:DB_PASSWORD='transport' # uniquement le serveur de développement Compose
 mvn -B test
 ```
 
@@ -69,8 +69,8 @@ $baselineKey=New-Object byte[] 48
 [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($baselineKey)
 $env:JWT_SECRET=[Convert]::ToBase64String($baselineKey)
 $env:DB_URL='jdbc:postgresql://localhost:5440/issue1_validation_http_20261111'
-$env:DB_USER='padel'
-$env:DB_PASSWORD='padel'
+$env:DB_USER='transport'
+$env:DB_PASSWORD='transport'
 $env:DEMO_DATA_ENABLED='false'
 $env:SERVER_PORT='18080'
 mvn -B spring-boot:run

@@ -12,12 +12,15 @@ Exécuter `docker compose up -d`, puis `docker compose ps`.
 PostgreSQL 15 est exposé sur le port 5440. Définir DB_URL, DB_USER, DB_PASSWORD
 et JWT_SECRET avant `mvn spring-boot:run`. Utiliser une clé JWT aléatoire d'au
 moins 32 octets. Conserver DEMO_DATA_ENABLED=false sur une base métier.
+Les identifiants de développement sont transport/transport ; pour un volume
+existant, suivre la [procédure de migration](identifiants-postgresql.md).
 
 ddl-auto=update reste inchangé et peut modifier le schéma : utiliser une base
 isolée ou sauvegardée. Les tables, colonnes et valeurs SQL historiques sont
 explicitement conservées dans les mappings de compatibilité. La valeur Java/JSON
 AGENCE correspond encore à la valeur SQL historique SITE, via des convertisseurs.
-Ne pas renommer la base, les comptes ou les volumes par substitution.
+La base et le compte sont désormais transportService et transport ; leur
+renommage suit la procédure documentée. Ne pas supprimer ou renommer le volume.
 
 Le pom.xml et son artifactId local industri sont protégés ; utiliser Maven pour
 le démarrage sans supposer le nom du JAR. Les données sportives préexistantes
