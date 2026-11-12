@@ -2,7 +2,7 @@ import { Injectable, computed, signal } from '@angular/core';
 import { LoginResponse } from '../../shared/models/auth.model';
 import { TypeAdministrateur } from '../../shared/models/enums.model';
 
-export const ADMIN_SESSION_KEY = 'padel_admin_session';
+export const ADMIN_SESSION_KEY = 'gestiontransport_admin_session';
 
 @Injectable({ providedIn: 'root' })
 export class AdminSessionService {
@@ -11,10 +11,10 @@ export class AdminSessionService {
   readonly session = computed(() => this.sessionState());
   readonly token = computed(() => this.sessionState()?.token ?? null);
   readonly role = computed<TypeAdministrateur | null>(() => this.sessionState()?.role ?? null);
-  readonly siteId = computed<number | null>(() => this.sessionState()?.siteId ?? null);
+  readonly agenceId = computed<number | null>(() => this.sessionState()?.agenceId ?? null);
   readonly isAuthenticated = computed(() => !!this.token());
   readonly isGlobalAdmin = computed(() => this.role() === 'GLOBAL');
-  readonly isSiteAdmin = computed(() => this.role() === 'SITE');
+  readonly isAgenceAdmin = computed(() => this.role() === 'AGENCE');
 
   setSession(session: LoginResponse): void {
     this.sessionState.set(session);

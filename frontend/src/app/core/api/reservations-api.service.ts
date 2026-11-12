@@ -10,6 +10,9 @@ import { apiUrl } from './api-url';
 
 @Injectable({ providedIn: 'root' })
 export class ReservationsApiService {
+  declarerAbsence(id: number, motif: string): Observable<ReservationResponse> {
+    return this.http.post<ReservationResponse>(apiUrl(`/reservations/${id}/absence`), { motif });
+  }
   constructor(private readonly http: HttpClient) {}
 
   create(payload: ReservationRequest): Observable<ReservationResponse> {
@@ -24,12 +27,12 @@ export class ReservationsApiService {
     return this.http.get<ReservationResponse>(apiUrl(`/reservations/${id}`));
   }
 
-  getByMatch(matchId: number): Observable<ReservationResponse[]> {
-    return this.http.get<ReservationResponse[]>(apiUrl(`/reservations/match/${matchId}`));
+  getByTrajet(trajetId: number): Observable<ReservationResponse[]> {
+    return this.http.get<ReservationResponse[]>(apiUrl(`/reservations/trajet/${trajetId}`));
   }
 
-  getByMembre(membreId: number): Observable<ReservationResponse[]> {
-    return this.http.get<ReservationResponse[]>(apiUrl(`/reservations/membre/${membreId}`));
+  getByVoyageur(voyageurId: number): Observable<ReservationResponse[]> {
+    return this.http.get<ReservationResponse[]>(apiUrl(`/reservations/voyageur/${voyageurId}`));
   }
 
   cancel(id: number): Observable<void> {

@@ -10,11 +10,11 @@
 		<relativePath/>
 	</parent>
 
-	<groupId>com.padel</groupId>
+	<groupId>com.transport</groupId>
 	<artifactId>padelmultiple</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>padelmultiple</name>
-	<description>Padelmultiple backend</description>
+	<name>GestionTransport-Multiple</name>
+	<description>Gestion du transport public et privé</description>
 
 	<properties>
 		<java.version>21</java.version>

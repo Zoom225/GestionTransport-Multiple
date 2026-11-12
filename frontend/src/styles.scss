@@ -322,3 +322,16 @@ body.ocean-theme .status-error {
   padding-bottom: 0.25rem !important;
 }
 /* You can add global styles to this file, and also import other style files */
+
+:focus-visible {
+  outline: 3px solid #047857 !important;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
