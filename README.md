@@ -339,7 +339,7 @@ Toutes les PR ciblent `develop`. Les branches fonctionnelles partent du dernier
 | #4    | feature/issue-4-transport-services          | [#14](https://github.com/Zoom225/GestionTransport-Multiple/pull/14)                                                                    |
 | #5    | feature/issue-5-transport-api               | [#15](https://github.com/Zoom225/GestionTransport-Multiple/pull/15)                                                                    |
 | #6    | feature/issue-6-transport-frontend          | [#16](https://github.com/Zoom225/GestionTransport-Multiple/pull/16)                                                                    |
-| #7    | feature/issue-7-integration-validation      | Intégration et validation finale                                                                                                       |
+| #7 | feature/issue-7-integration-validation | [#17](https://github.com/Zoom225/GestionTransport-Multiple/pull/17) |
 
 Documents à lire pour présenter le projet :
 

@@ -433,9 +433,54 @@ function depart(jours, heure) {
     await page.locator("button[type=submit]").click();
     await page.waitForURL("**/voyageur/profile");
     await page.getByText("Voyages à venir", { exact: true }).waitFor();
+    await page.goto(front + "/voyageur/trajets", { waitUntil: "networkidle" });
+    const creationDepuisInterface = page.waitForResponse(
+      (r) =>
+        r.url().endsWith("/api/reservations") &&
+        r.request().method() === "POST",
+    );
+    await page
+      .getByRole("button", { name: "Réserver", exact: true })
+      .first()
+      .click();
+    const reponseCreation = await creationDepuisInterface;
+    assert.equal(reponseCreation.status(), 201);
+    const reservationInterface = await reponseCreation.json();
     await page.goto(front + "/voyageur/reservations", {
       waitUntil: "networkidle",
     });
+    const carteReservation = page
+      .locator("mat-card")
+      .filter({
+        has: page
+          .locator("mat-card-title")
+          .filter({
+            hasText: new RegExp("#" + reservationInterface.id + "\\b"),
+          }),
+      });
+    const paiementDepuisInterface = page.waitForResponse(
+      (r) =>
+        r
+          .url()
+          .endsWith(
+            `/api/paiements/reservation/${reservationInterface.id}/pay`,
+          ) && r.request().method() === "POST",
+    );
+    await carteReservation.getByRole("button", { name: /Payer/ }).click();
+    const reponsePaiement = await paiementDepuisInterface;
+    assert.equal(reponsePaiement.status(), 200);
+    assert.equal((await reponsePaiement.json()).montant, 25);
+    await carteReservation
+      .getByText(/Confirmee|Confirmée|Confirmed/, { exact: true })
+      .waitFor();
+    assert.equal(
+      (await call("GET", `/api/trajets/${publicCree.id}`, chauffeur.token))
+        .placesRestantes,
+      3,
+    );
+    ok(
+      "Réservation et paiement de 25 € depuis les boutons Angular, confirmation et trois places restantes vérifiées en base via REST",
+    );
     await page
       .getByText(/Confirmee|Confirmée|Confirmed/, { exact: true })
       .first()
@@ -463,6 +508,7 @@ function depart(jours, heure) {
     await page.locator("[formcontrolname=password]").fill(password);
     await page.locator("button[type=submit]").click();
     await page.waitForURL("**/admin");
+    await page.getByText("150 EUR", { exact: true }).waitFor();
     for (const width of [375, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page

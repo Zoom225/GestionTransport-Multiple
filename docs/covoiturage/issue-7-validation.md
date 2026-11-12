@@ -1,6 +1,7 @@
 # Issue #7 — Intégration et validation
 
 Branche : `feature/issue-7-integration-validation`, depuis develop après la PR #16.
+Pull request : [#17](https://github.com/Zoom225/GestionTransport-Multiple/pull/17), vers develop.
 
 ## Corrections d'intégration
 
@@ -42,8 +43,8 @@ réservation ou intégration bancaire n'a été ajoutée.
 | Angular production | Build réussi |
 | Responsive de l'accueil | 375, 768, 1440 px, aucune largeur excédentaire |
 | Swagger/OpenAPI/villes/recherche | HTTP 200 sur l'instance HTTP isolée |
-| Parcours complet JWT et navigateur | Réussi sur transport_demo_validation_20261112165214 |
-| CI GitHub | Workflow versionné ; état d'exécution consultable sur la PR |
+| Parcours complet JWT et navigateur | Réussi sur transport_demo_validation_20261112172429 |
+| CI GitHub | [Exécution réussie](https://github.com/Zoom225/GestionTransport-Multiple/actions/runs/43257061819) ; état du dernier commit sur la PR |
 
 Bases utilisées pour les tests : `issue1_validation_pg_20261111`,
 `issue1_validation_http_20261111` et bases `transport_demo_validation_<horodatage>`.
@@ -59,6 +60,10 @@ le véhicule indisponible et le périmètre administrateur local.
 Dans le navigateur : accueil et cartes avec de vrais trajets de démonstration,
 changement FR/EN, connexion voyageur, profil, réservations, connexion administrateur,
 statistiques et annulation d'un trajet par son chauffeur avec remboursement.
+Réservation et paiement ont aussi été exécutés depuis les boutons Angular :
+HTTP 201, paiement HTTP 200 de 25 €, confirmation et trois places restantes.
+Les recettes globales du jeu de test sont contrôlées à 150 € avant le dernier
+remboursement, dont 100 € pour les quatre clients du trajet complet.
 Neuf mesures responsive réussies : accueil, réservations et administration aux
 largeurs 375, 768 et 1440 px. Aucune erreur JavaScript.
 Navigation clavier testée : tabulation jusqu'au lien administrateur, ouverture par
@@ -103,14 +108,16 @@ Outillage facultatif, installé seulement dans target, sans modifier package.jso
 ```powershell
 npm install --prefix target/browser-validation --no-save --package-lock=false playwright@1.56.1
 $env:VALIDATION_DATABASE = '<nom-de-la-base-isolee>'
-$env:VALIDATION_API_URL = 'http://127.0.0.1:18081'
-$env:VALIDATION_FRONTEND_URL = 'http://127.0.0.1:4201'
+$env:VALIDATION_API_URL = 'http://127.0.0.1:8080'
+$env:VALIDATION_FRONTEND_URL = 'http://127.0.0.1:4200'
 # DEMO_PASSWORD doit correspondre au mot de passe de cette instance de démonstration.
 node scripts/validation-covoiturage.cjs
 ```
 
 Le frontend doit servir le build réel et transmettre `/api` à cette instance de
 validation. Le chemin Edge est configurable par EDGE_PATH.
+Les ports 8080/4200 correspondent aux commandes backend dev et npm start du README ;
+les validations exécutées ici utilisaient les ports isolés 18081/4201.
 Le rapport et les captures sont écrits dans target/browser-validation, hors Git.
 Le script ne journalise aucun JWT ni mot de passe.
 
