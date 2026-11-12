@@ -10,6 +10,9 @@ import { apiUrl } from './api-url';
 
 @Injectable({ providedIn: 'root' })
 export class ReservationsApiService {
+  declarerAbsence(id: number, motif: string): Observable<ReservationResponse> {
+    return this.http.post<ReservationResponse>(apiUrl(`/reservations/${id}/absence`), { motif });
+  }
   constructor(private readonly http: HttpClient) {}
 
   create(payload: ReservationRequest): Observable<ReservationResponse> {

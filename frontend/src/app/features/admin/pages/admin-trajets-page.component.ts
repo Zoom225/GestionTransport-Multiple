@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { TrajetsApiService } from '../../../core/api/trajets-api.service';
 import { ReservationsApiService } from '../../../core/api/reservations-api.service';
@@ -18,7 +19,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
 @Component({
   selector: 'app-admin-trajets-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatCardModule, MatButtonModule, MatProgressSpinnerModule],
+  imports: [CommonModule, RouterLink, MatCardModule, MatButtonModule, MatProgressSpinnerModule, ReactiveFormsModule],
   template: `
     <!-- En-tête trajets -->
     <div class="adm-trajet-header">
@@ -89,6 +90,18 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
                   @for (reservation of selectedReservations(); track reservation.id) {
                     <div class="adm-reservation-item">
                       <span class="font-medium">{{ reservation.voyageurNom }}</span>
+                      @if (reservation.absenceDeclareeLe) {
+                        <p>Absence déclarée le {{ reservation.absenceDeclareeLe | date:'dd/MM/yyyy HH:mm' }} : {{ reservation.motifAbsence }}</p>
+                      } @else if (peutDeclarerAbsence(reservation, trajet)) {
+                        <button mat-button type="button" (click)="absenceSelectionnee.set(reservation.id)">Déclarer une absence</button>
+                        @if (absenceSelectionnee() === reservation.id) {
+                          <form class="grid gap-2 min-w-0" (ngSubmit)="declarerAbsence(reservation)">
+                            <label [for]="'absence-' + reservation.id">Motif vérifié de l'absence injustifiée</label>
+                            <textarea class="w-full min-w-0 border rounded p-2" [id]="'absence-' + reservation.id" [formControl]="motifAbsence" maxlength="500" rows="3"></textarea>
+                            <button mat-flat-button type="submit" [disabled]="motifAbsence.invalid || absenceEnCours()">Enregistrer la déclaration</button>
+                          </form>
+                        }
+                      }
                       <div class="flex gap-2">
                         <span class="ds-badge" [class]="reservationBadgeClass(reservation.statut)">{{ reservationStatusLabel(reservation.statut) }}</span>
                         <span class="ds-badge" [class]="paymentBadgeClass(reservation.paiement?.statut)">{{ paymentStatusLabel(reservation.paiement?.statut) }}</span>
@@ -220,6 +233,33 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
   `
 })
 export class AdminTrajetsPage {
+  readonly absenceSelectionnee = signal<number | null>(null);
+  readonly absenceEnCours = signal(false);
+  readonly motifAbsence = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(500)] });
+
+  peutDeclarerAbsence(reservation: ReservationResponse, trajet: TrajetResponse): boolean {
+    return trajet.statut !== 'ANNULE' && reservation.statut === 'CONFIRMEE'
+      && reservation.paiement?.statut === 'PAYE' && new Date(reservation.trajetDateTime).getTime() <= Date.now();
+  }
+
+  declarerAbsence(reservation: ReservationResponse): void {
+    if (this.motifAbsence.invalid || this.absenceEnCours()) return;
+    this.absenceEnCours.set(true);
+    this.errorMessage.set('');
+    this.reservationsApi.declarerAbsence(reservation.id, this.motifAbsence.value).subscribe({
+      next: (updated) => {
+        this.selectedReservations.update(rows => rows.map(row => row.id === updated.id ? updated : row));
+        this.absenceSelectionnee.set(null);
+        this.motifAbsence.reset();
+        this.absenceEnCours.set(false);
+        this.message.set('Déclaration enregistrée. La sanction dépend de la politique explicitement activée.');
+      },
+      error: error => {
+        this.absenceEnCours.set(false);
+        this.errorMessage.set(extractApiErrorMessage(error, "La déclaration n'a pas pu être enregistrée."));
+      }
+    });
+  }
   private readonly trajetsApi = inject(TrajetsApiService);
   private readonly reservationsApi = inject(ReservationsApiService);
   private readonly agencesApi = inject(AgencesApiService);

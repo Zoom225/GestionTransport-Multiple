@@ -9,7 +9,7 @@ import { TrajetResponse } from '../models/trajet.model';
   standalone: true,
   imports: [CommonModule, MatButtonModule],
   template: `
-    <article class="trip-card">
+    <article class="trip-card" [attr.data-trajet-id]="trajet.id">
       <div class="trip-top">
         <span class="type">{{ trajet.typeTrajet }}</span
         ><span>{{ trajet.date | date: 'dd/MM/yyyy' }} · {{ trajet.heureDebut.slice(0, 5) }}</span>

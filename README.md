@@ -138,10 +138,10 @@ une base métier existante. Aucun traitement ne remplace les anciens montants.
 Exemple de sauvegarde PostgreSQL, sans redirection binaire PowerShell :
 
 ```powershell
-New-Item -ItemType Directory -Force target/backups | Out-Null
+New-Item -ItemType Directory -Force .local-validation/backups | Out-Null
 $archiveTransport = "transportService_$(Get-Date -Format yyyyMMdd_HHmmss).dump"
 docker exec padel-db pg_dump -U transport -Fc -f "/tmp/$archiveTransport" transportService
-docker cp "padel-db:/tmp/$archiveTransport" "target/backups/$archiveTransport"
+docker cp "padel-db:/tmp/$archiveTransport" ".local-validation/backups/$archiveTransport"
 ```
 
 Le statut EXPIREE nécessite le script SQL
@@ -351,6 +351,63 @@ Documents à lire pour présenter le projet :
 - [Interface et responsive](docs/covoiturage/issue-6-interface.md).
 - [Validation finale et préservation des données](docs/covoiturage/issue-7-validation.md).
 - [Audit initial historique](docs/audit-initial.md) et [exécutions de baseline](docs/baseline-execution.md).
+
+## Candidat de soutenance — finalisation issues #4 et #7
+
+Les archives locales sont conservées dans `.local-validation/`, hors Git et hors
+`target` : `mvn clean` ne les supprime pas. Le diff local de `pom.xml` reste hors commit.
+
+Les huit parcours de démonstration sont créés à J+2, de 07 h à 21 h, avec un seul
+chauffeur et véhicule, 90 minutes par trajet et aucune réservation initiale : Mons,
+Bruxelles, Charleroi, Namur, Liège, Anvers, Gand et Louvain. Six trajets sont publics,
+deux privés. Un redémarrage sur une base non vide ne réécrit aucun compte ni paiement.
+Le profil `dev`, `DEMO_DATA_ENABLED=true`, une base isolée nommée `transport_demo_*`
+et `DEMO_PASSWORD` de 12 caractères minimum et 72 octets UTF-8 maximum (BCrypt)
+sont tous requis. Aucun chargement en production.
+
+### Restrictions : fonctionnement et décisions métier
+
+Une restriction conserve son motif, sa période `[dateDebut, dateFin[` et une référence
+unique de fait déclencheur. La date de début historique reste inconnue si elle n'était
+pas enregistrée. Le verrou du voyageur et l'unicité SQL empêchent les doublons, y compris
+en concurrence. Une restriction expirée cesse automatiquement de bloquer la réservation,
+sans suppression de son historique. La durée de référence est `RESTRICTION_DAYS=7`.
+
+| Variable | Valeur par défaut | Activation explicite |
+| --- | --- | --- |
+| LATE_CANCELLATION_ENABLED | false | Annulation par le client d'une réservation confirmée avant le départ |
+| LATE_CANCELLATION_HOURS | 0 | Seuil positif à valider avant activation |
+| NO_SHOW_PENALTY_ENABLED | false | Absence explicitement déclarée par un administrateur autorisé |
+| DRIVER_CANCELLATION_PENALTY_ENABLED | false | Annulations de trajets par leur chauffeur |
+| DRIVER_CANCELLATION_THRESHOLD | 0 | Nombre d'annulations à valider |
+| DRIVER_CANCELLATION_WINDOW_DAYS | 0 | Fenêtre d'observation positive à valider |
+
+Une politique activée sans seuil valide empêche le démarrage. Aucun montant de sanction
+n'est ajouté. Une demande en attente ou expirée ne crée pas automatiquement une dette.
+Un solde exigible positif bloque toujours réservation et paiement de confirmation.
+
+- Administration des trajets : `POST /api/reservations/{id}/absence`, JSON
+  `{ "motif": "Absence injustifiée vérifiée" }`. Réservation payée et confirmée,
+  départ passé, trajet non annulé, administrateur du bon périmètre requis. La date,
+  le motif et l'administrateur déclarant sont conservés ; une répétition ne les écrase pas.
+- Administration des voyageurs : `GET /api/voyageurs/{id}/restrictions` retourne
+  l'historique et l'état actif calculé, selon le périmètre d'agence de l'administrateur.
+- Migration additive : [issue-4-restrictions-soutenance.sql](scripts/migrations/issue-4-restrictions-soutenance.sql).
+  Revue et sauvegarde requises avant application sur une base existante ; aucun paiement réécrit.
+
+### Démonstration devant le jury
+
+Suivre les commandes Docker, backend et frontend des sections 1 à 6. Ouvrir Swagger,
+puis rechercher Mons → Bruxelles dans Angular. Se connecter avec le client VIP de la
+base isolée, réserver et payer **25 € simulés** : trois places restent disponibles.
+Quatre paiements donnent **100 €** et aucune cinquième confirmation. Une annulation
+autorisée conserve l'historique, rembourse le paiement simulé et libère la place.
+L'administration présente les réservations, recettes et restrictions selon les droits.
+Les commandes et preuves de validation figurent dans
+[issue-7-validation.md](docs/covoiturage/issue-7-validation.md).
+
+La CI contrôle désormais les PR vers `develop` **et `master`**. La livraison vers
+`master` se fait par PR distincte après validation de `develop`, sans fusion automatique.
 
 ## Dépannage
 
