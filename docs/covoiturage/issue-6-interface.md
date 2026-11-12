@@ -1,5 +1,143 @@
 # Issue #6 — Interface de covoiturage
 
+## Refonte visuelle professionnelle — PR #21
+
+Branche : `feature/issue-6-ui-professionnelle`, depuis `develop` validée à `b818392`.
+Issue existante #6 réutilisée. Les PR #19 (livraison) et #20 (lancement IntelliJ/JWT)
+restent séparées. Aucune fusion automatique.
+
+### Audit avant modification
+
+Déjà présents : Angular 21, Material/Tailwind, FR/EN, navigation, recherche par villes
+chargées depuis l'API, cartes de trajet, formulaires, espaces voyageur/chauffeur et
+administration global/local, historique, paiement simulé et restrictions.
+L'API possédait ses contrats et les guards/interceptor existaient réellement.
+Une page ou fiche de détail dédiée manquait ; les couleurs, ombres et styles étaient
+dispersés entre composants. Les anciennes palettes variaient selon les écrans.
+
+`git status` initial : diff local `pom.xml` (`industri`) et `package-lock.json` non
+suivi à la racine. Tous deux préservés hors commits. Références distantes récupérées ;
+PR #19/#20 et issue #6 examinées. Aucune modification des données PostgreSQL.
+
+Référence réellement exécutée avant modification : installation `npm ci`,
+build de production et **63 tests réussis**. Le premier `npm ci` a échoué avec
+`EPERM unlink esbuild.exe` : deux serveurs Angular de ce projet verrouillaient le
+binaire. Leur identification par chemin a permis de les arrêter sans toucher aux
+autres projets, puis l'installation a réussi. Les scripts npm sont inchangés.
+**45 captures de référence**, avec API simulées, couvrent 15 écrans à 375/768/1440 px.
+
+### Modifications réutilisant l'existant
+
+- Variables CSS de palette, typographie, bordures, ombres et états sémantiques dans
+  `frontend/src/styles.scss`. Styles header/footer dans `app.scss`. Tokens Material
+  adaptés à la version installée, sans bibliothèque supplémentaire.
+- Navigation mobile accessible, lien d'évitement, état actif, focus et fermeture
+  par Échap ; liens chauffeur et administrateur selon les sessions existantes.
+  Footer commun à tous les écrans. Animations réduites selon la préférence système.
+- Accueil avec illustration SVG locale originale, recherche existante et suggestions
+  explicitement présentées comme recherches, pas comme disponibilités fictives.
+- Cartes réutilisées et fiche `TrajetDetailComponent` en dialogue Material, accessible
+  au clavier : villes, horaires, chauffeur, véhicule, disponibilité, type, statut et prix.
+  Aucun nouveau endpoint/DTO ; fermeture sans réservation, action de réservation
+  désactivée dans les mêmes cas que sur la carte, confirmation après paiement inchangée.
+- Formulaires, profils, réservations, paiement/historique, pages chauffeur et toutes
+  les pages admin harmonisés. Boutons désactivés lisibles, états vide/erreur/chargement,
+  statuts explicites et présentation responsive des motifs/contraintes.
+- SVG d'icônes partagés : les icônes de mot de passe fonctionnent sans police distante.
+  Libellés VIP/local/libre cohérents ; règles et enumérations métier non modifiées.
+- Messages 401/session expirée, 403/accès refusé et erreur réseau traduits dans l'utilitaire
+  de présentation existant. Les autres messages métier du backend restent prioritaires.
+  Aucun changement de requête, contrat JSON, authentification, guard ou interceptor.
+
+Fichiers créés : `trajet-detail.component.ts`, deux SVG locaux dans `frontend/public/images`,
+`scripts/validation-ui.cjs` et captures JPEG avant/après. Composants existants adaptés ;
+aucun nouveau service API, DTO, mapper ou backend. Les styles globaux concurrents et
+effets décoratifs superposés sont remplacés par le thème commun ; les styles des cartes
+et de l'accueil sont adaptés dans les composants existants. Les liens de polices
+distantes et la dépendance visuelle aux ligatures Material Icons sont retirés.
+
+### Vérifications finales
+
+`npm run build` : réussi. `npm test` : **69 tests réussis** (63 conservés + deux tests
+de fiche/blocage + quatre tests de messages d'erreur traduits). Compilation IntelliJ réussie.
+Les tests existants n'ont pas été supprimés.
+
+Le bundle initial passe de **535,31 à 547,77 kB**, transfert estimé de **133,63 à
+137,41 kB** : légère hausse associée à la fiche Material et aux textes, sans nouvelle
+dépendance de production. Le chargement différé des routes est conservé. Les SVG
+sont locaux et légers ; aucune police distante nécessaire.
+
+Les vérifications navigateur utilisent Edge, Playwright et axe-core avec **API
+simulées dans le navigateur**, jamais des écritures PostgreSQL. Elles vérifient les
+interactions et contrats utilisés côté frontend ; elles ne remplacent pas une validation
+du métier serveur ou un test bancaire réel. Les validations serveur antérieures sont
+documentées séparément dans `issue-7-validation.md`.
+
+La passe complète comprend **57 contrôles responsive** à 375, 768 et 1440 px :
+16 écrans (accueil, connexions, profil, recherche, création voyageur/admin, réservations,
+paiements, dashboard global/local et pages de gestion), fiche de trajet, déclaration
+d'absence et historique des restrictions. Aucun débordement horizontal, champ sans
+libellé détecté ou erreur JavaScript. Les formulaires de connexion actifs, le masquage
+du mot de passe, le menu mobile/Échap, le lien d'évitement, la navigation protégée,
+les états vide/erreur, FR/EN et la préférence de mouvement réduit sont contrôlés.
+
+Parcours **recherche Mons → Bruxelles → fiche → demande EN_ATTENTE → paiement simulé
+de 25 € → confirmation → trois places restantes → historique** réussi avec ces API
+simulées. Les erreurs de session/réseau sont provoquées avant le paiement réussi.
+Une carte complète et sa fiche refusent l'action de réservation. L'administration
+permet de saisir un motif et d'enregistrer une déclaration avec réponse API simulée,
+puis de consulter les motifs et dates des restrictions historiques.
+
+**20 analyses axe-core**, sur les règles WCAG A/AA sélectionnées, ne signalent aucune
+violation. Ce résultat est complété par la revue visuelle des captures ; il ne constitue
+pas un audit exhaustif de conformité. Les dégradés peuvent limiter le calcul automatique
+des contrastes : les bandeaux admin ont été uniformisés sur fond marine et les actions
+principales sur fond bleu, avec contrôle visuel des textes et des états désactivés.
+
+Corrections pendant les vérifications : styles externes initialement non résolus par
+Vitest JIT (conventions inline conservées), doubles de dialogue remplacés par un espion
+sur le service effectivement injecté, typage et placement d'une branche d'affichage
+corrigés, trois défauts de contraste détectés par axe-core corrigés. Aucun test supprimé
+et aucune règle métier changée pour obtenir ces résultats.
+
+Le contrôle interactif du formulaire d'absence a aussi révélé une soumission non
+raccordée : le formulaire utilisait `ngSubmit` sans directive de groupe de formulaire.
+Le template écoute désormais l'événement natif `submit`, empêche la navigation native
+et appelle la méthode existante. Motif, validations, permissions, API et règles de
+restriction restent identiques. Ce correctif concerne uniquement le branchement UI.
+
+Captures comparables : [accueil avant](../images/ui/avant-accueil-1440.jpg),
+[accueil après](../images/ui/apres-accueil-1440.jpg),
+[mobile après](../images/ui/apres-accueil-375.jpg),
+[administration après](../images/ui/apres-dashboard-1440.jpg),
+[fiche mobile](../images/ui/fiche-trajet-375.jpg).
+Ces captures contiennent uniquement des fixtures clairement nommées « Démonstration UI ».
+
+### Reproduire les contrôles frontend
+
+Depuis la racine, sous PowerShell, arrêter les serveurs Angular de ce projet avant
+`npm ci` si Windows verrouille esbuild. Les commandes ne nécessitent aucun backend :
+
+```powershell
+cd frontend
+npm ci
+npm run build
+npm test
+cd ..
+npm install --prefix .local-validation/ui/browser --no-save --package-lock=false playwright@1.56.1 @axe-core/playwright@4.10.2
+$env:UI_PHASE = 'after'
+node scripts/validation-ui.cjs
+```
+
+Le script sert le build sur `127.0.0.1:4201` et intercepte toutes les requêtes API.
+Edge est utilisé par défaut ; `EDGE_PATH` permet de définir un autre binaire compatible.
+Rapport et captures : `.local-validation/ui/after`, hors Git. L'outillage navigateur
+reste local et ne modifie pas les dépendances de production.
+Un audit axe-core sans violation sur les règles sélectionnées n'est pas une certification
+WCAG complète ; une revue avec lecteurs d'écran et utilisateurs reste utile.
+
+## Historique de l'interface métier initiale
+
 Branche `feature/issue-6-transport-frontend`, après la PR #15.
 
 Les pages et services Angular existants sont réutilisés. Deux composants partagés
