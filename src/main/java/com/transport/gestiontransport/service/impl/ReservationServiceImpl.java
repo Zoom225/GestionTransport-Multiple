@@ -30,6 +30,8 @@ public class ReservationServiceImpl implements ReservationService {
     private final TrajetRepository trajetRepository;
     private final VoyageurService voyageurService;
     private final EntityManager entityManager;
+    private final AdminAuthorizationService adminAuthorizationService;
+    private final VoyageurCourantService voyageurCourantService;
 
     @Value("${transport.reservation.delai-paiement:PT30M}")
     private Duration delaiPaiement = Duration.ofMinutes(30);
@@ -84,7 +86,18 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public List<Reservation> getByTrajetId(Long trajetId) { return reservationRepository.findByTrajetId(trajetId); }
+    public List<Reservation> getByTrajetId(Long trajetId) {
+        if (adminAuthorizationService.isAdmin()) {
+            adminAuthorizationService.checkTrajetAccess(trajetId);
+            return reservationRepository.findByTrajetId(trajetId);
+        }
+        Voyageur voyageur = voyageurCourantService.currentVoyageur();
+        Trajet trajet = trajetRepository.findById(trajetId)
+                .orElseThrow(() -> new ResourceNotFoundException("Trajet introuvable."));
+        return reservationRepository.findByTrajetId(trajetId).stream()
+                .filter(r -> trajet.getChauffeur().getId().equals(voyageur.getId())
+                        || r.getVoyageur().getId().equals(voyageur.getId())).toList();
+    }
 
     @Override
     public List<Reservation> getByVoyageurId(Long voyageurId) { return reservationRepository.findByVoyageurId(voyageurId); }

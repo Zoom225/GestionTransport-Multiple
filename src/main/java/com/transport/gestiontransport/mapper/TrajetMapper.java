@@ -41,7 +41,10 @@ public class TrajetMapper {
                 trajet.getStatut(),
                 trajet.getNbPassagersActuels(),
                 trajet.getPrixParPassager(),
-                trajet.getDateConversionPublic()
+                trajet.getDateConversionPublic(),
+                trajet.getVilleDepart(),
+                trajet.getVilleArrivee(),
+                agence != null ? agence.getId() : null
         );
     }
 }

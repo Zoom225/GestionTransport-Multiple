@@ -15,6 +15,28 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(Exception ex) {
+        return erreur(HttpStatus.FORBIDDEN, "Vous n'êtes pas autorisé à effectuer cette opération.");
+    }
+
+    @ExceptionHandler({org.springframework.http.converter.HttpMessageNotReadableException.class,
+            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class})
+    public ResponseEntity<ErrorResponse> handleInvalidFormat(Exception ex) {
+        return erreur(HttpStatus.BAD_REQUEST, "Vérifiez les villes, dates et champs du formulaire.");
+    }
+
+    @ExceptionHandler({org.springframework.dao.DataIntegrityViolationException.class,
+            org.springframework.dao.PessimisticLockingFailureException.class})
+    public ResponseEntity<ErrorResponse> handleConflict(Exception ex) {
+        return erreur(HttpStatus.CONFLICT, "Cette opération entre en conflit avec une autre opération. Actualisez puis réessayez.");
+    }
+
+    private ResponseEntity<ErrorResponse> erreur(HttpStatus statut, String message) {
+        return ResponseEntity.status(statut).body(ErrorResponse.builder().status(statut.value())
+                .message(message).timestamp(LocalDateTime.now()).build());
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
         ErrorResponse error = ErrorResponse.builder()
@@ -46,7 +68,7 @@ public class GlobalExceptionHandler {
 
         ErrorResponse error = ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
-                .message("La validation a Ã©chouÃ©")
+                .message("La validation a échoué")
                 .errors(errors)
                 .timestamp(LocalDateTime.now())
                 .build();
@@ -55,7 +77,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        ex.printStackTrace();
         ErrorResponse error = ErrorResponse.builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .message("Une erreur inattendue est survenue")

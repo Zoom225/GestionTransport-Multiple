@@ -34,6 +34,12 @@ public class AdminAuthorizationService {
                 .orElseThrow(() -> new BusinessException("Administrateur introuvable."));
     }
 
+    public boolean isAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+    }
+
     public void requireGlobalAdmin() {
         // Regle metier : certaines actions sont reservees a l'admin GLOBAL.
         if (currentAdmin().getTypeAdministrateur() != TypeAdministrateur.GLOBAL) {
@@ -100,9 +106,9 @@ public class AdminAuthorizationService {
         if (admin.getTypeAdministrateur() == TypeAdministrateur.GLOBAL) {
             return trajets;
         }
-        String agenceNom = admin.getAgence() != null ? admin.getAgence().getNom() : null;
+        Long agenceId = admin.getAgence() != null ? admin.getAgence().getId() : null;
         return trajets.stream()
-                .filter(trajet -> trajet.agenceNom() != null && trajet.agenceNom().equals(agenceNom))
+                .filter(trajet -> trajet.agenceId() != null && trajet.agenceId().equals(agenceId))
                 .toList();
     }
 }

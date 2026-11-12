@@ -26,8 +26,11 @@ import static org.assertj.core.api.Assertions.*;
 
 /** Opt-in: only an explicitly named isolated PostgreSQL validation database is allowed. */
 @SpringBootTest
+@org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 @EnabledIfEnvironmentVariable(named = "POSTGRES_BASELINE_URL", matches = ".*/issue1_validation_[a-z0-9_]+")
 class PostgresBaselineTest {
+    @Autowired org.springframework.test.web.servlet.MockMvc mvc;
+    @Autowired com.fasterxml.jackson.databind.ObjectMapper json;
     @DynamicPropertySource
     static void postgres(DynamicPropertyRegistry properties) {
         properties.add("spring.datasource.url", () -> System.getenv("POSTGRES_BASELINE_URL"));
@@ -91,7 +94,7 @@ class PostgresBaselineTest {
 
     private Trajet trajetVide() {
         Agence agence = agences.saveAndFlush(Agence.builder().nom("Validation Mons").adresse("Test")
-                .heureOuverture(LocalTime.MIN).heureFermeture(LocalTime.MAX)
+                .heureOuverture(LocalTime.MIN).heureFermeture(LocalTime.of(23, 59))
                 .dureeTrajetMinutes(90).dureeEntreTrajetMinutes(15).anneeCivile(2030).build());
         Vehicule vehicule = vehicules.saveAndFlush(Vehicule.builder().nom("Voiture test").agence(agence).build());
         Voyageur chauffeur = voyageur();
@@ -166,6 +169,43 @@ class PostgresBaselineTest {
         } finally {
             executor.shutdownNow();
         }
+    }
+
+    @Test
+    void apiCreeLeTrajetAvecLeChauffeurAuthentifieEtProtegeLePrive() throws Exception {
+        Trajet existant = trajetVide();
+        Voyageur chauffeur = voyageurs.findById(existant.getChauffeur().getId()).orElseThrow();
+        var request = new com.transport.gestiontransport.dto.request.CreateTrajetRequest(existant.getVehicule().getId(),
+                LocalDateTime.now().plusDays(4).withHour(10).withMinute(0), "PRIVE", VilleBelge.MONS, VilleBelge.BRUXELLES, false, null);
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/trajets")
+                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(chauffeur.getMatricule()).roles("VOYAGEUR"))
+                .contentType("application/json").content(json.writeValueAsString(request)))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isCreated())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.chauffeurId").value(chauffeur.getId()))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.placesRestantes").value(4))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.villeDepart").value("MONS"));
+        existant.setTypeTrajet(TypeTrajet.PRIVE);
+        trajets.saveAndFlush(existant);
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/trajets/" + existant.getId())
+                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(voyageur().getMatricule()).roles("VOYAGEUR")))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isForbidden());
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/trajets")
+                .contentType("application/json").content(json.writeValueAsString(request)))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isForbidden());
+    }
+
+    @Test
+    void apiRechercheMonsBruxellesEtExposeLaListeDesVilles() throws Exception {
+        trajetVide();
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/trajets/public")
+                .param("depart", "MONS").param("arrivee", "BRUXELLES"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$[0].villeDepart").value("MONS"));
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/trajets/villes"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$[0].code").value("BRUXELLES"));
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/trajets/public").param("depart", "INCONNU"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isBadRequest());
     }
 
     private boolean payer(Long trajetId, Reservation demande, CyclicBarrier barrier) {

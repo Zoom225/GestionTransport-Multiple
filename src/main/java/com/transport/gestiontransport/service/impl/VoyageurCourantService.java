@@ -32,7 +32,7 @@ public class VoyageurCourantService {
     public void requireCurrentVoyageur(Long voyageurId) {
         // Regle metier : un voyageur ne peut agir que sur ses propres ressources.
         if (!currentVoyageurId().equals(voyageurId)) {
-            throw new BusinessException("Accès refusé : cette ressource appartient à un autre voyageur.");
+            throw new org.springframework.security.access.AccessDeniedException("Cette ressource appartient à un autre voyageur.");
         }
     }
 }

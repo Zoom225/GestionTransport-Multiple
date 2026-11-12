@@ -15,6 +15,7 @@ public class VoyageurMapper {
                 .prenom(request.getPrenom())
                 .email(request.getEmail())
                 .typeVoyageur(request.getTypeVoyageur())
+                .peutProposerTrajet(request.getPeutProposerTrajet())
                 .build();
         // cette agence est résolu dans le service via agenceId
     }
@@ -27,6 +28,7 @@ public class VoyageurMapper {
                 .prenom(voyageur.getPrenom())
                 .email(voyageur.getEmail())
                 .typeVoyageur(voyageur.getTypeVoyageur())
+                .peutProposerTrajet(voyageur.getPeutProposerTrajet())
                 .agenceId(voyageur.getAgence() != null ? voyageur.getAgence().getId() : null)
                 .agenceNom(voyageur.getAgence() != null ? voyageur.getAgence().getNom() : null)
                 .solde(voyageur.getSolde())
