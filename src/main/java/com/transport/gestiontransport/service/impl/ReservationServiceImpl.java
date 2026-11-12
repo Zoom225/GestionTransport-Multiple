@@ -36,6 +36,13 @@ public class ReservationServiceImpl implements ReservationService {
     @Value("${transport.reservation.delai-paiement:PT30M}")
     private Duration delaiPaiement = Duration.ofMinutes(30);
 
+    @jakarta.annotation.PostConstruct
+    void verifierDelaiPaiement() {
+        if (delaiPaiement.isZero() || delaiPaiement.isNegative()) {
+            throw new IllegalStateException("Le délai de paiement doit être strictement positif.");
+        }
+    }
+
     @Override
     @Transactional
     public Reservation create(Long trajetId, Long voyageurId, Long requesterId) {
@@ -170,6 +177,17 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     @Transactional
+    public void cancelForUser(Long reservationId, Long voyageurId) {
+        Reservation reservation = getById(reservationId);
+        if (!reservation.getVoyageur().getId().equals(voyageurId)
+                && !reservation.getTrajet().getChauffeur().getId().equals(voyageurId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Seul le client ou le chauffeur peut annuler cette réservation.");
+        }
+        cancel(reservationId);
+    }
+
+    @Override
+    @Transactional
     public void cancelTrajet(Long trajetId, Long chauffeurId) {
         Trajet trajet = verrouillerTrajet(trajetId);
         if (trajet.getChauffeur() == null || !trajet.getChauffeur().getId().equals(chauffeurId)) {
@@ -187,7 +205,7 @@ public class ReservationServiceImpl implements ReservationService {
     @Transactional
     public void expirePendingReservations() {
         for (Reservation reservation : reservationRepository.findByStatutOrderByTrajetIdAscIdAsc(StatutReservation.EN_ATTENTE)) {
-            if (reservation.getTrajet().getVilleDepart() == null || reservation.getTrajet().getVilleArrivee() == null) continue;
+            if (!TrajetService.estQualifiePourCovoiturage(reservation.getTrajet())) continue;
             if (!estExpiree(reservation)) continue;
             verrouillerTrajet(reservation.getTrajet().getId());
             entityManager.refresh(reservation);
@@ -214,7 +232,7 @@ public class ReservationServiceImpl implements ReservationService {
         if (trajet.getChauffeur().getId().equals(voyageur.getId())) {
             throw new BusinessException("Le chauffeur ne réserve aucune des quatre places clients.");
         }
-        if (trajet.getVilleDepart() == null || trajet.getVilleArrivee() == null) {
+        if (!TrajetService.estQualifiePourCovoiturage(trajet)) {
             throw new BusinessException("Ce trajet historique n'est pas encore qualifié pour le covoiturage.");
         }
         if (trajet.getStatut() == StatutTrajet.ANNULE) throw new BusinessException("Le trajet est annulé.");

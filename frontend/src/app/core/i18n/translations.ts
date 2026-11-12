@@ -1,6 +1,49 @@
 ﻿export type Locale = 'fr' | 'en';
 
 export type TranslationKey =
+  | 'transport.reserve'
+  | 'transport.eyebrow'
+  | 'transport.together'
+  | 'transport.simply'
+  | 'transport.lead'
+  | 'transport.driverKnown'
+  | 'transport.maximum'
+  | 'transport.price'
+  | 'transport.lessCars'
+  | 'transport.moreMeetings'
+  | 'transport.startHere'
+  | 'transport.onRoad'
+  | 'transport.find'
+  | 'transport.paymentDemo'
+  | 'transport.searching'
+  | 'transport.retry'
+  | 'transport.noRides'
+  | 'transport.tryOther'
+  | 'transport.belgium'
+  | 'transport.popular'
+  | 'transport.suggestions'
+  | 'transport.withYou'
+  | 'transport.how'
+  | 'transport.findStep'
+  | 'transport.findBody'
+  | 'transport.payStep'
+  | 'transport.payBody'
+  | 'transport.travelStep'
+  | 'transport.travelBody'
+  | 'transport.shareWheel'
+  | 'transport.driverBody'
+  | 'transport.myArea'
+  | 'transport.footer'
+  | 'transport.admin'
+  | 'transport.departure'
+  | 'transport.destination'
+  | 'transport.allCities'
+  | 'transport.travelDate'
+  | 'transport.search'
+  | 'transport.driver'
+  | 'transport.remaining'
+  | 'transport.perPerson'
+  | 'transport.full'
   | 'nav.home'
   | 'nav.admin'
   | 'nav.voyageur'
@@ -405,6 +448,49 @@ export type TranslationParams = Record<string, string | number>;
 
 export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>>> = {
   fr: {
+    'transport.reserve': 'Réserver',
+    'transport.eyebrow': "LE COVOITURAGE, À LA BELGE",
+    'transport.together': "Voyagez ensemble,",
+    'transport.simply': "simplement.",
+    'transport.lead': "De Mons à Bruxelles, de Namur à Liège : partagez votre trajet et prenez la route en toute confiance.",
+    'transport.driverKnown': "Un chauffeur identifié",
+    'transport.maximum': "4 clients maximum",
+    'transport.price': "25 € par personne",
+    'transport.lessCars': "Moins de voitures.",
+    'transport.moreMeetings': "Plus de rencontres.",
+    'transport.startHere': "Votre prochain départ commence ici.",
+    'transport.onRoad': "PRENEZ LA ROUTE",
+    'transport.find': "Trouvez votre prochain trajet",
+    'transport.paymentDemo': "25 € / personne · paiement simulé",
+    'transport.searching': "Recherche des trajets…",
+    'transport.retry': "Réessayer",
+    'transport.noRides': "Aucun départ pour le moment",
+    'transport.tryOther': "Essayez une autre ville ou une autre date. Les trajets publiés apparaîtront ici.",
+    'transport.belgium': "UNE BELGIQUE PLUS PROCHE",
+    'transport.popular': "Trajets populaires",
+    'transport.suggestions': "Des idées de recherche, selon les départs réellement publiés.",
+    'transport.withYou': "ON VOUS ACCOMPAGNE",
+    'transport.how': "Comment ça marche ?",
+    'transport.findStep': "Trouvez votre trajet",
+    'transport.findBody': "Choisissez vos villes et votre date, puis découvrez le chauffeur et les places disponibles.",
+    'transport.payStep': "Réservez et payez",
+    'transport.payBody': "Votre paiement simulé confirme une place disponible. Une demande impayée ne garantit pas la place.",
+    'transport.travelStep': "Voyagez l'esprit libre",
+    'transport.travelBody': "Retrouvez votre confirmation, vos prochains voyages et votre historique dans votre espace.",
+    'transport.shareWheel': "Envie de partager le volant ?",
+    'transport.driverBody': "Les chauffeurs autorisés proposent leurs trajets, publics ou sur invitation.",
+    'transport.myArea': "Mon espace voyageur",
+    'transport.footer': "Le covoiturage entre villes belges.",
+    'transport.admin': "Administration",
+    'transport.departure': "Ville de départ",
+    'transport.destination': "Destination",
+    'transport.allCities': "Toutes les villes",
+    'transport.travelDate': "Date de voyage",
+    'transport.search': "Rechercher un trajet",
+    'transport.driver': "Chauffeur",
+    'transport.remaining': "place(s) restante(s) sur",
+    'transport.perPerson': "/ personne",
+    'transport.full': "Complet",
     'nav.home': 'Accueil',
     'nav.admin': 'Admin',
     'nav.voyageur': 'Espace voyageur',
@@ -807,6 +893,49 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.reservations.reservationCancelError': 'Annulation impossible.'
   },
   en: {
+    'transport.reserve': 'Book',
+    'transport.eyebrow': "RIDESHARING, THE BELGIAN WAY",
+    'transport.together': "Travel together,",
+    'transport.simply': "simply.",
+    'transport.lead': "From Mons to Brussels, from Namur to Liège: share your journey and travel with confidence.",
+    'transport.driverKnown': "An identified driver",
+    'transport.maximum': "4 clients maximum",
+    'transport.price': "€25 per person",
+    'transport.lessCars': "Fewer cars.",
+    'transport.moreMeetings': "More connections.",
+    'transport.startHere': "Your next journey starts here.",
+    'transport.onRoad': "HIT THE ROAD",
+    'transport.find': "Find your next ride",
+    'transport.paymentDemo': "€25 / person · simulated payment",
+    'transport.searching': "Searching for rides…",
+    'transport.retry': "Try again",
+    'transport.noRides': "No rides at the moment",
+    'transport.tryOther': "Try another city or date. Published rides will appear here.",
+    'transport.belgium': "BRINGING BELGIUM CLOSER",
+    'transport.popular': "Popular journeys",
+    'transport.suggestions': "Search suggestions, subject to published departures.",
+    'transport.withYou': "HERE TO HELP",
+    'transport.how': "How does it work?",
+    'transport.findStep': "Find your ride",
+    'transport.findBody': "Choose your cities and date, then discover the driver and available places.",
+    'transport.payStep': "Book and pay",
+    'transport.payBody': "Your simulated payment confirms an available place. An unpaid request does not guarantee a place.",
+    'transport.travelStep': "Travel with peace of mind",
+    'transport.travelBody': "Find your confirmation, upcoming journeys and history in your account.",
+    'transport.shareWheel': "Want to offer a ride?",
+    'transport.driverBody': "Authorized drivers offer public or invitation-only rides.",
+    'transport.myArea': "My passenger account",
+    'transport.footer': "Ridesharing between Belgian cities.",
+    'transport.admin': "Administration",
+    'transport.departure': "Departure city",
+    'transport.destination': "Destination",
+    'transport.allCities': "All cities",
+    'transport.travelDate': "Travel date",
+    'transport.search': "Search for a ride",
+    'transport.driver': "Driver",
+    'transport.remaining': "place(s) remaining out of",
+    'transport.perPerson': "/ person",
+    'transport.full': "Full",
     'common.back': 'Back',
     'common.save': 'Save',
     'common.create': 'Create',

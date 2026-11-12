@@ -24,6 +24,7 @@ public class VehiculeServiceImpl implements VehiculeService {
     public Vehicule create(Vehicule vehicule, Long agenceId) {
         Agence agence = agenceService.getById(agenceId);
         vehicule.setAgence(agence);
+        vehicule.setDisponible(!Boolean.FALSE.equals(vehicule.getDisponible()));
         log.info("Vehicule créé pour cette agence {}", agenceId);
         return vehiculeRepository.save(vehicule);
     }
@@ -49,6 +50,7 @@ public class VehiculeServiceImpl implements VehiculeService {
     public Vehicule update(Long id, Vehicule vehicule) {
         Vehicule existing = getById(id);
         existing.setNom(vehicule.getNom());
+        if (vehicule.getDisponible() != null) existing.setDisponible(vehicule.getDisponible());
         return vehiculeRepository.save(existing);
     }
 

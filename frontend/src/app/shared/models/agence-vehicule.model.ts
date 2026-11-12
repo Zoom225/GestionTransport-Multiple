@@ -20,11 +20,13 @@ export interface AgenceResponse {
 }
 
 export interface VehiculeRequest {
+  disponible?: boolean;
   nom: string;
   agenceId: number;
 }
 
 export interface VehiculeResponse {
+  disponible?: boolean;
   id: number;
   nom: string;
   agenceId: number;

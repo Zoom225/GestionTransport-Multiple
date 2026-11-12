@@ -1,526 +1,367 @@
 # GestionTransport-Multiple
 
-Le modèle retenu est : **un chauffeur associé, quatre clients maximum,
-25 € par client, 100 € si le trajet est complet**. Le chauffeur ne réserve
-aucune des quatre places. La confirmation intervient après paiement simulé.
-Voir les règles et validations de [l'issue #4](docs/covoiturage/issue-4-reservation-paiement.md).
-Les [contrats REST et contrôles d'accès](docs/covoiturage/issue-5-api-securite.md)
-sont documentés dans l'issue #5.
-L'[interface responsive et ses vérifications](docs/covoiturage/issue-6-interface.md)
-sont décrites dans l'issue #6.
+Plateforme académique de covoiturage entre villes belges, construite sur l'application existante
+avec **Java 21, Spring Boot, Angular et PostgreSQL 15**.
 
-Application Spring Boot et Angular en cours de transformation vers le transport public et privé.
+**Un trajet = un chauffeur déjà associé + quatre clients maximum.**
+Le chauffeur ne réserve aucune place. Chaque client paie **25 €** ; quatre clients payants
+représentent **100 €**. Les places inoccupées ne sont facturées à personne.
+Les paiements et remboursements sont **simulés**, sans prestataire bancaire.
 
-## Tarif actuel — décision métier (issue #4)
+## Fonctionnement métier
 
-Le montant d'un nouveau trajet est de **100 €**, soit **25 € par personne pour
-quatre places**. Le backend applique ce tarif à la création du trajet et du
-paiement associé. Les nouvelles données de démonstration utilisent le même tarif.
-Les trajets et paiements déjà enregistrés conservent leurs montants historiques.
+- Départ et destination sont deux villes belges distinctes, choisies dans la liste centrale
+  du backend. Bruxelles, Mons, Charleroi, Namur, Liège, Anvers, Gand, Louvain, Nivelles et
+  Wavre sont proposés. Les retours sont des trajets indépendants ; Bruxelles n'est pas obligatoire.
+- Un Voyageur autorisé à proposer un trajet devient automatiquement son chauffeur depuis
+  son authentification. Un administrateur sélectionne un chauffeur existant dans son périmètre.
+  Aucun chauffeur librement substituable depuis le navigateur.
+  La création d'un voyageur par un administrateur demande un mot de passe initial personnel
+  de 12 caractères minimum. Aucun mot de passe commun n'est attribué aux nouveaux comptes.
+- Le véhicule et le chauffeur ne peuvent pas effectuer deux trajets incompatibles. Les horaires,
+  durées estimées et indisponibilités configurés de l'agence sont conservés.
+  Un véhicule marqué indisponible dans l'administration ne peut pas recevoir de nouveau trajet.
+  Les anciennes ressources sont indisponibles par défaut et nécessitent une qualification
+  explicite comme véhicules, sans modification de leur nom, identifiant ou données historiques.
+- Un trajet PUBLIC peut être recherché ; les voyageurs locaux restent limités à leur zone.
+  Un trajet PRIVE nécessite une invitation. La publication à H-24 exige le consentement enregistré.
+- Une demande EN_ATTENTE et son paiement associé ne bloquent **aucune place**. Le premier
+  paiement accepté confirme une place disponible, sous transaction et verrou PostgreSQL.
+  À quatre confirmations, le trajet est COMPLET ; une cinquième confirmation est refusée.
+- Une demande impayée expire après le délai configurable (30 minutes par défaut).
+  Une annulation autorisée libère une place confirmée et marque son paiement REMBOURSE.
+  Les réservations annulées ou expirées et les paiements restent dans l'historique.
+- Une restriction active ou une dette empêche de réserver. Une restriction expirée cesse
+  automatiquement de bloquer, sans suppression de son historique. La durée de référence est
+  configurable, sept jours par défaut. L'ajout est protégé contre les doublons.
+  Les déclenchements non définis (absence, abus, annulation tardive) restent des décisions
+  métier à valider ; aucune sanction pour des places inoccupées n'est inventée.
 
-Cette décision est définitive : un chauffeur déjà associé, quatre clients maximum,
-25 € par client, 100 € si complet. La capacité variable est abandonnée.
+| Catégorie | Matricule      | Fenêtre de réservation | Zone                          |
+| --------- | -------------- | ---------------------- | ----------------------------- |
+| VIP       | G + 4 chiffres | Jusqu'à J-21           | Toutes les agences autorisées |
+| Local     | S + 5 chiffres | Jusqu'à J-14           | Agence autorisée              |
+| Libre     | L + 5 chiffres | Jusqu'à J-5            | Trajets publics autorisés     |
 
-L'[étape modèle de l'issue #3](docs/covoiturage/issue-3-modele-simple.md) prépare
-le chauffeur, les villes et les catégories VIP/local/libre. Les règles de
-confirmation au paiement et l'interface finale restent en cours de réalisation.
+Les fenêtres concernent les clients qui réservent, pas la date de création d'un trajet par son chauffeur.
 
-Le guide actuel est [Exécution Transport](docs/transport-execution.md), avec les
-nouveaux packages, routes et contrats. Le périmètre et les exceptions de
-compatibilité sont décrits dans [Nomenclature Transport](docs/nomenclature-transport.md).
+## Architecture conservée
 
-Les sections ci-dessous sont conservées comme documentation historique du socle.
-Le volume existant doit être préservé ; le nom de base et le compte sont migrés
-explicitement selon la procédure ci-dessous. Les
-anciennes routes et les anciens noms de classes ne décrivent plus le code courant.
+```text
+src/main/java/com/transport/gestiontransport/
+  controller/       API REST, validation et identité authentifiée
+  dto/              Requêtes et réponses API
+  mapper/           Conversion entre entités et DTO
+  service/impl/     Règles métier, transactions et verrouillages
+  repository/       Persistance et requêtes Spring Data JPA
+  entity/           Agence, Vehicule, Trajet, Voyageur, Reservation,
+                    Paiement, Restriction, IndisponibiliteService, Administrateur
+  config/           Sécurité JWT, audit des dates, Swagger
+  scheduler/        Publication consentie et expiration
+frontend/src/app/
+  core/             Services HTTP, sessions, guards, interceptor, internationalisation
+  features/         Accueil, espace voyageur et administration
+  shared/           Modèles, recherche et cartes réutilisables
+```
 
-- Backend : Spring Boot 3.5, Java 21, Maven
-- Frontend : Angular 21, Angular Material, Tailwind, Vitest
-- Base de donnees : PostgreSQL 15 avec Docker Compose
+Backend monolithique Spring Boot 3.5.0, Spring Security/JWT, JPA, validation et exceptions centralisées.
+Frontend Angular 21, Angular Material, Tailwind CSS et formulaires réactifs.
+Les versions du `pom.xml` et du verrou npm sont conservées. Le diff local de `pom.xml`,
+notamment l'artifactId `industri`, reste préservé hors commit.
 
-## Guide principal — préparation du covoiturage belge (issue #2)
+## Prérequis
 
-GestionTransport-Multiple évolue vers une application de covoiturage entre villes
-belges. La cible comprend recherche départ/destination/date, conducteur Voyageur,
-un chauffeur et quatre places clients maximum, réservations confirmées au paiement, restrictions
-et administration. **Ces fonctions ne sont pas encore toutes implémentées.**
+- Java/JDK **21**.
+- Docker Desktop avec moteur Linux opérationnel.
+- Node.js **24** et npm **11** pour les versions Angular présentes.
+- Git. Maven est fourni par le wrapper du dépôt.
 
-L'énoncé PDF de cinq pages et le code existant ont été analysés. Consulter :
-
-- [Analyse métier, existant/manquant et règles](docs/covoiturage/analyse-metier.md).
-- [Classes, modèle relationnel et migration protégée](docs/covoiturage/modele-donnees.md).
-- [Issues, branches, PR, tests et critères de livraison](docs/covoiturage/plan-livraison.md).
-
-Le tarif actuel demandé est **100 € par trajet, soit 25 € par personne pour quatre
-places**, traité dans la PR #10 / issue #4. Les anciens montants restent conservés.
-Cette règle est définitive : le chauffeur ne compte pas parmi les quatre clients.
-Les recettes sont de 25, 50, 75 ou 100 € pour un à quatre clients payants.
-
-### Versions et architecture
-
-Java 21, Spring Boot 3.5, Maven, PostgreSQL 15, Angular 21, Angular Material et
-Tailwind sont conservés. Le flux reste Controller → Service → Repository → base,
-avec DTO, Mapper, validation, JWT et gestion centralisée des erreurs. Aucun
-microservice, Google Maps, Redis, Kafka ou paiement bancaire réel n'est prévu.
-
-Les PR #8 et #9 portent la baseline et la nomenclature Transport ; elles ne sont
-pas encore fusionnées au moment de cette analyse. Les commandes suivantes
-décrivent ce socle après leur intégration. develop ne constitue pas encore la
-plateforme de covoiturage finale. Vérifier sa branche avant toute démonstration.
-
-### 1. Vérifier les outils et préserver le travail local
+Commandes PowerShell, depuis la racine du projet :
 
 ```powershell
-git status
-git diff -- pom.xml
-git fetch origin
 java -version
-mvn --version
 node --version
 npm --version
 docker version
-docker compose version
+docker info
+git status
 ```
 
-Le pom.xml local utilise actuellement l'artifactId `industri` ; son diff doit
-rester préservé. Ne pas supposer le nom du JAR ou effacer les modifications pour
-changer de branche. Les branches suivent les issues et les PR ciblent develop.
-
-### 2. Docker et PostgreSQL
+## 1. PostgreSQL et Docker
 
 ```powershell
-docker compose config
-docker compose pull
+docker compose config --quiet
 docker compose up -d
 docker compose ps
 docker compose logs --tail=100 postgres
 ```
 
-Le Compose actuel utilise l'image officielle PostgreSQL 15, le port hôte 5440 et
-un volume persistant. Il ne contient pas encore de Dockerfile backend/frontend :
-`docker compose build` ne compile donc pas ces deux applications. Leurs builds
-sont Maven et Angular, ci-dessous ; leur conteneurisation appartient à l'issue #7.
+Configuration locale de développement :
 
-Conserver le volume existant ; migrer explicitement le compte et la base vers
-transport et transportService sans supprimer les données. Ne jamais
-utiliser `docker compose down -v` pour dépanner. Les identifiants `transport/transport`
-présents dans le Compose sont exclusivement ceux du développement local.
-
-Pour une démonstration potentiellement modificatrice, créer une base distincte
-(commande à lancer une seule fois ; si elle existe, vérifier son contenu) :
-
-```powershell
-docker compose exec postgres createdb -U transport covoiturage_demo
+```text
+Base         : transportService
+Utilisateur  : transport
+Mot de passe : transport
+Port hôte    : 5440
+Port interne : 5432
+Version      : PostgreSQL 15
 ```
 
-### 3. Configurer et démarrer le backend
+Le conteneur `padel-db` et le volume historique `padel-db-data` gardent leurs identités
+pour conserver les données. Changer le nom du volume créerait un autre stockage.
+Les variables POSTGRES\_\* initialisent uniquement une base neuve : elles ne renomment
+pas un rôle ou une base existante.
+
+Les migrations locales déjà réalisées sont documentées dans
+[Exécution Transport](docs/transport-execution.md), avec les scripts
+[sauvegarde/renommage du rôle](scripts/migrate-dev-db-user.ps1) et
+[renommage de la base](scripts/rename-dev-database.ps1).
+Ne pas les rejouer sur une installation déjà migrée.
+
+Vérifier le serveur sans écrire de données :
 
 ```powershell
-$env:DB_URL='jdbc:postgresql://localhost:5440/covoiturage_demo'
-$env:DB_USER='transport'
-$env:DB_PASSWORD='transport'
-$jwtBytes=New-Object byte[] 48
-[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($jwtBytes)
-$env:JWT_SECRET=[Convert]::ToBase64String($jwtBytes)
-$env:DEMO_DATA_ENABLED='false'
-mvn -B spring-boot:run
+docker exec padel-db pg_isready -U transport -d transportService
+docker exec padel-db psql -U transport -d transportService -c "SELECT version();"
+docker volume ls
 ```
 
-Ne pas afficher la clé JWT, publier des secrets ou réutiliser l'ancienne clé
-versionnée. Ces variables sont locales au terminal. En dehors du développement,
-utiliser des identifiants propres à l'environnement et un compte DB limité.
+**Ne pas supprimer le volume ni utiliser `docker compose down -v`.**
+Pour arrêter les services en conservant le stockage : `docker compose stop`.
 
-`ddl-auto=update` peut modifier le schéma : ne pas lancer cette commande sur la
-base métier sans sauvegarde et validation. L'initialiseur de démonstration reste
-désactivé par défaut, car sa version héritée peut modifier les comptes existants.
-Il sera adapté aux exemples belges uniquement dans un environnement de développement.
+## 2. Données existantes et schéma
 
-Backend : http://localhost:8080 ; Swagger : http://localhost:8080/swagger-ui.html ;
-OpenAPI : http://localhost:8080/v3/api-docs. Après nomenclature #9, les ressources
-principales sont `/api/agences`, `/api/vehicules`, `/api/trajets`, `/api/voyageurs`,
-`/api/reservations`, `/api/paiements`, `/api/indisponibilites-service`.
+Le mécanisme initial `spring.jpa.hibernate.ddl-auto=update` est conservé.
+Un démarrage peut donc ajouter des colonnes : effectuer une sauvegarde avant d'utiliser
+une base métier existante. Aucun traitement ne remplace les anciens montants.
 
-### 4. Compiler et tester le backend
+Exemple de sauvegarde PostgreSQL, sans redirection binaire PowerShell :
 
 ```powershell
-mvn -B test
-mvn -B -DskipTests package
+New-Item -ItemType Directory -Force target/backups | Out-Null
+$archiveTransport = "transportService_$(Get-Date -Format yyyyMMdd_HHmmss).dump"
+docker exec padel-db pg_dump -U transport -Fc -f "/tmp/$archiveTransport" transportService
+docker cp "padel-db:/tmp/$archiveTransport" "target/backups/$archiveTransport"
 ```
 
-Après #8, la suite standard utilise H2 en mémoire. Pour les tests PostgreSQL
-opt-in, utiliser exclusivement une base isolée nommée `issue1_validation_<suffixe>` :
+Le statut EXPIREE nécessite le script SQL
+[issue-4-reservation-expiration.sql](scripts/migrations/issue-4-reservation-expiration.sql)
+sur un schéma historique. Après sauvegarde et revue, appliquer explicitement à la base choisie :
 
 ```powershell
-docker compose exec postgres createdb -U transport issue1_validation_academique
-$env:POSTGRES_BASELINE_URL='jdbc:postgresql://localhost:5440/issue1_validation_academique'
-$env:DB_USER='transport'
-$env:DB_PASSWORD='transport'
-mvn -B test
-Remove-Item Env:POSTGRES_BASELINE_URL
+Get-Content -Raw -Encoding UTF8 scripts/migrations/issue-4-reservation-expiration.sql |
+  docker exec -i padel-db psql -U transport -d transportService -X -v ON_ERROR_STOP=1
 ```
 
-Éviter de compiler simultanément avec l'IDE et Maven dans les mêmes répertoires
-de sortie. Ne pas considérer les tests H2 comme preuve du comportement PostgreSQL.
+Ce script modifie uniquement le CHECK des statuts, sans réécrire de réservation ou de paiement.
+Pendant la validation du projet, il a été appliqué uniquement à la base de test isolée.
 
-### 5. Installer, compiler, tester et démarrer Angular
+Le script [invariants PostgreSQL](scripts/migrations/issue-7-invariants-covoiturage.sql)
+ajoute les index de recherche/créneau, l'unicité d'une demande active et le contrôle
+des villes, horaires et quatre places pour les trajets qualifiés. Même procédure
+explicite après sauvegarde ; il refuse les doublons existants, sans les supprimer.
+Il est aussi exécuté par les tests PostgreSQL sur leur base isolée.
 
-Dans un autre terminal, à partir de la racine du dépôt :
+Les noms SQL historiques sont conservés pour éviter une migration destructive.
+Les catégories VIP/LOCAL utilisent encore les valeurs SQL GLOBAL/SITE via le convertisseur existant.
+Les anciens trajets sans villes renseignées ne sont pas vendus comme trajets de covoiturage :
+ils restent dans l'historique, en attente d'une qualification explicite.
+Aucune ville, date de création ou nouvelle tarification n'est inventée pour ces anciennes lignes.
+
+## 3. Compiler et démarrer le backend
+
+Compilation, tests et JAR :
+
+```powershell
+.\mvnw.cmd -B verify
+```
+
+Sans `POSTGRES_BASELINE_URL`, les tests usuels utilisent H2 et les tests PostgreSQL opt-in sont ignorés.
+La compilation ne prouve pas le démarrage HTTP : ce dernier fait l'objet des vérifications décrites plus bas.
+
+Créer une clé JWT neuve dans l'environnement, sans l'afficher :
+
+```powershell
+$octetsJwtTransport = New-Object byte[] 48
+$generateurTransport = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+try { $generateurTransport.GetBytes($octetsJwtTransport) }
+finally { $generateurTransport.Dispose() }
+$env:JWT_SECRET = [Convert]::ToBase64String($octetsJwtTransport)
+$env:DB_URL = 'jdbc:postgresql://localhost:5440/transportService'
+$env:DB_USER = 'transport'
+$env:DB_PASSWORD = 'transport'
+$env:DEMO_DATA_ENABLED = 'false'
+.\mvnw.cmd spring-boot:run
+```
+
+Conserver `DEMO_DATA_ENABLED=false` sur toute base métier.
+Pour une présentation, privilégier la base de démonstration isolée décrite ci-dessous.
+
+| Variable                | Usage                                                         | Défaut                                 |
+| ----------------------- | ------------------------------------------------------------- | -------------------------------------- |
+| JWT_SECRET              | Clé JWT, au moins 32 octets, obligatoire                      | Aucun                                  |
+| DB_URL                  | Connexion PostgreSQL                                          | localhost:5440/transportService        |
+| DB_USER / DB_PASSWORD   | Identifiants du serveur                                       | transport / transport en développement |
+| DEMO_DATA_ENABLED       | Activation explicite de la démonstration                      | false                                  |
+| DEMO_PASSWORD           | Mot de passe des comptes de démonstration, min. 12 caractères | Aucun                                  |
+| RESERVATION_PAYMENT_TTL | Délai ISO-8601 de paiement                                    | PT30M                                  |
+| RESTRICTION_DAYS        | Durée d'une restriction validée                               | 7                                      |
+| SERVER_PORT             | Port HTTP Spring Boot                                         | 8080                                   |
+
+## 4. Installer, tester et lancer Angular
+
+Dans un autre terminal :
 
 ```powershell
 cd frontend
 npm ci
-npm run build
-npm test
-npm start
-```
-
-Ouvrir http://localhost:4200. Le proxy existant cible le backend sur 8080 ; les
-contrats frontend/backend doivent être livrés ensemble. Réutiliser l'intercepteur
-JWT, les sessions et les guards ; se reconnecter après une modification de contrat.
-
-### 6. Présentation et validation
-
-La démonstration finale devra montrer recherche réelle, conducteur automatique,
-paiement simulé identifié, confirmation, annulation, restriction et statistiques.
-Les villes populaires servent de raccourcis de recherche, jamais de fausses
-places disponibles. Vérifier mobile 375 px, tablette 768 px, ordinateur 1440 px,
-clavier/focus et absence de débordement horizontal.
-
-Résultats vérifiés de la branche tarif `3758998` : 112 tests Java avec PostgreSQL
-isolé et 58 tests Angular réussis, build Angular réussi. Ces résultats ne sont
-pas ceux du modèle cible, encore documentaire, ni ceux de develop avant fusion.
-L'analyse #2 ne modifie aucune classe, dépendance, entité ni donnée PostgreSQL.
-
-### Documentation historique conservée
-
-Les sections ci-dessous décrivent le socle antérieur. Le guide ci-dessus et les
-documents de l'issue #2 indiquent les prérequis et la cible de la refonte.
-
-## Prerequis
-
-Installer sur la machine :
-
-- Java 21
-- Node.js compatible avec Angular 21
-- npm
-- Docker Desktop
-
-Verifier les versions :
-
-```bash
-java -version
-node -v
-npm -v
-docker --version
-```
-
-## Structure du projet
-
-```text
-padell/
-  src/                 Backend Spring Boot
-  frontend/            Frontend Angular
-  docker-compose.yml   PostgreSQL Docker
-  pom.xml              Configuration Maven backend
-  README.md            Documentation compilation et lancement
-```
-
-## Base de donnees PostgreSQL
-
-Le projet utilise PostgreSQL via Docker.
-
-Configuration :
-
-```text
-Base       : transportService
-Utilisateur: transport
-Mot de passe: transport
-Port local : 5440
-Port Docker: 5432
-```
-
-Ces identifiants sont ceux du développement local. DB_USER et DB_PASSWORD
-permettent de fournir d'autres valeurs. Pour un volume déjà initialisé, modifier
-le Compose ne change ni le compte ni le nom de base PostgreSQL : utiliser la
-[migration des identifiants de développement](docs/identifiants-postgresql.md).
-
-Demarrer PostgreSQL :
-
-```bash
-docker compose up -d
-```
-
-Verifier que le conteneur tourne :
-
-```bash
-docker ps
-```
-
-Arreter PostgreSQL :
-
-```bash
-docker compose down
-```
-
-Conserver le volume PostgreSQL : ne pas utiliser l'option `-v` de `down` pour
-changer les identifiants ou dépanner un démarrage.
-
-## Backend Spring Boot
-
-Le backend se trouve a la racine du projet.
-
-Port backend :
-
-```text
-http://localhost:8080
-```
-
-Configuration principale :
-
-```text
-src/main/resources/application.properties
-```
-
-Connexion a la base :
-
-```properties
-spring.datasource.url=${DB_URL:jdbc:postgresql://localhost:5440/transportService}
-spring.datasource.username=${DB_USER:transport}
-spring.datasource.password=${DB_PASSWORD:transport}
-server.port=8080
-```
-
-### Installer/compiler le backend
-
-Depuis la racine du projet :
-
-```bash
-.\mvnw.cmd clean compile
-```
-
-### Lancer les tests backend
-
-```bash
-.\mvnw.cmd test
-```
-
-### Builder le backend
-
-```bash
-.\mvnw.cmd clean package
-```
-
-Le fichier genere se trouve dans :
-
-```text
-target/
-```
-
-### Lancer le backend
-
-Avec Maven :
-
-```bash
-.\mvnw.cmd spring-boot:run
-```
-
-Ou apres un package :
-
-```bash
-java -jar target/padelmultiple-0.0.1-SNAPSHOT.jar
-```
-
-## Swagger API
-
-Quand le backend tourne :
-
-```text
-http://localhost:8080/swagger-ui.html
-```
-
-OpenAPI JSON :
-
-```text
-http://localhost:8080/v3/api-docs
-```
-
-## Frontend Angular
-
-Le frontend se trouve dans :
-
-```text
-frontend/
-```
-
-Le proxy Angular redirige les appels `/api` vers le backend :
-
-```text
-frontend/proxy.conf.json
-```
-
-Configuration proxy :
-
-```json
-{
-  "/api": {
-    "target": "http://localhost:8080",
-    "secure": false,
-    "changeOrigin": true
-  }
-}
-```
-
-### Installer les dependances frontend
-
-Depuis le dossier `frontend` :
-
-```bash
-cd frontend
-npm install
-```
-
-### Lancer le frontend en developpement
-
-```bash
-npm start
-```
-
-Ou explicitement sur le port 4200 :
-
-```bash
-npm run start:4200
-```
-
-URL frontend :
-
-```text
-http://localhost:4200
-```
-
-### Compiler le frontend
-
-```bash
-npm run build
-```
-
-Le build Angular est genere dans :
-
-```text
-frontend/dist/
-```
-
-### Lancer les tests frontend
-
-```bash
-npm test
-```
-
-Mode watch :
-
-```bash
-npm run test:watch
-```
-
-## Compilation complete du projet
-
-Depuis la racine :
-
-```bash
-docker compose up -d
-.\mvnw.cmd clean test
-cd frontend
-npm install
 npm test
 npm run build
-```
-
-## Lancement complet en local
-
-Terminal 1 : base de donnees
-
-```bash
-docker compose up -d
-```
-
-Terminal 2 : backend
-
-```bash
-.\mvnw.cmd spring-boot:run
-```
-
-Terminal 3 : frontend
-
-```bash
-cd frontend
 npm start
 ```
 
-URLs :
+- Interface : [http://localhost:4200](http://localhost:4200).
+- Le proxy existant transmet `/api` à `http://localhost:8080`.
+- Build de production : `frontend/dist/frontend/browser`.
+- L'interceptor JWT et les guards existants sont réutilisés.
+- Les nouveaux textes de recherche, cartes et accueil utilisent l'internationalisation FR/EN existante.
+- Références responsive : 375, 768 et 1440 px.
 
-```text
-Frontend : http://localhost:4200
-Backend  : http://localhost:8080
-Swagger  : http://localhost:8080/swagger-ui.html
-Postgres : localhost:5440
+[Aperçu de l'accueil](docs/images/accueil-transport-demonstration.png), capturé sur une
+base de démonstration isolée : ces données ne constituent pas une offre de trajets en production.
+
+Aucune bibliothèque UI supplémentaire, carte géographique, géolocalisation ou intégration bancaire n'est ajoutée.
+
+## 5. Démonstration sur base isolée vide
+
+Le générateur existant est limité au **profil dev**, au flag explicite et à une base vide nommée
+`transport_demo_<suffixe>` ou `issue1_validation_<suffixe>`. Il refuse `transportService`,
+ne migre aucun compte et ne modifie aucune base déjà renseignée.
+
+Créer une nouvelle base dédiée, sans supprimer un stockage existant :
+
+```powershell
+$baseDemoTransport = 'transport_demo_' + (Get-Date -Format yyyyMMddHHmmss)
+docker exec padel-db createdb -U transport $baseDemoTransport
+$env:DB_URL = "jdbc:postgresql://localhost:5440/$baseDemoTransport"
+$env:DB_USER = 'transport'
+$env:DB_PASSWORD = 'transport'
+$env:DEMO_DATA_ENABLED = 'true'
+$secretDemoTransport = Read-Host 'Mot de passe de démonstration (12 caractères minimum)' -AsSecureString
+$pointeurDemoTransport = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secretDemoTransport)
+try { $env:DEMO_PASSWORD = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointeurDemoTransport) }
+finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointeurDemoTransport) }
+# Définir JWT_SECRET comme dans la section backend.
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
 ```
 
-## Commandes utiles
+Comptes créés uniquement dans cette base de démonstration :
 
-Voir les logs PostgreSQL :
+| Connexion      | Identifiant         | Fonction                                  |
+| -------------- | ------------------- | ----------------------------------------- |
+| Voyageur       | G1001               | Chauffeur autorisé                        |
+| Voyageur       | G1002               | Client VIP                                |
+| Voyageur       | S10001              | Client local                              |
+| Voyageur       | L10001              | Client libre                              |
+| Administrateur | admin@example.test  | Administrateur global                     |
+| Administrateur | agence@example.test | Gestionnaire de l'agence de démonstration |
 
-```bash
-docker logs padel-db
+Le mot de passe est celui fourni par `DEMO_PASSWORD`.
+Le trajet de démonstration est clairement nommé et propose quatre places,
+sans réservation du chauffeur. Il n'est jamais inséré automatiquement dans la base métier.
+
+Parcours de présentation :
+
+1. Se connecter comme client et rechercher Mons → Bruxelles.
+2. Créer une demande, puis payer depuis « Mes réservations » : une place est confirmée.
+3. Consulter les paiements et l'historique ; annuler une réservation autorisée.
+4. Se connecter comme G1001 et proposer un trajet avec ses villes et son véhicule.
+5. Créer un trajet privé, inviter des clients et choisir explicitement la publication H-24.
+6. Se connecter comme administrateur, gérer les voyageurs autorisés à conduire,
+   créer un trajet avec chauffeur sélectionné et consulter les statistiques du périmètre autorisé.
+
+## 6. Tests PostgreSQL réels
+
+Créer une base de test distincte de la base métier et de la démonstration :
+
+```powershell
+docker exec padel-db createdb -U transport issue1_validation_tests
+$env:POSTGRES_BASELINE_URL = 'jdbc:postgresql://localhost:5440/issue1_validation_tests'
+$env:DB_USER = 'transport'
+$env:DB_PASSWORD = 'transport'
+.\mvnw.cmd -B verify
+Remove-Item Env:POSTGRES_BASELINE_URL
 ```
 
-Relancer proprement la base :
+Les tests opt-in refusent une URL dont le nom ne suit pas `issue1_validation_<suffixe>`.
+Ils ajoutent leurs fixtures sans vider la base après exécution. Une base neuve évite
+les différences de contraintes d'un ancien schéma de test.
 
-```bash
-docker compose down
-docker compose up -d
-```
+Couverture : chauffeur authentifié, refus sans chauffeur, villes différentes,
+chauffeur exclu des places, quatre confirmations, cinquième refusée, concurrence
+sur la dernière place, paiement 25 €, recettes 100 €, annulation/remboursement,
+expiration, catégories J-21/J-14/J-5, agence locale, droits administrateurs,
+accès privé, recherche, contraintes PostgreSQL et restrictions.
 
-Nettoyer le build backend :
+La CI GitHub ajoute PostgreSQL 15 isolé, Java 21, tests Maven, Node 24,
+`npm ci`, tests Angular et build de production. Les résultats de CI doivent être
+consultés sur la PR ; une configuration de workflow ne constitue pas une exécution réussie.
 
-```bash
-.\mvnw.cmd clean
-```
+## 7. API REST et Swagger
 
-Nettoyer le build frontend :
+- Swagger : [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html).
+- OpenAPI : [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs).
+- Villes : `GET /api/trajets/villes`.
+- Recherche : `GET /api/trajets/public?depart=MONS&arrivee=BRUXELLES&date=2026-12-01`.
+  Adapter la date au jour de démonstration.
+- Connexion voyageur : `POST /api/voyageurs/login`.
+- Connexion administrateur : `POST /api/auth/login`.
+- Création : `POST /api/trajets`.
+- Demande : `POST /api/reservations`.
+- Paiement simulé : `POST /api/paiements/reservation/{reservationId}/pay`.
+- Historique : endpoints voyageur de réservations et paiements, protégés par JWT.
 
-```bash
-cd frontend
-Remove-Item -Recurse -Force dist
-```
+Erreurs de formulaire : 400 ; accès refusé : 403 ; ressource absente : 404 ;
+conflit de persistance : 409. Les réponses ne présentent pas de détails SQL sensibles.
 
-## Ordre conseille pour une demo
+## 8. Traçabilité GitHub et documentation
 
-1. Demarrer PostgreSQL :
+Toutes les PR ciblent `develop`. Les branches fonctionnelles partent du dernier
+`develop` validé. Aucune modification métier n'est committée dans `master`.
 
-```bash
-docker compose up -d
-```
+| Issue | Branche / travail                           | Pull request                                                                                                                           |
+| ----- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| #1    | chore/issue-1-audit-baseline                | [#8](https://github.com/Zoom225/GestionTransport-Multiple/pull/8)                                                                      |
+| #1    | Nomenclature et paramètres locaux Transport | [#9](https://github.com/Zoom225/GestionTransport-Multiple/pull/9), [#12](https://github.com/Zoom225/GestionTransport-Multiple/pull/12) |
+| #4    | Tarif 100 € / 25 €                          | [#10](https://github.com/Zoom225/GestionTransport-Multiple/pull/10)                                                                    |
+| #2    | feature/issue-2-analyse-transport           | [#11](https://github.com/Zoom225/GestionTransport-Multiple/pull/11)                                                                    |
+| #3    | feature/issue-3-domain-persistence          | [#13](https://github.com/Zoom225/GestionTransport-Multiple/pull/13)                                                                    |
+| #4    | feature/issue-4-transport-services          | [#14](https://github.com/Zoom225/GestionTransport-Multiple/pull/14)                                                                    |
+| #5    | feature/issue-5-transport-api               | [#15](https://github.com/Zoom225/GestionTransport-Multiple/pull/15)                                                                    |
+| #6    | feature/issue-6-transport-frontend          | [#16](https://github.com/Zoom225/GestionTransport-Multiple/pull/16)                                                                    |
+| #7 | feature/issue-7-integration-validation | [#17](https://github.com/Zoom225/GestionTransport-Multiple/pull/17) |
 
-2. Lancer le backend :
+Documents à lire pour présenter le projet :
 
-```bash
-.\mvnw.cmd spring-boot:run
-```
+- [Analyse métier et cas d'utilisation](docs/covoiturage/analyse-metier.md).
+- [Modèle relationnel, diagrammes et migration](docs/covoiturage/modele-donnees.md).
+- [Modèle JPA simple](docs/covoiturage/issue-3-modele-simple.md).
+- [Réservation, paiement et concurrence](docs/covoiturage/issue-4-reservation-paiement.md).
+- [API et sécurité](docs/covoiturage/issue-5-api-securite.md).
+- [Interface et responsive](docs/covoiturage/issue-6-interface.md).
+- [Validation finale et préservation des données](docs/covoiturage/issue-7-validation.md).
+- [Audit initial historique](docs/audit-initial.md) et [exécutions de baseline](docs/baseline-execution.md).
 
-3. Lancer le frontend :
+## Dépannage
 
-```bash
-cd frontend
-npm start
-```
+- Sous Windows, arrêter une instance lancée avec `java -jar` avant de régénérer
+  son JAR : le processus peut empêcher Maven de renommer le fichier pendant l'empaquetage.
 
-4. Ouvrir :
-
-```text
-http://localhost:4200
-```
-
-5. Verifier l'API avec Swagger :
-
-```text
-http://localhost:8080/swagger-ui.html
-```
+- Docker inaccessible : vérifier `docker version`, `docker info`, `docker context ls`
+  et `wsl --status`. Ne pas réinitialiser Docker ni supprimer ses volumes.
+- Erreur de connexion PostgreSQL : vérifier le port 5440, les variables DB\_\* et l'état healthy.
+- Backend arrêté : vérifier Java 21 et JWT_SECRET ; les tests unitaires seuls ne prouvent pas le démarrage.
+- Recherche vide : seuls les trajets futurs, qualifiés avec deux villes et encore disponibles sont proposés.
+- Création refusée : vérifier la permission chauffeur, le véhicule, l'agence, les horaires et chevauchements.
+- Paiement refusé : actualiser la disponibilité, vérifier le délai, la catégorie, la zone et les restrictions.
+- Ancien montant ou trajet non qualifié : régularisation métier explicite, sans réécriture automatique des paiements.

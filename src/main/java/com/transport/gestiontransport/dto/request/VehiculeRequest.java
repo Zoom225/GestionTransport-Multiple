@@ -16,4 +16,5 @@ public class VehiculeRequest {
 
     @NotNull(message = "L'ID de cette agence est obligatoire.")
     private Long agenceId;
+    private Boolean disponible;
 }

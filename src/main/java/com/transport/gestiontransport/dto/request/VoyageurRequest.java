@@ -30,6 +30,7 @@ public class VoyageurRequest {
 
     private Long agenceId;
 
+    @jakarta.validation.constraints.Size(min = 12, max = 128, message = "Le mot de passe initial doit contenir entre 12 et 128 caractères.")
     private String password;
     private Boolean peutProposerTrajet;
 }

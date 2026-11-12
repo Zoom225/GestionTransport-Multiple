@@ -24,6 +24,8 @@ public class VoyageurServiceImpl implements VoyageurService {
     private final VoyageurRepository voyageurRepository;
     private final RestrictionRepository restrictionRepository;
     private final PasswordEncoder passwordEncoder; // Added PasswordEncoder
+    @org.springframework.beans.factory.annotation.Value("${transport.restriction.duree-jours:7}")
+    private int dureeRestrictionJours = 7;
 
     @Override
     public Voyageur create(Voyageur voyageur) {
@@ -92,14 +94,17 @@ public class VoyageurServiceImpl implements VoyageurService {
         Voyageur voyageur = getById(voyageurId);
         return voyageur.getSolde() > 0.0;
     }
-// règle metier addition restriction à organisateur du trajet privée
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public void addRestriction(Long voyageurId) {
-        Voyageur voyageur = getById(voyageurId);
+        Voyageur voyageur = voyageurRepository.findByIdForUpdate(voyageurId)
+                .orElseThrow(() -> new ResourceNotFoundException("Voyageur introuvable."));
+        if (hasActiveRestriction(voyageurId)) return;
+        if (dureeRestrictionJours < 1) throw new BusinessException("La durée de restriction doit être positive.");
         Restriction restriction = Restriction.builder()
                 .voyageur(voyageur)
-                .dateFin(LocalDate.now().plusWeeks(1))
-                .motif("Trajet privé incomplet avant l'échéance")
+                .dateFin(LocalDate.now().plusDays(dureeRestrictionJours))
+                .motif("Suspension de réservation après décision métier validée")
                 .build();
         restrictionRepository.save(restriction);
     }

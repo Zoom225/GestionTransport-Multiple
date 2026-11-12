@@ -18,4 +18,6 @@ public class ReservationResponse {
     private String voyageurNom;
     private StatutReservation statut;
     private PaiementResponse paiement;
+    private com.transport.gestiontransport.entity.enums.VilleBelge villeDepart;
+    private com.transport.gestiontransport.entity.enums.VilleBelge villeArrivee;
 }

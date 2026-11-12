@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.*;
 
 /** Opt-in: only an explicitly named isolated PostgreSQL validation database is allowed. */
 @SpringBootTest
+@org.junit.jupiter.api.TestInstance(org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS)
 @org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 @EnabledIfEnvironmentVariable(named = "POSTGRES_BASELINE_URL", matches = ".*/issue1_validation_[a-z0-9_]+")
 class PostgresBaselineTest {
@@ -52,9 +53,28 @@ class PostgresBaselineTest {
     @Autowired ReservationRepository reservations;
     @Autowired ReservationService reservationService;
     @Autowired PaiementService paiementService;
+    @Autowired com.transport.gestiontransport.service.VoyageurService voyageurService;
+    @Autowired RestrictionRepository restrictions;
     @Autowired PlatformTransactionManager transactionManager;
     @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
     @Autowired AdministrateurRepository administrateurs;
+
+    @org.junit.jupiter.api.BeforeAll
+    void appliquerLesInvariantsSurLaBasePostgresIsolee() throws java.io.IOException {
+        jdbc.execute(java.nio.file.Files.readString(java.nio.file.Path.of("scripts/migrations/issue-4-reservation-expiration.sql")));
+        jdbc.execute(java.nio.file.Files.readString(java.nio.file.Path.of("scripts/migrations/issue-7-invariants-covoiturage.sql")));
+    }
+
+    @Test
+    void postgresRefuseUneCinquiemePlaceEtUneSecondeDemandeActiveMemeHorsService() {
+        Trajet trajet = trajetVide();
+        Reservation demande = demande(trajet);
+        assertThatThrownBy(() -> jdbc.update("UPDATE matches SET nb_joueurs_actuels = 5 WHERE id = ?", trajet.getId()))
+                .isInstanceOf(DataIntegrityViolationException.class);
+        assertThatThrownBy(() -> jdbc.update("INSERT INTO reservations(match_id,membre_id,statut) VALUES (?,?,'EN_ATTENTE')",
+                trajet.getId(), demande.getVoyageur().getId())).isInstanceOf(DataIntegrityViolationException.class);
+        assertThat(trajets.findById(trajet.getId()).orElseThrow().getNbPassagersActuels()).isZero();
+    }
 
     @Test
     void agencyTypesRemainCompatibleWithLegacySqlValues() {
@@ -80,6 +100,18 @@ class PostgresBaselineTest {
     }
 
     @Test
+    void restrictionsExpireesSontLeveesEtUneRestrictionActiveNestPasDupliquee() {
+        Voyageur voyageur = voyageur();
+        restrictions.saveAndFlush(Restriction.builder().voyageur(voyageur).dateFin(java.time.LocalDate.now().minusDays(1))
+                .motif("Ancienne restriction de test").build());
+        assertThat(voyageurService.hasActiveRestriction(voyageur.getId())).isFalse();
+        voyageurService.addRestriction(voyageur.getId());
+        voyageurService.addRestriction(voyageur.getId());
+        assertThat(voyageurService.hasActiveRestriction(voyageur.getId())).isTrue();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM penalites WHERE membre_id = ?", Long.class, voyageur.getId())).isEqualTo(2L);
+    }
+
+    @Test
     void postgresEnforcesUniqueVoyageurAndReservationForeignKeys() {
         Voyageur first = voyageur();
         assertThatThrownBy(() -> voyageurs.saveAndFlush(Voyageur.builder().matricule(first.getMatricule())
@@ -96,7 +128,7 @@ class PostgresBaselineTest {
         Agence agence = agences.saveAndFlush(Agence.builder().nom("Validation Mons").adresse("Test")
                 .heureOuverture(LocalTime.MIN).heureFermeture(LocalTime.of(23, 59))
                 .dureeTrajetMinutes(90).dureeEntreTrajetMinutes(15).anneeCivile(2030).build());
-        Vehicule vehicule = vehicules.saveAndFlush(Vehicule.builder().nom("Voiture test").agence(agence).build());
+        Vehicule vehicule = vehicules.saveAndFlush(Vehicule.builder().nom("Voiture test").agence(agence).disponible(true).build());
         Voyageur chauffeur = voyageur();
         chauffeur.setPeutProposerTrajet(true);
         voyageurs.saveAndFlush(chauffeur);
@@ -125,7 +157,9 @@ class PostgresBaselineTest {
         assertThatThrownBy(() -> paiementService.pay(cinquieme.getId(), cinquieme.getVoyageur().getId()))
                 .isInstanceOf(BusinessException.class).hasMessageContaining("complet");
         assertThat(reservations.findById(cinquieme.getId()).orElseThrow().getStatut()).isEqualTo(StatutReservation.EN_ATTENTE);
-        reservationService.cancel(demandes.get(0).getId());
+        assertThatThrownBy(() -> reservationService.cancelForUser(demandes.get(0).getId(), voyageur().getId()))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+        reservationService.cancelForUser(demandes.get(0).getId(), trajet.getChauffeur().getId());
         assertThat(trajets.findById(trajet.getId()).orElseThrow().getNbPassagersActuels()).isEqualTo(3);
         paiementService.pay(cinquieme.getId(), cinquieme.getVoyageur().getId());
         assertThat(trajets.findById(trajet.getId()).orElseThrow().getNbPassagersActuels()).isEqualTo(4);
@@ -192,6 +226,25 @@ class PostgresBaselineTest {
         mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/trajets")
                 .contentType("application/json").content(json.writeValueAsString(request)))
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isForbidden());
+    }
+
+    @Test
+    void uneRessourceHistoriqueNestPasMiseEnServiceAutomatiquement() {
+        Trajet trajet = trajetVide();
+        Long id = jdbc.queryForObject("INSERT INTO terrains(nom, site_id) VALUES ('Ressource historique à qualifier', ?) RETURNING id",
+                Long.class, trajet.getVehicule().getAgence().getId());
+        assertThat(jdbc.queryForObject("SELECT disponible FROM terrains WHERE id = ?", Boolean.class, id)).isFalse();
+    }
+
+    @Test
+    void apiReserveSansIdentifiantDemandeurFourniParLeNavigateur() throws Exception {
+        Trajet trajet = trajetVide();
+        Voyageur client = voyageur();
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/reservations")
+                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(client.getMatricule()).roles("VOYAGEUR"))
+                .contentType("application/json").content(json.writeValueAsString(java.util.Map.of("trajetId", trajet.getId(), "voyageurId", client.getId()))))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isCreated())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.paiement.montant").value(25));
     }
 
     @Test

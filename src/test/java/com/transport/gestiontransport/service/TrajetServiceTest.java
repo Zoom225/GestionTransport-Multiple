@@ -87,6 +87,7 @@ class TrajetServiceTest {
         vehicule = new Vehicule();
         vehicule.setId(1L);
         vehicule.setNom("Court Central");
+        vehicule.setDisponible(true);
         vehicule.setPrix(20.0);
         vehicule.setAgence(agence);
 
@@ -133,6 +134,27 @@ class TrajetServiceTest {
         when(vehiculeService.getById(1L)).thenReturn(vehicule);
         assertThrows(BusinessException.class, () -> trajetService.createTrajet(createTrajetRequest, "user123"));
         verify(trajetRepository, never()).save(any());
+    }
+
+    @Test
+    void refuseUnVehiculeIndisponible() {
+        vehicule.setDisponible(false);
+        when(voyageurRepository.findByMatriculeIgnoreCase("user123")).thenReturn(Optional.of(organisateur));
+        when(vehiculeService.getById(1L)).thenReturn(vehicule);
+        BusinessException erreur = assertThrows(BusinessException.class,
+                () -> trajetService.createTrajet(createTrajetRequest, "user123"));
+        assertTrue(erreur.getMessage().contains("véhicule est indisponible"));
+        verify(trajetRepository, never()).save(any());
+    }
+
+    @Test
+    void publicationConsentanteDansLes24HeuresNePenalisePasLeChauffeur() {
+        Trajet prive = Trajet.builder().typeTrajet(TypeTrajet.PRIVE).statut(StatutTrajet.PLANIFIE)
+                .dateDebut(LocalDateTime.now().plusHours(12)).publicationAutomatiqueAutorisee(true).build();
+        when(trajetRepository.findById(10L)).thenReturn(Optional.of(prive));
+        trajetService.convertToPublic(10L);
+        assertEquals(TypeTrajet.PUBLIC, prive.getTypeTrajet());
+        verifyNoInteractions(voyageurService);
     }
 
     @Test

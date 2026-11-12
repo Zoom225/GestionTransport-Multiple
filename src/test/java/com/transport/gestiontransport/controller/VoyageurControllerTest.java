@@ -79,6 +79,7 @@ class VoyageurControllerTest {
         voyageurRequest.setMatricule("L12345");
         voyageurRequest.setNom("Doe");
         voyageurRequest.setPrenom("John");
+        voyageurRequest.setPassword("OnlyForThisTest123!");
         voyageurRequest.setTypeVoyageur(TypeVoyageur.VIP);
 
         voyageurResponse = new VoyageurResponse();
@@ -110,6 +111,17 @@ class VoyageurControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(voyageurRequest)))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void refuseUneCreationSansMotDePasseInitialPersonnel() throws Exception {
+        voyageurRequest.setPassword(null);
+        mockMvc.perform(post("/api/voyageurs").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(voyageurRequest)))
+                .andExpect(status().isBadRequest());
+        org.mockito.Mockito.verifyNoInteractions(passwordEncoder);
+        org.mockito.Mockito.verify(voyageurService, org.mockito.Mockito.never()).create(any());
     }
 
     @Test

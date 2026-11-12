@@ -179,8 +179,7 @@ public class ReservationController {
     public ResponseEntity<Void> cancel(
             @Parameter(description = "ID de la réservation à annuler", required = true)
             @PathVariable Long id) {
-        currentVoyageurService.requireCurrentVoyageur(reservationService.getById(id).getVoyageur().getId());
-        reservationService.cancel(id);
+        reservationService.cancelForUser(id, currentVoyageurService.currentVoyageurId());
         return ResponseEntity.noContent().build();
     }
 }

@@ -70,6 +70,7 @@ public class TrajetServiceImpl implements TrajetService {
         entityManager.refresh(chauffeur);
         entityManager.lock(vehicule, LockModeType.PESSIMISTIC_WRITE);
         entityManager.refresh(vehicule);
+        if (Boolean.FALSE.equals(vehicule.getDisponible())) throw new BusinessException("Ce véhicule est indisponible.");
         if (!Boolean.TRUE.equals(chauffeur.getPeutProposerTrajet())) {
             throw new BusinessException("Ce voyageur n'est pas autorisé à proposer un trajet.");
         }
@@ -126,7 +127,7 @@ public class TrajetServiceImpl implements TrajetService {
         Voyageur voyageur = authentication != null && authentication.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_VOYAGEUR".equals(a.getAuthority())) ? voyageurCourantService.currentVoyageur() : null;
         return trajetRepository.findByTypeTrajetAndStatut(TypeTrajet.PUBLIC, StatutTrajet.PLANIFIE).stream()
-                .filter(t -> t.getChauffeur() != null && t.getVilleDepart() != null && t.getVilleArrivee() != null)
+                .filter(TrajetService::estQualifiePourCovoiturage)
                 .filter(t -> t.getDateDebut().isAfter(LocalDateTime.now()) && t.getNbPassagersActuels() < Trajet.MAX_CLIENTS)
                 .filter(t -> depart == null || t.getVilleDepart() == depart)
                 .filter(t -> arrivee == null || t.getVilleArrivee() == arrivee)
@@ -204,6 +205,7 @@ public class TrajetServiceImpl implements TrajetService {
         entityManager.lock(vehicule, LockModeType.PESSIMISTIC_WRITE);
         entityManager.refresh(vehicule);
         LocalDateTime dateDebut = request.getDate().atTime(request.getHeureDebut());
+        if (Boolean.FALSE.equals(vehicule.getDisponible())) throw new BusinessException("Ce véhicule est indisponible.");
         LocalDateTime dateFin = dateDebut.plusMinutes(vehicule.getAgence().getDureeTrajetMinutes());
 
         validateAgenceNotClosed(vehicule, dateDebut.toLocalDate());
