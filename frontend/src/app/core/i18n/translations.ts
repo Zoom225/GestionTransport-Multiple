@@ -1,6 +1,35 @@
 ﻿export type Locale = 'fr' | 'en';
 
 export type TranslationKey =
+  | 'ui.driverAuthorized'
+  | 'ui.driverExcluded'
+  | 'ui.restrictionHistory'
+  | 'ui.noRestrictions'
+  | 'ui.active'
+  | 'ui.inactive'
+  | 'ui.unknownStart'
+  | 'ui.reportAbsence'
+  | 'ui.absenceReason'
+  | 'ui.saveReport'
+  | 'ui.absenceReported'
+  | 'ui.antwerp'
+  | 'ui.skip'
+  | 'ui.menu'
+  | 'ui.mainNav'
+  | 'ui.searchNav'
+  | 'ui.details'
+  | 'ui.tripOverview'
+  | 'ui.vehicle'
+  | 'ui.availability'
+  | 'ui.unitPrice'
+  | 'ui.close'
+  | 'ui.cityMissing'
+  | 'ui.pendingNote'
+  | 'ui.footerTagline'
+  | 'ui.illustration'
+  | 'ui.loadError'
+  | 'ui.loadCities'
+  | 'ui.paymentSummary'
   | 'transport.reserve'
   | 'transport.eyebrow'
   | 'transport.together'
@@ -448,11 +477,40 @@ export type TranslationParams = Record<string, string | number>;
 
 export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>>> = {
   fr: {
+    'ui.driverAuthorized': "Chauffeur autorisé",
+    'ui.driverExcluded': "Le chauffeur ne réserve aucune des quatre places clients.",
+    'ui.restrictionHistory': "Historique des restrictions",
+    'ui.noRestrictions': "Aucune restriction enregistrée.",
+    'ui.active': "Active",
+    'ui.inactive': "Inactive",
+    'ui.unknownStart': "Début historique non renseigné",
+    'ui.reportAbsence': "Déclarer une absence",
+    'ui.absenceReason': "Motif vérifié de l’absence injustifiée",
+    'ui.saveReport': "Enregistrer la déclaration",
+    'ui.absenceReported': "Absence déclarée le",
+    'ui.antwerp': 'Anvers',
+    'ui.skip': "Aller au contenu",
+    'ui.menu': "Menu",
+    'ui.mainNav': "Navigation principale",
+    'ui.searchNav': "Rechercher un trajet",
+    'ui.details': "Voir le trajet",
+    'ui.tripOverview': "Votre trajet en un coup d’œil",
+    'ui.vehicle': "Véhicule",
+    'ui.availability': "Places clients disponibles",
+    'ui.unitPrice': "Prix par personne · une place",
+    'ui.close': "Fermer",
+    'ui.cityMissing': "Ville à préciser",
+    'ui.pendingNote': "Votre place sera confirmée après validation du paiement.",
+    'ui.footerTagline': "Le covoiturage belge, en toute simplicité.",
+    'ui.illustration': "Le covoiturage entre villes belges",
+    'ui.loadError': "Les trajets ne sont pas disponibles pour le moment. Réessayez dans quelques instants.",
+    'ui.loadCities': "Les villes ne peuvent pas être chargées. Réessayez dans quelques instants.",
+    'ui.paymentSummary': "Une place · paiement simulé",
     'transport.reserve': 'Réserver',
     'transport.eyebrow': "LE COVOITURAGE, À LA BELGE",
     'transport.together': "Voyagez ensemble,",
     'transport.simply': "simplement.",
-    'transport.lead': "De Mons à Bruxelles, de Namur à Liège : partagez votre trajet et prenez la route en toute confiance.",
+    'transport.lead': "Trouvez votre prochain covoiturage entre Bruxelles et les villes belges, en quelques clics.",
     'transport.driverKnown': "Un chauffeur identifié",
     'transport.maximum': "4 clients maximum",
     'transport.price': "25 € par personne",
@@ -663,8 +721,8 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.create.success': 'Trajet créé avec quatre places clients. Le chauffeur ne réserve aucune place.',
     'voyageur.create.successPrivate': 'Trajet privé créé. Les invitations sont en attente de paiement des passagers.',
     'voyageur.create.partialSuccess': "Trajet cree, mais certains passagers n'ont pas pu etre ajoutes.",
-    'voyageur.public.title': 'Trajets publics',
-    'voyageur.public.subtitle': 'Rejoins un trajet public disponible. Premier paye = premier servi.',
+    'voyageur.public.title': 'Trouvez votre prochain trajet',
+    'voyageur.public.subtitle': 'Comparez les départs et réservez votre place facilement.',
     'voyageur.public.filter': 'Filtrer par agence',
     'voyageur.public.search': 'Recherche',
     'voyageur.public.create': 'Creer un trajet',
@@ -893,11 +951,40 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.reservations.reservationCancelError': 'Annulation impossible.'
   },
   en: {
+    'ui.driverAuthorized': "Authorized driver",
+    'ui.driverExcluded': "The driver does not book any of the four passenger places.",
+    'ui.restrictionHistory': "Restriction history",
+    'ui.noRestrictions': "No restrictions recorded.",
+    'ui.active': "Active",
+    'ui.inactive': "Inactive",
+    'ui.unknownStart': "Historical start date unknown",
+    'ui.reportAbsence': "Report an absence",
+    'ui.absenceReason': "Verified reason for the unjustified absence",
+    'ui.saveReport': "Save report",
+    'ui.absenceReported': "Absence reported on",
+    'ui.antwerp': 'Antwerp',
+    'ui.skip': "Skip to content",
+    'ui.menu': "Menu",
+    'ui.mainNav': "Main navigation",
+    'ui.searchNav': "Find a ride",
+    'ui.details': "View ride",
+    'ui.tripOverview': "Your ride at a glance",
+    'ui.vehicle': "Vehicle",
+    'ui.availability': "Available passenger places",
+    'ui.unitPrice': "Price per person · one place",
+    'ui.close': "Close",
+    'ui.cityMissing': "City not specified",
+    'ui.pendingNote': "Your place is confirmed after payment is validated.",
+    'ui.footerTagline': "Belgian ridesharing, made simple.",
+    'ui.illustration': "Ridesharing between Belgian cities",
+    'ui.loadError': "Rides are temporarily unavailable. Please try again shortly.",
+    'ui.loadCities': "Cities could not be loaded. Please try again shortly.",
+    'ui.paymentSummary': "One place · simulated payment",
     'transport.reserve': 'Book',
     'transport.eyebrow': "RIDESHARING, THE BELGIAN WAY",
     'transport.together': "Travel together,",
     'transport.simply': "simply.",
-    'transport.lead': "From Mons to Brussels, from Namur to Liège: share your journey and travel with confidence.",
+    'transport.lead': "Find your next shared ride between Brussels and Belgian cities in just a few clicks.",
     'transport.driverKnown': "An identified driver",
     'transport.maximum': "4 clients maximum",
     'transport.price': "€25 per person",
@@ -1108,8 +1195,8 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.create.success': 'Trip created with four client places. The driver does not reserve a place.',
     'voyageur.create.successPrivate': 'Private trip created. Invitations are pending passenger payments.',
     'voyageur.create.partialSuccess': 'Trip created, but some passengers could not be added.',
-    'voyageur.public.title': 'Public trips',
-    'voyageur.public.subtitle': 'Join an available public trip. First paid, first served.',
+    'voyageur.public.title': 'Find your next ride',
+    'voyageur.public.subtitle': 'Compare departures and book your place easily.',
     'voyageur.public.filter': 'Filter by agency',
     'voyageur.public.search': 'Search',
     'voyageur.public.create': 'Create a trip',

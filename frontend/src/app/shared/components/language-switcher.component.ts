@@ -22,7 +22,7 @@ import { Locale } from '../../core/i18n/translations';
       </button>
 
       @if (open()) {
-        <div class="lang-menu" role="menu" [attr.aria-label]="switcherLabel()">
+        <div class="lang-menu" role="group" [attr.aria-label]="switcherLabel()">
           @for (option of options; track option.locale) {
             <button
               type="button"
@@ -50,31 +50,31 @@ import { Locale } from '../../core/i18n/translations';
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      min-height: 2.4rem;
+      min-height: 44px;
       padding: 0.35rem 0.7rem 0.35rem 0.6rem;
-      border: 1px solid rgba(15, 23, 42, 0.08);
+      border: 1px solid color-mix(in srgb, var(--ui-navy) 8%, transparent);
       border-radius: 8px;
-      background: rgba(248, 250, 252, 0.92);
-      color: #0f172a;
+      background: color-mix(in srgb, var(--ui-surface) 92%, transparent);
+      color: var(--ui-navy);
       cursor: pointer;
-      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+      box-shadow: var(--ui-shadow);
       transition: transform 0.15s, background 0.15s, border-color 0.15s, box-shadow 0.15s;
     }
 
     .lang-trigger:hover {
       transform: translateY(-1px);
-      background: rgba(255, 255, 255, 0.96);
-      border-color: rgba(15, 23, 42, 0.12);
-      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+      background: color-mix(in srgb, var(--ui-surface) 96%, transparent);
+      border-color: color-mix(in srgb, var(--ui-navy) 12%, transparent);
+      box-shadow: var(--ui-shadow);
     }
 
     .lang-trigger:focus-visible,
     .lang-option {
-      outline: none;
+      outline: 2px solid transparent;
     }
 
     .lang-trigger:focus-visible {
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16), 0 8px 18px rgba(15, 23, 42, 0.08);
+      box-shadow: var(--ui-shadow);
     }
 
     .lang-menu {
@@ -85,10 +85,10 @@ import { Locale } from '../../core/i18n/translations';
       gap: 0.35rem;
       min-width: 190px;
       padding: 0.45rem;
-      border: 1px solid rgba(15, 23, 42, 0.08);
+      border: 1px solid color-mix(in srgb, var(--ui-navy) 8%, transparent);
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.98);
-      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+      background: color-mix(in srgb, var(--ui-surface) 98%, transparent);
+      box-shadow: var(--ui-shadow);
       z-index: 50;
     }
 
@@ -102,7 +102,7 @@ import { Locale } from '../../core/i18n/translations';
       border: 1px solid transparent;
       border-radius: 8px;
       background: transparent;
-      color: #475569;
+      color: var(--ui-text-secondary);
       font-size: 0.84rem;
       font-weight: 800;
       cursor: pointer;
@@ -110,21 +110,21 @@ import { Locale } from '../../core/i18n/translations';
     }
 
     .lang-option:hover {
-      background: #f8fafc;
-      border-color: rgba(15, 23, 42, 0.06);
+      background: var(--ui-surface);
+      border-color: color-mix(in srgb, var(--ui-navy) 6%, transparent);
     }
 
     .lang-option.is-active {
-      background: #eef2ff;
-      border-color: rgba(37, 99, 235, 0.12);
-      color: #0f172a;
+      background: var(--ui-surface-subtle);
+      border-color: color-mix(in srgb, var(--ui-primary-strong) 12%, transparent);
+      color: var(--ui-navy);
     }
 
     .flag-swatch {
       width: 1.55rem;
       height: 1.05rem;
       border-radius: 4px;
-      border: 1px solid rgba(15, 23, 42, 0.14);
+      border: 1px solid color-mix(in srgb, var(--ui-navy) 14%, transparent);
       flex-shrink: 0;
     }
 
@@ -145,7 +145,7 @@ import { Locale } from '../../core/i18n/translations';
       letter-spacing: 0;
       font-size: 0.78rem;
       font-weight: 900;
-      color: #0f172a;
+      color: var(--ui-navy);
     }
 
     .chevron {

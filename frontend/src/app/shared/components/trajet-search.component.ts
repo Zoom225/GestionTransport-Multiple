@@ -22,7 +22,7 @@ import { RechercheTrajet, VilleOption } from '../models/trajet.model';
     <form
       [formGroup]="form"
       (ngSubmit)="recherche.emit(form.getRawValue())"
-      class="search-form"
+      class="search-form" [attr.aria-busy]="chargementVilles()"
       aria-label="{{ language.t('transport.search') }}"
     >
       <mat-form-field appearance="outline"
@@ -47,14 +47,13 @@ import { RechercheTrajet, VilleOption } from '../models/trajet.model';
         ><mat-label>{{ language.t('transport.travelDate') }}</mat-label
         ><input matInput type="date" formControlName="date"
       /></mat-form-field>
-      <button mat-flat-button type="submit">{{ language.t('transport.search') }}</button>
+      <button mat-flat-button type="submit" [disabled]="chargementVilles()">{{ language.t('transport.search') }}</button>
     </form>
     @if (erreur()) {
       <p role="alert" class="status-error">{{ erreur() }}</p>
     }
   `,
-  styles: [
-    `
+  styles: [`
       :host {
         display: block;
       }
@@ -84,14 +83,14 @@ import { RechercheTrajet, VilleOption } from '../models/trajet.model';
           width: 100%;
         }
       }
-    `,
-  ],
+    `],
 })
 export class TrajetSearchComponent {
   readonly language = inject(LanguageService);
   @Output() readonly recherche = new EventEmitter<RechercheTrajet>();
   readonly villes = signal<VilleOption[]>([]);
   readonly erreur = signal('');
+  readonly chargementVilles = signal(true);
   readonly form = new FormGroup({
     depart: new FormControl('', { nonNullable: true }),
     arrivee: new FormControl('', { nonNullable: true }),
@@ -101,11 +100,8 @@ export class TrajetSearchComponent {
     inject(TrajetsApiService)
       .getVilles()
       .subscribe({
-        next: (villes) => this.villes.set(villes),
-        error: () =>
-          this.erreur.set(
-            'Les villes ne peuvent pas être chargées. Réessayez dans quelques instants.',
-          ),
+        next: (villes) => { this.villes.set(villes); this.chargementVilles.set(false); },
+        error: () => { this.chargementVilles.set(false); this.erreur.set(this.language.t('ui.loadCities')); },
       });
   }
 }
