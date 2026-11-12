@@ -203,7 +203,7 @@ Pour une présentation, privilégier la base de démonstration isolée décrite 
 | DB_URL                  | Connexion PostgreSQL                                          | localhost:5440/transportService        |
 | DB_USER / DB_PASSWORD   | Identifiants du serveur                                       | transport / transport en développement |
 | DEMO_DATA_ENABLED       | Activation explicite de la démonstration                      | false                                  |
-| DEMO_PASSWORD           | Mot de passe des comptes de démonstration, min. 12 caractères | Aucun                                  |
+| DEMO_PASSWORD           | Mot de passe démo, min. 12 caractères, max. 72 octets UTF-8 | Aucun                                  |
 | RESERVATION_PAYMENT_TTL | Délai ISO-8601 de paiement                                    | PT30M                                  |
 | RESTRICTION_DAYS        | Durée d'une restriction validée                               | 7                                      |
 | SERVER_PORT             | Port HTTP Spring Boot                                         | 8080                                   |
@@ -247,7 +247,7 @@ $env:DB_URL = "jdbc:postgresql://localhost:5440/$baseDemoTransport"
 $env:DB_USER = 'transport'
 $env:DB_PASSWORD = 'transport'
 $env:DEMO_DATA_ENABLED = 'true'
-$secretDemoTransport = Read-Host 'Mot de passe de démonstration (12 caractères minimum)' -AsSecureString
+$secretDemoTransport = Read-Host 'Mot de passe de démonstration (min. 12 caractères, max. 72 octets UTF-8)' -AsSecureString
 $pointeurDemoTransport = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secretDemoTransport)
 try { $env:DEMO_PASSWORD = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointeurDemoTransport) }
 finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointeurDemoTransport) }
@@ -267,8 +267,8 @@ Comptes créés uniquement dans cette base de démonstration :
 | Administrateur | agence@example.test | Gestionnaire de l'agence de démonstration |
 
 Le mot de passe est celui fourni par `DEMO_PASSWORD`.
-Le trajet de démonstration est clairement nommé et propose quatre places,
-sans réservation du chauffeur. Il n'est jamais inséré automatiquement dans la base métier.
+Les huit trajets de démonstration proposent chacun quatre places,
+sans réservation du chauffeur. Ils ne sont jamais insérés automatiquement dans la base métier.
 
 Parcours de présentation :
 
@@ -340,6 +340,7 @@ Toutes les PR ciblent `develop`. Les branches fonctionnelles partent du dernier
 | #5    | feature/issue-5-transport-api               | [#15](https://github.com/Zoom225/GestionTransport-Multiple/pull/15)                                                                    |
 | #6    | feature/issue-6-transport-frontend          | [#16](https://github.com/Zoom225/GestionTransport-Multiple/pull/16)                                                                    |
 | #7 | feature/issue-7-integration-validation | [#17](https://github.com/Zoom225/GestionTransport-Multiple/pull/17) |
+| #4, #6, #7 | feature/issue-4-soutenance-finalisation | [#18](https://github.com/Zoom225/GestionTransport-Multiple/pull/18) |
 
 Documents à lire pour présenter le projet :
 
@@ -353,6 +354,11 @@ Documents à lire pour présenter le projet :
 - [Audit initial historique](docs/audit-initial.md) et [exécutions de baseline](docs/baseline-execution.md).
 
 ## Candidat de soutenance — finalisation issues #4 et #7
+
+Dernière validation : **155 tests backend dont 15 PostgreSQL**, **63 tests Angular**,
+builds réussis et [CI réussie](https://github.com/Zoom225/GestionTransport-Multiple/actions/runs/43277688472).
+Le parcours réel de réservation/paiement/remboursement et neuf contrôles responsive
+à 375, 768 et 1440 px ont réussi sur une base de démonstration isolée.
 
 Les archives locales sont conservées dans `.local-validation/`, hors Git et hors
 `target` : `mvn clean` ne les supprime pas. Le diff local de `pom.xml` reste hors commit.

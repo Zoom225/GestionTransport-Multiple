@@ -1,5 +1,92 @@
 # Issue #7 — Intégration et validation
 
+## Finalisation soutenance du 12 novembre 2026 — PR #18
+
+Branche : `feature/issue-4-soutenance-finalisation`, depuis `develop` après fusion
+de la PR #17 (`679c0c3`). Issues #4 (restrictions), #6 (administration Angular)
+et #7 (validation/livraison). `master` n'a pas été modifiée directement.
+
+Les résultats des sections suivantes sur la PR #17 sont conservés comme historique.
+Pour la PR #18, les logs de [CI 43277688472](https://github.com/Zoom225/GestionTransport-Multiple/actions/runs/43277688472)
+sur `715f02c181a755cdc379b2ecfa45185d88561d6a` établissent :
+
+| Contrôle effectivement exécuté en CI | Résultat |
+| --- | --- |
+| Java 21, `bash ./mvnw -B verify` | 155 tests, zéro échec, zéro erreur, zéro ignoré ; build réussi |
+| PostgreSQL 15 isolé | 15 tests réels inclus, contraintes, concurrence, absence administrative, dette et restrictions |
+| Node 24, `npm ci` | Installation réussie depuis le verrou npm |
+| Angular 21.2.26, `npm test` | 63 tests réussis |
+| Angular, `npm run build` | Build de production réussi |
+
+Localement, `mvn -B clean verify` a aussi réussi avec 154 tests avant l'ajout du
+contrôle BCrypt (155 ensuite en CI). Les relances locales sur le port 5440 ont
+rencontré `SocketTimeoutException: Read timed out`, puis une disparition du conteneur
+Docker et `Connection refused`. Le volume historique est resté présent. La remise
+en service par `docker compose up -d` a réutilisé `padellaoutt_padel-db-data` ; les
+huit paiements métier étaient toujours présents. Aucune suppression ni réinitialisation.
+Une instance PostgreSQL de validation distincte, sans volume métier, est ensuite
+utilisée sur le port 5541. Ces incidents ne sont pas présentés comme des tests réussis.
+
+### Résultats locaux finaux
+
+- `mvn -B verify`, URL `jdbc:postgresql://127.0.0.1:5541/issue1_validation_soutenance` :
+  **155 tests, dont 15 PostgreSQL, zéro échec/erreur/ignoré**, build réussi.
+- Frontend : **`npm ci`, `npm run build` et 63 tests `npm test` réussis** avec le
+  verrou de correctifs Angular 21.2.26, sans modifier les versions majeures.
+- `node scripts/validation-covoiturage.cjs` : réussi sur
+  `transport_demo_soutenance_20261112192048`, backend 18081 et build Angular 4201.
+  JWT global/local/chauffeur et trois catégories, privé/invitations/consentement,
+  cinq demandes sans retenue de place, quatre paiements de 25 € (100 €), deux
+  paiements concurrents pour la dernière place, annulation/remboursement et réutilisation,
+  conflits chauffeur/véhicule et périmètre d'agence vérifiés via REST.
+- Navigateur Edge : réservation et paiement depuis Angular, confirmation et trois
+  places restantes contrôlées par REST, profil, historique, administration/statistiques,
+  annulation chauffeur et remboursement conservé. **Aucune erreur JavaScript**.
+- **Neuf contrôles responsive réussis**, sans débordement horizontal : accueil,
+  réservations authentifiées et administration, chacun à **375, 768 et 1440 px**.
+  Capture d'accueil actualisée dans `docs/images/accueil-transport-demonstration.png`.
+  Rapport complet et captures supplémentaires dans `target/browser-validation`, hors Git.
+- Compilation IntelliJ réussie, sans compilation Maven concurrente. Aucun fichier
+  `.log`, `.env`, `target/*` ou `frontend/dist/*` suivi par Git ; recherche de signatures
+  de clés privées et jetons courants sans résultat dans les sources/documentation.
+- Redémarrage dev sur la même base isolée non vide avec un autre secret de démonstration :
+  initialisation ignorée, empreinte des identifiants/hachages de mots de passe inchangée.
+  **`/v3/api-docs` HTTP 200 et `/swagger-ui.html` HTTP 200** après redirection vérifiés.
+
+La première tentative de démonstration a révélé un mot de passe d'environnement
+de plus de 72 octets, refusé par BCrypt. L'initialiseur refuse désormais ce cas
+avant toute insertion ; un test le vérifie. Générer par exemple 32 octets aléatoires
+encodés en Base64 pour DEMO_PASSWORD, séparément des 64 octets de JWT_SECRET.
+
+### Sécurité et dépendances
+
+L'audit initial npm signalait 51 alertes, dont deux critiques et 21 hautes ; sept
+concernaient les dépendances de production. Les correctifs restent dans Angular 21
+(21.2.26) et les versions majeures déjà déclarées pour les outils. Aucune nouvelle
+bibliothèque fonctionnelle. Le verrou a été résolu puis vérifié par `npm ci` en CI,
+sans `--force` ni `--legacy-peer-deps`. `npm audit --omit=dev --json` retourne zéro
+vulnérabilité de production. L'audit complet laisse 16 alertes modérées sur l'outillage :
+ne pas les confondre avec zéro risque global, ni exposer un serveur de développement
+sur Internet. Les migrations SQL sont additives ; aucune donnée historique recalculée.
+
+### Trame de soutenance
+
+1. Présenter l'architecture Controller → Service → Repository et les DTO/mappers,
+   puis Angular (services API, guard, interceptor) et PostgreSQL. Voir le README.
+2. Expliquer chauffeur obligatoire, quatre clients, prix 25 €, catégories et privé
+   avec consentement de publication. Voir `analyse-metier.md`.
+3. Montrer le diagramme et les FK/index/contraintes dans `modele-donnees.md`.
+4. Démarrer Docker, une base dev isolée, Spring Boot puis Angular avec les commandes
+   PowerShell du README ; ouvrir Swagger et effectuer le parcours de réservation.
+5. Montrer paiement simulé, historique, remboursement, statistiques et restrictions.
+6. Expliquer la transaction de paiement et le verrou de la dernière place, puis
+   les tests PostgreSQL concurrents et la CI. Aucun service bancaire réel.
+
+Les branches métier ciblent `develop`. Une PR distincte de `develop` vers `master`
+est requise pour la livraison, avec CI sur cette cible et sans fusion automatique.
+
+## Historique de la PR #17
+
 Branche : `feature/issue-7-integration-validation`, depuis develop après la PR #16.
 Pull request : [#17](https://github.com/Zoom225/GestionTransport-Multiple/pull/17), vers develop.
 
