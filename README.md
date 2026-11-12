@@ -197,6 +197,21 @@ $env:DEMO_DATA_ENABLED = 'false'
 Conserver `DEMO_DATA_ENABLED=false` sur toute base métier.
 Pour une présentation, privilégier la base de démonstration isolée décrite ci-dessous.
 
+Dans IntelliJ, la configuration Spring Boot **GestionTransportApplication** doit
+elle aussi recevoir `JWT_SECRET`. Une variable `$env:JWT_SECRET` définie dans un
+terminal ne configure pas une instance IntelliJ déjà ouverte. Pour préparer cette
+configuration locale sans afficher ni publier de secret :
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/configure-intellij-jwt.ps1
+```
+
+Le script ajoute une clé aléatoire uniquement si elle manque dans `.idea/workspace.xml`,
+ignoré par Git, et préserve une clé déjà configurée. Relancer ensuite **GestionTransportApplication**.
+Il ne modifie ni la base, ni les autres variables de lancement. L'erreur
+`Could not resolve placeholder 'JWT_SECRET'` indique cette configuration manquante
+au démarrage. Aucun secret par défaut n'est ajouté à `application.properties`.
+
 | Variable                | Usage                                                         | Défaut                                 |
 | ----------------------- | ------------------------------------------------------------- | -------------------------------------- |
 | JWT_SECRET              | Clé JWT, au moins 32 octets, obligatoire                      | Aucun                                  |

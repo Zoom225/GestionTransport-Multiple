@@ -27,6 +27,25 @@ de tests recompilées**, **4 tests réussis**, zéro échec/erreur/ignoré. Aucu
 simultané à Maven. Les avertissements MockBean préexistants restent non bloquants.
 Recherche finale : aucune référence à l'ancien package dans `src`, `.idea` et `.run`.
 
+### Complément : variable JWT absente dans le lancement IntelliJ
+
+Le journal transmis ensuite montre `Could not resolve placeholder 'JWT_SECRET'` :
+le lancement utilise bien la classe Transport mais la configuration Spring Boot
+personnelle n'a aucune variable JWT. Le script `scripts/configure-intellij-jwt.ps1`
+ajoute une clé aléatoire uniquement si elle manque dans cette configuration locale,
+après vérification que le fichier et sa sauvegarde sont ignorés par Git. Une clé
+existante est préservée et une clé trop courte est signalée. Aucune valeur n'est affichée,
+aucun secret n'est ajouté au dépôt ou à `application.properties`.
+
+Vérifications exécutées : deux exécutions du script, clé inchangée au second passage ;
+compilation IntelliJ réussie ; lancement réel de **GestionTransportApplication** via
+l'IDE, avec les seules variables de base/port remplacées temporairement pour le test.
+Base isolée `transport_demo_jwt_20261112213009`, serveur PostgreSQL de validation
+sur 5541, `DEMO_DATA_ENABLED=false`, port HTTP 18081 : démarrage Spring Boot réussi
+en 18 secondes, **OpenAPI et Swagger UI HTTP 200**. La clé JWT utilisée vient bien
+de la configuration IntelliJ corrigée. Instance de vérification arrêtée après contrôle ;
+aucune modification de la base métier.
+
 ## Finalisation soutenance du 12 novembre 2026 — PR #18
 
 Branche : `feature/issue-4-soutenance-finalisation`, depuis `develop` après fusion
