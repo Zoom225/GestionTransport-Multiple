@@ -41,9 +41,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/agences/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/vehicules/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/voyageurs/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/trajets/public").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/trajets/public", "/api/trajets/villes").permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/api/trajets").hasRole("VOYAGEUR")
+                        .requestMatchers(HttpMethod.POST, "/api/trajets").hasAnyRole("VOYAGEUR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/trajets/organisateur/**").hasRole("VOYAGEUR")
                         .requestMatchers(HttpMethod.GET, "/api/trajets").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/trajets/agence/**").hasRole("ADMIN")

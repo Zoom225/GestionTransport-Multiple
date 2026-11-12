@@ -36,8 +36,7 @@ public class TrajetController {
     @Operation(
             summary = "Créer un trajet",
             description = "Crée un trajet PUBLIC ou PRIVÉ pour le voyageur connecté. " +
-                    "Les limites de réservation GLOBAL, AGENCE et LIBRE s'appliquent à la création du trajet. " +
-                    "Accessible uniquement à un voyageur authentifié.",
+                    "Le chauffeur est identifié depuis la session ; un administrateur doit sélectionner un chauffeur autorisé.",
             security = @SecurityRequirement(name = "Bearer Auth")
     )
     @PostMapping
@@ -51,7 +50,8 @@ public class TrajetController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
-        TrajetDto createdTrajet = trajetService.createTrajet(request, username);
+        TrajetDto createdTrajet = adminAuthorizationService.isAdmin()
+                ? trajetService.createTrajetForAdmin(request) : trajetService.createTrajet(request, username);
         return new ResponseEntity<>(createdTrajet, HttpStatus.CREATED);
     }
 
@@ -71,8 +71,16 @@ public class TrajetController {
             description = "Retourne les trajets PUBLICS planifiés et encore disponibles. Endpoint public."
     )
     @GetMapping("/public")
-    public ResponseEntity<List<TrajetDto>> getPublicTrajets() {
-        return ResponseEntity.ok(trajetService.getPublicAvailableTrajets());
+    public ResponseEntity<List<TrajetDto>> getPublicTrajets(
+            @RequestParam(required = false) com.transport.gestiontransport.entity.enums.VilleBelge depart,
+            @RequestParam(required = false) com.transport.gestiontransport.entity.enums.VilleBelge arrivee,
+            @RequestParam(required = false) java.time.LocalDate date) {
+        return ResponseEntity.ok(trajetService.searchPublicTrajets(depart, arrivee, date));
+    }
+
+    @GetMapping("/villes")
+    public List<com.transport.gestiontransport.entity.enums.VilleBelge.Option> getVilles() {
+        return com.transport.gestiontransport.entity.enums.VilleBelge.options();
     }
 
     @Operation(
@@ -124,6 +132,7 @@ public class TrajetController {
             @Parameter(description = "ID du trajet", required = true)
             @PathVariable Long id,
             @Valid @RequestBody TrajetRequest request) {
+        currentVoyageurService.requireCurrentVoyageur(request.getOrganisateurId());
         return ResponseEntity.ok(trajetService.updateTrajet(id, request));
     }
 
@@ -147,7 +156,7 @@ public class TrajetController {
 
     @Operation(
             summary = "Convertir un trajet privé en public",
-            description = "Convertit un trajet PRIVÉ en PUBLIC et applique une restriction à l'organisateur. " +
+            description = "Publie un trajet privé consentant dans les 24 heures avant départ. " +
                     "Accessible à un admin GLOBAL ou à un admin AGENCE dans son périmètre.",
             security = @SecurityRequirement(name = "Bearer Auth")
     )

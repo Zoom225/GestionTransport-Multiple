@@ -36,6 +36,8 @@ public class TrajetServiceImpl implements TrajetService {
     private final ReservationService reservationService;
     private final EntityManager entityManager;
     private final AdminAuthorizationService adminAuthorizationService;
+    private final VoyageurCourantService voyageurCourantService;
+    private final ReservationRepository reservationRepository;
     private final IndisponibiliteServiceRepository indisponibiliteServiceRepository;
     private final VehiculeService vehiculeService;
     private final VoyageurService voyageurService;
@@ -120,12 +122,17 @@ public class TrajetServiceImpl implements TrajetService {
 
     @Override
     public List<TrajetDto> searchPublicTrajets(VilleBelge depart, VilleBelge arrivee, LocalDate date) {
+        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        Voyageur voyageur = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_VOYAGEUR".equals(a.getAuthority())) ? voyageurCourantService.currentVoyageur() : null;
         return trajetRepository.findByTypeTrajetAndStatut(TypeTrajet.PUBLIC, StatutTrajet.PLANIFIE).stream()
                 .filter(t -> t.getChauffeur() != null && t.getVilleDepart() != null && t.getVilleArrivee() != null)
                 .filter(t -> t.getDateDebut().isAfter(LocalDateTime.now()) && t.getNbPassagersActuels() < Trajet.MAX_CLIENTS)
                 .filter(t -> depart == null || t.getVilleDepart() == depart)
                 .filter(t -> arrivee == null || t.getVilleArrivee() == arrivee)
                 .filter(t -> date == null || t.getDateDebut().toLocalDate().equals(date))
+                .filter(t -> voyageur == null || voyageur.getTypeVoyageur() != TypeVoyageur.LOCAL
+                        || (voyageur.getAgence() != null && voyageur.getAgence().getId().equals(t.getVehicule().getAgence().getId())))
                 .map(trajetMapper::toTrajetDto).toList();
     }
 
@@ -153,7 +160,27 @@ public class TrajetServiceImpl implements TrajetService {
 
     @Override
     public TrajetDto getTrajetDtoById(Long id) {
+        checkReadAccess(id);
         return trajetMapper.toTrajetDto(getTrajetEntityById(id));
+    }
+
+    @Override
+    public void checkReadAccess(Long trajetId) {
+        Trajet trajet = getTrajetEntityById(trajetId);
+        if (adminAuthorizationService.isAdmin()) {
+            adminAuthorizationService.checkTrajetAccess(trajetId);
+            return;
+        }
+        Voyageur voyageur = voyageurCourantService.currentVoyageur();
+        if (trajet.getChauffeur().getId().equals(voyageur.getId())) return;
+        if (trajet.getTypeTrajet() == TypeTrajet.PRIVE
+                && !reservationRepository.existsByTrajetIdAndVoyageurId(trajetId, voyageur.getId())) {
+            throw new org.springframework.security.access.AccessDeniedException("Ce trajet privé nécessite une invitation.");
+        }
+        if (voyageur.getTypeVoyageur() == TypeVoyageur.LOCAL && (voyageur.getAgence() == null
+                || !voyageur.getAgence().getId().equals(trajet.getVehicule().getAgence().getId()))) {
+            throw new org.springframework.security.access.AccessDeniedException("Ce trajet se situe hors de votre zone autorisée.");
+        }
     }
 
     @Override

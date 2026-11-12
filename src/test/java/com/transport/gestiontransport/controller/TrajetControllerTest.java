@@ -113,7 +113,7 @@ class TrajetControllerTest {
     @Test
     @DisplayName("GET /api/trajets/public - Doit retourner les trajets publics sans authentification")
     void getPublicTrajets_WithoutAuthentication_ShouldReturnOk() throws Exception {
-        when(trajetService.getPublicAvailableTrajets()).thenReturn(List.of(trajetDto));
+        when(trajetService.searchPublicTrajets(null, null, null)).thenReturn(List.of(trajetDto));
 
         mockMvc.perform(get("/api/trajets/public"))
                 .andExpect(status().isOk())

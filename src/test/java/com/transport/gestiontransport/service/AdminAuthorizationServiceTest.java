@@ -121,6 +121,22 @@ class AdminAuthorizationServiceTest {
                 .hasMessageContaining("sa propre agence");
     }
 
+    @Test
+    void deuxAgencesDeMemeNomRestentIsoleesParLeurIdentifiant() {
+        agenceParis.setNom(agenceLyon.getNom());
+        String email = "local@example.test";
+        authenticate(email);
+        when(administrateurRepository.findByEmail(email))
+                .thenReturn(Optional.of(admin(email, TypeAdministrateur.AGENCE, agenceLyon)));
+        var mapper = new com.transport.gestiontransport.mapper.TrajetMapper();
+        var a = mapper.toTrajetDto(com.transport.gestiontransport.entity.Trajet.builder()
+                .vehicule(Vehicule.builder().agence(agenceLyon).build()).nbPassagersActuels(0).build());
+        var b = mapper.toTrajetDto(com.transport.gestiontransport.entity.Trajet.builder()
+                .vehicule(Vehicule.builder().agence(agenceParis).build()).nbPassagersActuels(0).build());
+        org.assertj.core.api.Assertions.assertThat(adminAuthorizationService.filterTrajetDtos(java.util.List.of(a, b)))
+                .containsExactly(a);
+    }
+
     private void authenticate(String email) {
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(email, null)

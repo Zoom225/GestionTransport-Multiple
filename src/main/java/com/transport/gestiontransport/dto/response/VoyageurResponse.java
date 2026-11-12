@@ -19,4 +19,5 @@ public class VoyageurResponse {
     private String agenceNom;
     private Double solde;
     private String token;
+    private Boolean peutProposerTrajet;
 }

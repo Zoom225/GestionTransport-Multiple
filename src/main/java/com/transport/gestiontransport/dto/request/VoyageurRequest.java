@@ -31,4 +31,5 @@ public class VoyageurRequest {
     private Long agenceId;
 
     private String password;
+    private Boolean peutProposerTrajet;
 }

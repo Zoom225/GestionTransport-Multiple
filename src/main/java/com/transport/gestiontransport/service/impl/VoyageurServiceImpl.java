@@ -44,6 +44,7 @@ public class VoyageurServiceImpl implements VoyageurService {
         }
 
         voyageur.setSolde(0.0);
+        voyageur.setPeutProposerTrajet(Boolean.TRUE.equals(voyageur.getPeutProposerTrajet()));
         return voyageurRepository.save(voyageur);
     }
 
@@ -71,6 +72,7 @@ public class VoyageurServiceImpl implements VoyageurService {
         existing.setNom(voyageur.getNom());
         existing.setPrenom(voyageur.getPrenom());
         existing.setEmail(voyageur.getEmail());
+        if (voyageur.getPeutProposerTrajet() != null) existing.setPeutProposerTrajet(voyageur.getPeutProposerTrajet());
         return voyageurRepository.save(existing);
     }
 

@@ -11,6 +11,7 @@ import com.transport.gestiontransport.entity.enums.VilleBelge;
 import java.time.LocalDate;
 
 public interface TrajetService {
+    void checkReadAccess(Long trajetId);
 
     int REQUIRED_PASSAGERS_PER_TRAJET = Trajet.MAX_CLIENTS;
     BigDecimal PRIX_CLIENT_EUROS = new BigDecimal("25.00");
