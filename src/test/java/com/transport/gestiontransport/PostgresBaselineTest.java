@@ -5,6 +5,8 @@ import com.transport.gestiontransport.entity.enums.*;
 import com.transport.gestiontransport.exception.BusinessException;
 import com.transport.gestiontransport.repository.*;
 import com.transport.gestiontransport.service.ReservationService;
+import com.transport.gestiontransport.service.PaiementService;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +48,7 @@ class PostgresBaselineTest {
     TrajetRepository trajets;
     @Autowired ReservationRepository reservations;
     @Autowired ReservationService reservationService;
+    @Autowired PaiementService paiementService;
     @Autowired PlatformTransactionManager transactionManager;
     @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
     @Autowired AdministrateurRepository administrateurs;
@@ -86,41 +89,92 @@ class PostgresBaselineTest {
         })).isInstanceOf(DataIntegrityViolationException.class);
     }
 
-    @Test
-    void concurrentReservationsMustNotSellTheLastPlaceTwice() throws Exception {
-        Agence agence = agences.saveAndFlush(Agence.builder().nom("Baseline").adresse("Test")
+    private Trajet trajetVide() {
+        Agence agence = agences.saveAndFlush(Agence.builder().nom("Validation Mons").adresse("Test")
                 .heureOuverture(LocalTime.MIN).heureFermeture(LocalTime.MAX)
                 .dureeTrajetMinutes(90).dureeEntreTrajetMinutes(15).anneeCivile(2030).build());
-        Vehicule vehicule = vehicules.saveAndFlush(Vehicule.builder().nom("Test").agence(agence).prix(60.0).build());
-        Voyageur owner = voyageur();
-        LocalDateTime start = LocalDateTime.now().plusDays(10);
-        Trajet trajet = trajets.saveAndFlush(Trajet.builder().vehicule(vehicule).chauffeur(owner)
-                .dateDebut(start).dateFin(start.plusMinutes(90)).typeTrajet(TypeTrajet.PUBLIC)
-                .statut(StatutTrajet.PLANIFIE).nbPassagersActuels(3).prixTotal(60.0).prixParPassager(15.0).build());
-        Long first = voyageur().getId();
-        Long second = voyageur().getId();
-        // Two real transactions have read the same last-place state before either writes.
+        Vehicule vehicule = vehicules.saveAndFlush(Vehicule.builder().nom("Voiture test").agence(agence).build());
+        Voyageur chauffeur = voyageur();
+        chauffeur.setPeutProposerTrajet(true);
+        voyageurs.saveAndFlush(chauffeur);
+        LocalDateTime debut = LocalDateTime.now().plusDays(3);
+        return trajets.saveAndFlush(Trajet.builder().vehicule(vehicule).chauffeur(chauffeur)
+                .villeDepart(VilleBelge.MONS).villeArrivee(VilleBelge.BRUXELLES)
+                .dateDebut(debut).dateFin(debut.plusMinutes(90)).typeTrajet(TypeTrajet.PUBLIC)
+                .statut(StatutTrajet.PLANIFIE).nbPassagersActuels(0).prixTotal(100.0).prixParPassager(25.0).build());
+    }
+
+    private Reservation demande(Trajet trajet) {
+        Long client = voyageur().getId();
+        return reservationService.create(trajet.getId(), client, client);
+    }
+
+    @Test
+    void quatrePaiementsPuisAnnulationLiberentUnePlaceSansFacturerLeChauffeur() {
+        Trajet trajet = trajetVide();
+        List<Reservation> demandes = java.util.stream.IntStream.range(0, 5).mapToObj(i -> demande(trajet)).toList();
+        assertThat(trajets.findById(trajet.getId()).orElseThrow().getNbPassagersActuels()).isZero();
+        for (int i = 0; i < 4; i++) paiementService.pay(demandes.get(i).getId(), demandes.get(i).getVoyageur().getId());
+        assertThat(trajets.findById(trajet.getId()).orElseThrow().getNbPassagersActuels()).isEqualTo(4);
+        assertThat(jdbc.queryForObject("SELECT sum(p.montant) FROM paiements p JOIN reservations r ON r.id = p.reservation_id WHERE r.match_id = ? AND p.statut = 'PAYE'",
+                java.math.BigDecimal.class, trajet.getId())).isEqualByComparingTo("100.00");
+        Reservation cinquieme = demandes.get(4);
+        assertThatThrownBy(() -> paiementService.pay(cinquieme.getId(), cinquieme.getVoyageur().getId()))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("complet");
+        assertThat(reservations.findById(cinquieme.getId()).orElseThrow().getStatut()).isEqualTo(StatutReservation.EN_ATTENTE);
+        reservationService.cancel(demandes.get(0).getId());
+        assertThat(trajets.findById(trajet.getId()).orElseThrow().getNbPassagersActuels()).isEqualTo(3);
+        paiementService.pay(cinquieme.getId(), cinquieme.getVoyageur().getId());
+        assertThat(trajets.findById(trajet.getId()).orElseThrow().getNbPassagersActuels()).isEqualTo(4);
+        assertThat(reservations.findByTrajetId(trajet.getId())).hasSize(5);
+        assertThat(reservations.existsByTrajetIdAndVoyageurId(trajet.getId(), trajet.getChauffeur().getId())).isFalse();
+    }
+
+    @Test
+    void uneDemandePostgresExpireSansModifierLesPaiementsHistoriques() {
+        Trajet trajet = trajetVide();
+        Reservation r = demande(trajet);
+        jdbc.update("UPDATE reservations SET created_at = ? WHERE id = ?",
+                java.sql.Timestamp.valueOf(LocalDateTime.now().minusHours(1)), r.getId());
+        reservationService.expirePendingReservations();
+        assertThat(reservations.findById(r.getId()).orElseThrow().getStatut()).isEqualTo(StatutReservation.EXPIREE);
+        assertThat(trajets.findById(trajet.getId()).orElseThrow().getNbPassagersActuels()).isZero();
+        assertThat(jdbc.queryForObject("SELECT statut FROM paiements WHERE reservation_id = ?", String.class, r.getId()))
+                .isEqualTo("ANNULE");
+        assertThat(voyageurs.findById(trajet.getChauffeur().getId()).orElseThrow().getSolde()).isZero();
+    }
+
+    @Test
+    void concurrentReservationsMustNotSellTheLastPlaceTwice() throws Exception {
+        Trajet trajet = trajetVide();
+        for (int i = 0; i < 3; i++) {
+            Reservation r = demande(trajet);
+            paiementService.pay(r.getId(), r.getVoyageur().getId());
+        }
+        Reservation premier = demande(trajet);
+        Reservation second = demande(trajet);
         CyclicBarrier readBarrier = new CyclicBarrier(2);
         ExecutorService executor = Executors.newFixedThreadPool(2);
         try {
-            Future<Boolean> a = executor.submit(() -> reserve(trajet.getId(), first, readBarrier));
-            Future<Boolean> b = executor.submit(() -> reserve(trajet.getId(), second, readBarrier));
+            Future<Boolean> a = executor.submit(() -> payer(trajet.getId(), premier, readBarrier));
+            Future<Boolean> b = executor.submit(() -> payer(trajet.getId(), second, readBarrier));
             int successes = (a.get(30, TimeUnit.SECONDS) ? 1 : 0) + (b.get(30, TimeUnit.SECONDS) ? 1 : 0);
-            assertThat(successes).as("only one request can reserve the last available place").isEqualTo(1);
-            assertThat(reservations.findByTrajetId(trajet.getId())).hasSize(1);
+            assertThat(successes).as("un seul paiement peut confirmer la dernière place").isEqualTo(1);
+            assertThat(reservations.findByTrajetId(trajet.getId()).stream()
+                    .filter(r -> r.getStatut() == StatutReservation.CONFIRMEE)).hasSize(4);
             assertThat(trajets.findById(trajet.getId()).orElseThrow().getNbPassagersActuels()).isEqualTo(4);
         } finally {
             executor.shutdownNow();
         }
     }
 
-    private boolean reserve(Long trajetId, Long voyageurId, CyclicBarrier barrier) {
+    private boolean payer(Long trajetId, Reservation demande, CyclicBarrier barrier) {
         try {
             new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
                 trajets.findById(trajetId).orElseThrow();
                 try { barrier.await(10, TimeUnit.SECONDS); }
                 catch (Exception ex) { throw new IllegalStateException(ex); }
-                reservationService.create(trajetId, voyageurId, voyageurId);
+                paiementService.pay(demande.getId(), demande.getVoyageur().getId());
             });
             return true;
         } catch (BusinessException ex) {

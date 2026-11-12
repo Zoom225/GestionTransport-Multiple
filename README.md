@@ -1,5 +1,10 @@
 # GestionTransport-Multiple
 
+Le modèle retenu est : **un chauffeur associé, quatre clients maximum,
+25 € par client, 100 € si le trajet est complet**. Le chauffeur ne réserve
+aucune des quatre places. La confirmation intervient après paiement simulé.
+Voir les règles et validations de [l'issue #4](docs/covoiturage/issue-4-reservation-paiement.md).
+
 Application Spring Boot et Angular en cours de transformation vers le transport public et privé.
 
 ## Tarif actuel — décision métier (issue #4)

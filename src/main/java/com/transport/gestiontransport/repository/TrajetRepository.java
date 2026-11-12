@@ -25,9 +25,9 @@ public interface TrajetRepository extends JpaRepository<Trajet, Long> {
 
     @Query("SELECT count(t) > 0 FROM Trajet t WHERE t.chauffeur.id = :chauffeurId " +
             "AND t.statut <> com.transport.gestiontransport.entity.enums.StatutTrajet.ANNULE " +
-            "AND t.dateDebut < :fin AND t.dateFin > :debut")
+            "AND t.dateDebut < :fin AND t.dateFin > :debut AND t.id <> :exclu")
     boolean existsChauffeurOverlap(@Param("chauffeurId") Long chauffeurId,
-            @Param("debut") LocalDateTime debut, @Param("fin") LocalDateTime fin);
+            @Param("debut") LocalDateTime debut, @Param("fin") LocalDateTime fin, @Param("exclu") Long exclu);
 
     List<Trajet> findByDateDebutBetweenAndStatut(LocalDateTime start, LocalDateTime end, StatutTrajet statut);
 

@@ -71,7 +71,9 @@ class TrajetControllerTest {
     @BeforeEach
     void setUp() {
         LocalDateTime startTime = LocalDateTime.now().plusDays(10).withNano(0);
-        validCreateTrajetRequest = new CreateTrajetRequest(1L, startTime, "PUBLIC");
+        validCreateTrajetRequest = new CreateTrajetRequest(1L, startTime, "PUBLIC",
+                com.transport.gestiontransport.entity.enums.VilleBelge.MONS,
+                com.transport.gestiontransport.entity.enums.VilleBelge.BRUXELLES, false, null);
 
         trajetDto = new TrajetDto(
                 1L,                                        // id

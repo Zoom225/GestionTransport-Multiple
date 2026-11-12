@@ -37,7 +37,7 @@ class ReservationServiceTest {
     private PaiementRepository paiementRepository;
 
     @Mock
-    private TrajetService trajetService;
+    private com.transport.gestiontransport.repository.TrajetRepository trajetRepository;
 
     @Mock
     private VoyageurService voyageurService;
@@ -110,41 +110,89 @@ class ReservationServiceTest {
         trajetPrive = Trajet.builder()
                 .vehicule(vehicule)
                 .chauffeur(organisateur)
-                .dateDebut(java.time.LocalDateTime.of(LocalDate.now().plusDays(25), LocalTime.of(15, 0)))
-                .dateFin(java.time.LocalDateTime.of(LocalDate.now().plusDays(25), LocalTime.of(16, 30)))
+                .villeDepart(VilleBelge.MONS).villeArrivee(VilleBelge.BRUXELLES)
+                .dateDebut(java.time.LocalDateTime.of(LocalDate.now().plusDays(3), LocalTime.of(15, 0)))
+                .dateFin(java.time.LocalDateTime.of(LocalDate.now().plusDays(3), LocalTime.of(16, 30)))
                 .typeTrajet(TypeTrajet.PRIVE)
                 .statut(StatutTrajet.PLANIFIE)
                 .nbPassagersActuels(1)
-                .prixTotal(60.0)
-                .prixParPassager(15.0)
+                .prixTotal(100.0)
+                .prixParPassager(25.0)
                 .build();
         trajetPrive.setId(10L);
 
         trajetPublic = Trajet.builder()
                 .vehicule(vehicule)
                 .chauffeur(organisateur)
-                .dateDebut(java.time.LocalDateTime.of(LocalDate.now().plusDays(25), LocalTime.of(17, 0)))
-                .dateFin(java.time.LocalDateTime.of(LocalDate.now().plusDays(25), LocalTime.of(18, 30)))
+                .villeDepart(VilleBelge.MONS).villeArrivee(VilleBelge.BRUXELLES)
+                .dateDebut(java.time.LocalDateTime.of(LocalDate.now().plusDays(3), LocalTime.of(17, 0)))
+                .dateFin(java.time.LocalDateTime.of(LocalDate.now().plusDays(3), LocalTime.of(18, 30)))
                 .typeTrajet(TypeTrajet.PUBLIC)
                 .statut(StatutTrajet.PLANIFIE)
                 .nbPassagersActuels(1)
-                .prixTotal(60.0)
-                .prixParPassager(15.0)
+                .prixTotal(100.0)
+                .prixParPassager(25.0)
                 .build();
         trajetPublic.setId(11L);
 
         trajetComplet = Trajet.builder()
                 .vehicule(vehicule)
                 .chauffeur(organisateur)
-                .dateDebut(java.time.LocalDateTime.of(LocalDate.now().plusDays(25), LocalTime.of(19, 0)))
-                .dateFin(java.time.LocalDateTime.of(LocalDate.now().plusDays(25), LocalTime.of(20, 30)))
+                .villeDepart(VilleBelge.MONS).villeArrivee(VilleBelge.BRUXELLES)
+                .dateDebut(java.time.LocalDateTime.of(LocalDate.now().plusDays(3), LocalTime.of(19, 0)))
+                .dateFin(java.time.LocalDateTime.of(LocalDate.now().plusDays(3), LocalTime.of(20, 30)))
                 .typeTrajet(TypeTrajet.PUBLIC)
                 .statut(StatutTrajet.COMPLET)
                 .nbPassagersActuels(4)
-                .prixTotal(60.0)
-                .prixParPassager(15.0)
+                .prixTotal(100.0)
+                .prixParPassager(25.0)
                 .build();
         trajetComplet.setId(12L);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({"VIP,21,true", "VIP,22,false", "LOCAL,14,true", "LOCAL,15,false", "LIBRE,5,true", "LIBRE,6,false"})
+    void respecteLaFenetreDeChaqueCategorie(TypeVoyageur categorie, int jours, boolean autorisee) {
+        passager.setTypeVoyageur(categorie);
+        passager.setAgence(agence);
+        trajetPublic.setDateDebut(LocalDate.now().plusDays(jours).atTime(12, 0));
+        when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic));
+        when(voyageurService.getById(2L)).thenReturn(passager);
+        if (autorisee) {
+            when(reservationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(paiementRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            assertThat(reservationService.create(11L, 2L, 2L).getStatut()).isEqualTo(StatutReservation.EN_ATTENTE);
+            assertThat(trajetPublic.getNbPassagersActuels()).isEqualTo(1);
+        } else {
+            assertThatThrownBy(() -> reservationService.create(11L, 2L, 2L))
+                    .isInstanceOf(BusinessException.class).hasMessageContaining("jours à l'avance");
+            verifyNoInteractions(reservationRepository, paiementRepository);
+        }
+    }
+
+    @Test
+    void leChauffeurNeReservePasUnePlaceClient() {
+        when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic));
+        when(voyageurService.getById(1L)).thenReturn(organisateur);
+        assertThatThrownBy(() -> reservationService.create(11L, 1L, 1L))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("chauffeur ne réserve");
+        verifyNoInteractions(reservationRepository, paiementRepository);
+    }
+
+    @Test
+    void uneDemandeExpireSansDetteEtSansModifierLesPlacesConfirmees() {
+        Reservation demande = Reservation.builder().trajet(trajetPublic).voyageur(passager)
+                .statut(StatutReservation.EN_ATTENTE)
+                .paiement(Paiement.builder().montant(25.0).statut(StatutPaiement.EN_ATTENTE).build()).build();
+        demande.setCreatedAt(java.time.LocalDateTime.now().minusHours(1));
+        when(reservationRepository.findByStatutOrderByTrajetIdAscIdAsc(StatutReservation.EN_ATTENTE))
+                .thenReturn(java.util.List.of(demande));
+        when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic));
+        reservationService.expirePendingReservations();
+        assertThat(demande.getStatut()).isEqualTo(StatutReservation.EXPIREE);
+        assertThat(demande.getPaiement().getStatut()).isEqualTo(StatutPaiement.ANNULE);
+        assertThat(trajetPublic.getNbPassagersActuels()).isEqualTo(1);
+        assertThat(organisateur.getSolde()).isZero();
     }
 
     // ================================================================
@@ -157,12 +205,11 @@ class ReservationServiceTest {
         @Test
         @DisplayName("✅ doit créer une réservation pour un trajet PUBLIC avec un voyageur valide")
         void shouldCreateReservationForPublicTrajet() {
-            when(trajetService.getTrajetEntityById(11L)).thenReturn(trajetPublic); // MODIFIÉ
+            when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic)); // MODIFIÉ
             when(voyageurService.getById(2L)).thenReturn(passager);
             when(voyageurService.hasActiveRestriction(2L)).thenReturn(false);
             when(voyageurService.hasOutstandingBalance(2L)).thenReturn(false);
-            when(reservationRepository.existsByTrajetIdAndVoyageurId(11L, 2L)).thenReturn(false);
-            when(reservationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+                        when(reservationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(paiementRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             Reservation result = reservationService.create(11L, 2L, 2L);
@@ -174,21 +221,20 @@ class ReservationServiceTest {
 
             // vérifier que le paiement EN_ATTENTE est créé automatiquement
             verify(paiementRepository, times(1)).save(argThat(paiement ->
-                    paiement.getMontant().equals(15.0) &&
+                    paiement.getMontant().equals(25.0) &&
                             paiement.getStatut() == StatutPaiement.EN_ATTENTE
             ));
-            verify(trajetService).incrementPassagers(11L);
+            verify(trajetRepository, never()).save(any());
         }
 
         @Test
         @DisplayName("✅ doit créer une réservation pour un trajet PRIVE quand l'organisateur ajoute un passager")
         void shouldCreateReservationForPriveTrajetByOrganizer() {
-            when(trajetService.getTrajetEntityById(10L)).thenReturn(trajetPrive); // MODIFIÉ
+            when(trajetRepository.findById(10L)).thenReturn(Optional.of(trajetPrive)); // MODIFIÉ
             when(voyageurService.getById(2L)).thenReturn(passager);
             when(voyageurService.hasActiveRestriction(2L)).thenReturn(false);
             when(voyageurService.hasOutstandingBalance(2L)).thenReturn(false);
-            when(reservationRepository.existsByTrajetIdAndVoyageurId(10L, 2L)).thenReturn(false);
-            when(reservationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+                        when(reservationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(paiementRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             // l'organisateur (id=1) ajoute passager (id=2) → autorisé
@@ -196,35 +242,34 @@ class ReservationServiceTest {
 
             assertThat(result).isNotNull();
             assertThat(result.getStatut()).isEqualTo(StatutReservation.EN_ATTENTE);
-            verify(trajetService).incrementPassagers(10L);
+            verify(trajetRepository, never()).save(any());
         }
 
         @Test
         @DisplayName("✅ doit créer des réservations à partir de matricules invités")
         void shouldCreateReservationsForInvites() {
-            when(trajetService.getTrajetEntityById(10L)).thenReturn(trajetPrive);
+            when(trajetRepository.findById(10L)).thenReturn(Optional.of(trajetPrive));
             when(voyageurService.getByMatricule("g1002")).thenReturn(passager);
             when(voyageurService.getById(2L)).thenReturn(passager);
             when(voyageurService.hasActiveRestriction(2L)).thenReturn(false);
             when(voyageurService.hasOutstandingBalance(2L)).thenReturn(false);
-            when(reservationRepository.existsByTrajetIdAndVoyageurId(10L, 2L)).thenReturn(false);
-            when(reservationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+                        when(reservationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(paiementRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             var result = reservationService.createForInvites(10L, 1L, java.util.List.of("g1002"));
 
             assertThat(result.size()).isEqualTo(1);
             verify(voyageurService).getByMatricule("g1002");
-            verify(trajetService).incrementPassagers(10L);
+            verify(trajetRepository, never()).save(any());
         }
 
         @Test
         @DisplayName("❌ doit lever une BusinessException quand le trajet est COMPLET")
         void shouldThrowWhenTrajetIsFull() {
-            when(trajetService.getTrajetEntityById(12L)).thenReturn(trajetComplet); // MODIFIÉ
+            when(trajetRepository.findById(12L)).thenReturn(Optional.of(trajetComplet)); // MODIFIÉ
             when(voyageurService.getById(2L)).thenReturn(passager);
 
-            assertThatThrownBy(() -> reservationService.create(12L, 2L, 1L))
+            assertThatThrownBy(() -> reservationService.create(12L, 2L, 2L))
                     .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("déjà complet");
 
@@ -235,10 +280,10 @@ class ReservationServiceTest {
         @DisplayName("❌ doit lever une BusinessException quand le trajet est ANNULE")
         void shouldThrowWhenTrajetIsCancelled() {
             trajetPublic.setStatut(StatutTrajet.ANNULE);
-            when(trajetService.getTrajetEntityById(11L)).thenReturn(trajetPublic); // MODIFIÉ
+            when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic)); // MODIFIÉ
             when(voyageurService.getById(2L)).thenReturn(passager);
 
-            assertThatThrownBy(() -> reservationService.create(11L, 2L, 1L))
+            assertThatThrownBy(() -> reservationService.create(11L, 2L, 2L))
                     .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("annulé");
 
@@ -248,11 +293,11 @@ class ReservationServiceTest {
         @Test
         @DisplayName("❌ doit lever une BusinessException quand le voyageur est déjà inscrit au trajet")
         void shouldThrowWhenVoyageurAlreadyRegistered() {
-            when(trajetService.getTrajetEntityById(11L)).thenReturn(trajetPublic); // MODIFIÉ
+            when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic)); // MODIFIÉ
             when(voyageurService.getById(2L)).thenReturn(passager);
-            when(reservationRepository.existsByTrajetIdAndVoyageurId(11L, 2L)).thenReturn(true);
+            when(reservationRepository.existsByTrajetIdAndVoyageurIdAndStatutIn(eq(11L), eq(2L), any())).thenReturn(true);
 
-            assertThatThrownBy(() -> reservationService.create(11L, 2L, 1L))
+            assertThatThrownBy(() -> reservationService.create(11L, 2L, 2L))
                     .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("déjà inscrit");
 
@@ -262,12 +307,11 @@ class ReservationServiceTest {
         @Test
         @DisplayName("❌ doit lever une BusinessException quand le voyageur a une restriction active")
         void shouldThrowWhenVoyageurHasActiveRestriction() {
-            when(trajetService.getTrajetEntityById(11L)).thenReturn(trajetPublic); // MODIFIÉ
+            when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic)); // MODIFIÉ
             when(voyageurService.getById(2L)).thenReturn(passager);
-            when(reservationRepository.existsByTrajetIdAndVoyageurId(11L, 2L)).thenReturn(false);
-            when(voyageurService.hasActiveRestriction(2L)).thenReturn(true);
+                        when(voyageurService.hasActiveRestriction(2L)).thenReturn(true);
 
-            assertThatThrownBy(() -> reservationService.create(11L, 2L, 1L))
+            assertThatThrownBy(() -> reservationService.create(11L, 2L, 2L))
                     .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("restriction active");
 
@@ -277,13 +321,12 @@ class ReservationServiceTest {
         @Test
         @DisplayName("❌ doit lever une BusinessException quand le voyageur a un solde impayé")
         void shouldThrowWhenVoyageurHasOutstandingBalance() {
-            when(trajetService.getTrajetEntityById(11L)).thenReturn(trajetPublic); // MODIFIÉ
+            when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic)); // MODIFIÉ
             when(voyageurService.getById(2L)).thenReturn(passager);
-            when(reservationRepository.existsByTrajetIdAndVoyageurId(11L, 2L)).thenReturn(false);
-            when(voyageurService.hasActiveRestriction(2L)).thenReturn(false);
+                        when(voyageurService.hasActiveRestriction(2L)).thenReturn(false);
             when(voyageurService.hasOutstandingBalance(2L)).thenReturn(true);
 
-            assertThatThrownBy(() -> reservationService.create(11L, 2L, 1L))
+            assertThatThrownBy(() -> reservationService.create(11L, 2L, 2L))
                     .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("solde impayé");
 
@@ -295,15 +338,12 @@ class ReservationServiceTest {
         void shouldThrowWhenNonOrganizerJoinsPriveTrajet() {
             // passager (id=2) essaie de rejoindre directement un trajet privé
             // sans passer par l'organisateur (id=1)
-            when(trajetService.getTrajetEntityById(10L)).thenReturn(trajetPrive); // MODIFIÉ
+            when(trajetRepository.findById(10L)).thenReturn(Optional.of(trajetPrive)); // MODIFIÉ
             when(voyageurService.getById(2L)).thenReturn(passager);
-            when(reservationRepository.existsByTrajetIdAndVoyageurId(10L, 2L)).thenReturn(false);
-            when(voyageurService.hasActiveRestriction(2L)).thenReturn(false);
-            when(voyageurService.hasOutstandingBalance(2L)).thenReturn(false);
 
             assertThatThrownBy(() -> reservationService.create(10L, 2L, 2L))
                     .isInstanceOf(BusinessException.class)
-                    .hasMessageContaining("seul l'organisateur");
+                    .hasMessageContaining("seul le chauffeur");
 
             verify(reservationRepository, never()).save(any());
         }
@@ -312,15 +352,14 @@ class ReservationServiceTest {
         @DisplayName("❌ doit lever une BusinessException quand un voyageur AGENCE réserve sur le mauvais agence")
         void shouldThrowWhenAgenceVoyageurBooksOnWrongAgence() {
             // passagerAgenceB est rattaché à Paris → ne peut pas réserver sur Lyon
-            when(trajetService.getTrajetEntityById(11L)).thenReturn(trajetPublic); // MODIFIÉ
+            when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic)); // MODIFIÉ
             when(voyageurService.getById(3L)).thenReturn(passagerAgenceB);
-            when(reservationRepository.existsByTrajetIdAndVoyageurId(11L, 3L)).thenReturn(false);
-            when(voyageurService.hasActiveRestriction(3L)).thenReturn(false);
+                        when(voyageurService.hasActiveRestriction(3L)).thenReturn(false);
             when(voyageurService.hasOutstandingBalance(3L)).thenReturn(false);
 
             assertThatThrownBy(() -> reservationService.create(11L, 3L, 3L))
                     .isInstanceOf(BusinessException.class)
-                    .hasMessageContaining("propre agence");
+                    .hasMessageContaining("agence autorisée");
 
             verify(reservationRepository, never()).save(any());
         }
@@ -328,10 +367,9 @@ class ReservationServiceTest {
         @Test
         @DisplayName("✅ paiement créé avec le montant correct = prixParPassager du trajet")
         void shouldCreatePaiementWithCorrectAmount() {
-            when(trajetService.getTrajetEntityById(11L)).thenReturn(trajetPublic); // MODIFIÉ
+            when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic)); // MODIFIÉ
             when(voyageurService.getById(2L)).thenReturn(passager);
-            when(reservationRepository.existsByTrajetIdAndVoyageurId(11L, 2L)).thenReturn(false);
-            when(voyageurService.hasActiveRestriction(2L)).thenReturn(false);
+                        when(voyageurService.hasActiveRestriction(2L)).thenReturn(false);
             when(voyageurService.hasOutstandingBalance(2L)).thenReturn(false);
             when(reservationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(paiementRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -340,10 +378,10 @@ class ReservationServiceTest {
 
             // prixParPassager = 60€ / 4 = 15€
             verify(paiementRepository).save(argThat(p ->
-                    p.getMontant().equals(15.0) &&
+                    p.getMontant().equals(25.0) &&
                             p.getStatut() == StatutPaiement.EN_ATTENTE
             ));
-            verify(trajetService).incrementPassagers(11L);
+            verify(trajetRepository, never()).save(any());
         }
     }
 
@@ -358,7 +396,7 @@ class ReservationServiceTest {
         @DisplayName("✅ doit annuler la réservation en attente et décrémenter le nombre de passagers")
         void shouldCancelReservation() {
             Paiement paiement = Paiement.builder()
-                    .montant(15.0)
+                    .montant(25.0)
                     .statut(StatutPaiement.EN_ATTENTE)
                     .build();
 
@@ -371,19 +409,20 @@ class ReservationServiceTest {
             reservation.setId(1L);
 
             when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+            lenient().when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic));
             when(reservationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             reservationService.cancel(1L);
 
             assertThat(reservation.getStatut()).isEqualTo(StatutReservation.ANNULEE);
-            verify(trajetService).decrementPassagers(trajetPublic.getId());
+            assertThat(trajetPublic.getNbPassagersActuels()).isEqualTo(1);
         }
 
         @Test
         @DisplayName("✅ doit rembourser le paiement quand la réservation est annulée après paiement")
         void shouldRefundPaymentWhenCancelledAfterPayment() {
             Paiement paiement = Paiement.builder()
-                    .montant(15.0)
+                    .montant(25.0)
                     .statut(StatutPaiement.PAYE) // déjà payé
                     .build();
 
@@ -396,6 +435,7 @@ class ReservationServiceTest {
             reservation.setId(1L);
 
             when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+            lenient().when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic));
             when(reservationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             reservationService.cancel(1L);
@@ -403,14 +443,14 @@ class ReservationServiceTest {
             // paiement doit passer à REMBOURSE
             assertThat(paiement.getStatut()).isEqualTo(StatutPaiement.REMBOURSE);
             verify(paiementRepository, times(1)).save(paiement);
-            verify(trajetService, times(1)).decrementPassagers(trajetPublic.getId());
+            assertThat(trajetPublic.getNbPassagersActuels()).isZero();
         }
 
         @Test
         @DisplayName("✅ doit annuler le paiement quand la réservation est annulée avant paiement")
         void shouldCancelPaymentWhenNotYetPaid() {
             Paiement paiement = Paiement.builder()
-                    .montant(15.0)
+                    .montant(25.0)
                     .statut(StatutPaiement.EN_ATTENTE) // pas encore payé
                     .build();
 
@@ -423,6 +463,7 @@ class ReservationServiceTest {
             reservation.setId(1L);
 
             when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+            lenient().when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic));
             when(reservationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             reservationService.cancel(1L);
@@ -443,12 +484,13 @@ class ReservationServiceTest {
             reservation.setId(1L);
 
             when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+            lenient().when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic));
 
             assertThatThrownBy(() -> reservationService.cancel(1L))
                     .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("déjà annulée");
 
-            verify(trajetService, never()).decrementPassagers(any());
+            verify(trajetRepository, never()).save(any());
         }
 
         @Test
@@ -476,16 +518,18 @@ class ReservationServiceTest {
                     .trajet(trajetPublic)
                     .voyageur(passager)
                     .statut(StatutReservation.EN_ATTENTE)
+                    .paiement(Paiement.builder().statut(StatutPaiement.PAYE).montant(25.0).build())
                     .build();
             reservation.setId(1L);
 
             when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+            lenient().when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic));
             when(reservationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             reservationService.confirm(1L);
 
             assertThat(reservation.getStatut()).isEqualTo(StatutReservation.CONFIRMEE);
-            verify(trajetService, never()).incrementPassagers(any());
+            assertThat(trajetPublic.getNbPassagersActuels()).isEqualTo(2);
         }
 
         @Test
@@ -499,12 +543,13 @@ class ReservationServiceTest {
             reservation.setId(1L);
 
             when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+            lenient().when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic));
 
             assertThatThrownBy(() -> reservationService.confirm(1L))
                     .isInstanceOf(BusinessException.class)
-                    .hasMessageContaining("déjà confirmée");
+                    .hasMessageContaining("après paiement validé");
 
-            verify(trajetService, never()).incrementPassagers(any());
+            verify(trajetRepository, never()).save(any());
         }
     }
 
@@ -526,6 +571,7 @@ class ReservationServiceTest {
             reservation.setId(1L);
 
             when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+            lenient().when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic));
 
             Reservation result = reservationService.getById(1L);
 

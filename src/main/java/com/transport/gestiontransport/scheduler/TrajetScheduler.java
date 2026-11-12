@@ -16,7 +16,7 @@ public class TrajetScheduler {
     private final PaiementService paiementService;
 
     // tourne tous les jours à minuit
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(fixedDelayString = "${transport.traitements.intervalle-ms:60000}", initialDelay = 60000)
     public void processExpiredPrivateTrajets() {
         log.info("Scheduler started : checking expired private trajets...");
         trajetService.checkAndConvertExpiredPrivateTrajets();
@@ -24,7 +24,7 @@ public class TrajetScheduler {
     }
 
     // tourne tous les jours à minuit cinq (après le premier)
-    @Scheduled(cron = "0 5 0 * * *")
+    @Scheduled(fixedDelayString = "${transport.traitements.intervalle-ms:60000}", initialDelay = 60000)
     public void processUnpaidReservations() {
         log.info("Scheduler started : checking unpaid reservations...");
         paiementService.checkUnpaidBeforeTrajet();

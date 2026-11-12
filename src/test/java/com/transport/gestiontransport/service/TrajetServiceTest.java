@@ -54,6 +54,10 @@ class TrajetServiceTest {
     @Mock
     private TrajetMapper trajetMapper;
 
+    @Mock private jakarta.persistence.EntityManager entityManager;
+    @Mock private ReservationService reservationService;
+    @Mock private com.transport.gestiontransport.service.impl.AdminAuthorizationService adminAuthorizationService;
+
     @InjectMocks
     private TrajetServiceImpl trajetService;
 
@@ -75,6 +79,7 @@ class TrajetServiceTest {
         organisateur = new Voyageur();
         organisateur.setId(1L);
         organisateur.setMatricule("user123");
+        organisateur.setPeutProposerTrajet(true);
         organisateur.setPrenom("John");
         organisateur.setNom("Doe");
         organisateur.setTypeVoyageur(TypeVoyageur.LIBRE);
@@ -88,7 +93,8 @@ class TrajetServiceTest {
         createTrajetRequest = new CreateTrajetRequest(
                 vehicule.getId(),
                 LocalDate.now().plusDays(5).atTime(10, 0),
-                "PUBLIC"
+                "PUBLIC", com.transport.gestiontransport.entity.enums.VilleBelge.MONS,
+                com.transport.gestiontransport.entity.enums.VilleBelge.BRUXELLES, false, null
         );
 
         trajetDto = new TrajetDto(
@@ -103,10 +109,47 @@ class TrajetServiceTest {
                 createTrajetRequest.trajetDate().plusMinutes(90).toLocalTime(),
                 TypeTrajet.PUBLIC,
                 StatutTrajet.PLANIFIE,
-                1,
+                0,
                 25.0,
                 null  // dateConversionPublic
         );
+    }
+
+    @Test
+    void nePublieJamaisUnTrajetPriveSansConsentement() {
+        Trajet prive = Trajet.builder().typeTrajet(TypeTrajet.PRIVE).statut(StatutTrajet.PLANIFIE)
+                .dateDebut(LocalDateTime.now().plusHours(12)).publicationAutomatiqueAutorisee(false).build();
+        when(trajetRepository.findById(10L)).thenReturn(Optional.of(prive));
+        assertThrows(BusinessException.class, () -> trajetService.convertToPublic(10L));
+        assertEquals(TypeTrajet.PRIVE, prive.getTypeTrajet());
+        verifyNoInteractions(voyageurService);
+        verify(trajetRepository, never()).save(any());
+    }
+
+    @Test
+    void refuseUnChauffeurNonAutorise() {
+        organisateur.setPeutProposerTrajet(false);
+        when(voyageurRepository.findByMatriculeIgnoreCase("user123")).thenReturn(Optional.of(organisateur));
+        when(vehiculeService.getById(1L)).thenReturn(vehicule);
+        assertThrows(BusinessException.class, () -> trajetService.createTrajet(createTrajetRequest, "user123"));
+        verify(trajetRepository, never()).save(any());
+    }
+
+    @Test
+    void refuseDeuxVillesIdentiques() {
+        when(voyageurRepository.findByMatriculeIgnoreCase("user123")).thenReturn(Optional.of(organisateur));
+        when(vehiculeService.getById(1L)).thenReturn(vehicule);
+        var request = new CreateTrajetRequest(1L, createTrajetRequest.trajetDate(), "PUBLIC",
+                com.transport.gestiontransport.entity.enums.VilleBelge.MONS,
+                com.transport.gestiontransport.entity.enums.VilleBelge.MONS, false, null);
+        assertThrows(BusinessException.class, () -> trajetService.createTrajet(request, "user123"));
+        verify(trajetRepository, never()).save(any());
+    }
+
+    @Test
+    void unAdministrateurDoitSelectionnerUnChauffeur() {
+        assertThrows(BusinessException.class, () -> trajetService.createTrajetForAdmin(createTrajetRequest));
+        verifyNoInteractions(trajetRepository);
     }
 
     @Test
@@ -119,8 +162,6 @@ class TrajetServiceTest {
         when(voyageurService.hasActiveRestriction(organisateur.getId())).thenReturn(false);
         when(trajetRepository.findOverlappingTrajets(any(), any(), any(), any())).thenReturn(Collections.emptyList());
         when(trajetRepository.save(any(Trajet.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(reservationRepository.save(any(Reservation.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(paiementRepository.save(any(Paiement.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(trajetMapper.toTrajetDto(any(Trajet.class))).thenReturn(trajetDto); // Utiliser le DTO corrigé
 
         // Act
@@ -128,14 +169,13 @@ class TrajetServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals(1, result.nbPassagersActuels());
+        assertEquals(0, result.nbPassagersActuels());
         assertEquals(TypeTrajet.PUBLIC, result.typeTrajet());
         assertEquals(25.0, result.prixParPassager());
         verify(trajetRepository, times(1)).save(argThat(trajet ->
                 Double.valueOf(100.0).equals(trajet.getPrixTotal())
                         && Double.valueOf(25.0).equals(trajet.getPrixParPassager())));
-        verify(reservationRepository, times(1)).save(any(Reservation.class));
-        verify(paiementRepository, times(1)).save(argThat(paiement -> Double.valueOf(25.0).equals(paiement.getMontant())));
+        verifyNoInteractions(reservationRepository, paiementRepository);
     }
 
     @Test
@@ -171,10 +211,10 @@ class TrajetServiceTest {
     }
 
     @Test
-    @DisplayName("createTrajet - Échoue si le délai de réservation n'est pas respecté")
-    void createTrajet_ShouldFail_WhenBookingDelayIsNotMet() {
+    @DisplayName("createTrajet - Échoue si le départ est passé")
+    void createTrajet_ShouldFail_WhenDepartureIsPast() {
         // Arrange
-        CreateTrajetRequest tooFarRequest = new CreateTrajetRequest(vehicule.getId(), LocalDateTime.now().plusDays(6), "PUBLIC");
+        CreateTrajetRequest tooFarRequest = new CreateTrajetRequest(vehicule.getId(), LocalDateTime.now().minusDays(1), "PUBLIC", com.transport.gestiontransport.entity.enums.VilleBelge.MONS, com.transport.gestiontransport.entity.enums.VilleBelge.BRUXELLES, false, null);
         when(voyageurRepository.findByMatriculeIgnoreCase("user123")).thenReturn(Optional.of(organisateur));
         when(vehiculeService.getById(vehicule.getId())).thenReturn(vehicule);
 
@@ -182,7 +222,7 @@ class TrajetServiceTest {
         BusinessException exception = assertThrows(BusinessException.class, () -> {
             trajetService.createTrajet(tooFarRequest, "user123");
         });
-        assertTrue(exception.getMessage().contains("ne peut pas réserver plus de 5 jours à l'avance"));
+        assertTrue(exception.getMessage().contains("départ doit être futur"));
     }
 
     @Test
