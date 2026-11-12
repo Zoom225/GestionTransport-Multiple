@@ -68,23 +68,24 @@ un volume persistant. Il ne contient pas encore de Dockerfile backend/frontend :
 `docker compose build` ne compile donc pas ces deux applications. Leurs builds
 sont Maven et Angular, ci-dessous ; leur conteneurisation appartient à l'issue #7.
 
-Conserver les identifiants historiques du volume et de la base ; ne jamais
-utiliser `docker compose down -v` pour dépanner. Les identifiants `padel/padel`
+Conserver le volume existant ; migrer explicitement le compte et la base vers
+transport et transportService sans supprimer les données. Ne jamais
+utiliser `docker compose down -v` pour dépanner. Les identifiants `transport/transport`
 présents dans le Compose sont exclusivement ceux du développement local.
 
 Pour une démonstration potentiellement modificatrice, créer une base distincte
 (commande à lancer une seule fois ; si elle existe, vérifier son contenu) :
 
 ```powershell
-docker compose exec postgres createdb -U padel covoiturage_demo
+docker compose exec postgres createdb -U transport covoiturage_demo
 ```
 
 ### 3. Configurer et démarrer le backend
 
 ```powershell
 $env:DB_URL='jdbc:postgresql://localhost:5440/covoiturage_demo'
-$env:DB_USER='padel'
-$env:DB_PASSWORD='padel'
+$env:DB_USER='transport'
+$env:DB_PASSWORD='transport'
 $jwtBytes=New-Object byte[] 48
 [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($jwtBytes)
 $env:JWT_SECRET=[Convert]::ToBase64String($jwtBytes)
@@ -117,10 +118,10 @@ Après #8, la suite standard utilise H2 en mémoire. Pour les tests PostgreSQL
 opt-in, utiliser exclusivement une base isolée nommée `issue1_validation_<suffixe>` :
 
 ```powershell
-docker compose exec postgres createdb -U padel issue1_validation_academique
+docker compose exec postgres createdb -U transport issue1_validation_academique
 $env:POSTGRES_BASELINE_URL='jdbc:postgresql://localhost:5440/issue1_validation_academique'
-$env:DB_USER='padel'
-$env:DB_PASSWORD='padel'
+$env:DB_USER='transport'
+$env:DB_PASSWORD='transport'
 mvn -B test
 Remove-Item Env:POSTGRES_BASELINE_URL
 ```
@@ -198,9 +199,9 @@ Le projet utilise PostgreSQL via Docker.
 Configuration :
 
 ```text
-Base       : padelService
-Utilisateur: padel
-Mot de passe: padel
+Base       : transportService
+Utilisateur: transport
+Mot de passe: transport
 Port local : 5440
 Port Docker: 5432
 ```
@@ -248,9 +249,9 @@ src/main/resources/application.properties
 Connexion a la base :
 
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5440/padelService
-spring.datasource.username=padel
-spring.datasource.password=padel
+spring.datasource.url=jdbc:postgresql://localhost:5440/transportService
+spring.datasource.username=${DB_USER:transport}
+spring.datasource.password=${DB_PASSWORD:transport}
 server.port=8080
 ```
 
