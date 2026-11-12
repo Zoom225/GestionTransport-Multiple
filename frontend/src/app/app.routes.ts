@@ -6,11 +6,11 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./features/home/pages/landing.page').then((m) => m.LandingPage),
-    title: () => `PadelPlay - ${inject(LanguageService).t('nav.home')}`
+    title: () => `GestionTransport - ${inject(LanguageService).t('nav.home')}`
   },
   {
-    path: 'member',
-    loadChildren: () => import('./features/member/member.routes').then((m) => m.MEMBER_ROUTES)
+    path: 'voyageur',
+    loadChildren: () => import('./features/voyageur/voyageur.routes').then((m) => m.VOYAGEUR_ROUTES)
   },
   {
     path: 'admin',

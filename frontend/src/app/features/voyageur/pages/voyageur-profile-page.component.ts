@@ -1,0 +1,192 @@
+import { CommonModule } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Router, RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
+import { VoyageursApiService } from '../../../core/api/voyageurs-api.service';
+import { VoyageurSessionService } from '../../../core/auth/voyageur-session.service';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { VoyageurResponse } from '../../../shared/models/voyageur.model';
+
+@Component({
+  selector: 'app-voyageur-profile-page',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterLink,
+    MatCardModule,
+    MatButtonModule,
+    MatProgressSpinnerModule,
+    MatChipsModule
+  ],
+  template: `
+    <section class="page-shell max-w-6xl">
+      <mat-card class="card-soft">
+        <mat-card-header>
+          <mat-card-title class="title-gradient ds-section-title">{{ language.t('voyageur.profile.title') }}</mat-card-title>
+          <mat-card-subtitle class="ds-subtitle">{{ language.t('voyageur.profile.subtitle') }}</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          @if (loading()) {
+            <div class="py-4">
+              <mat-spinner diameter="28"></mat-spinner>
+            </div>
+          } @else if (profile()) {
+            <div class="grid gap-4 md:grid-cols-2">
+              <div class="ds-data-list">
+                <div class="ds-data-row"><span class="ds-data-key">{{ language.t('voyageur.profile.nom') }}</span><span class="ds-data-value">{{ profile()!.nom }}</span></div>
+                <div class="ds-data-row"><span class="ds-data-key">{{ language.t('voyageur.profile.prenom') }}</span><span class="ds-data-value">{{ profile()!.prenom }}</span></div>
+                <div class="ds-data-row"><span class="ds-data-key">{{ language.t('voyageur.profile.email') }}</span><span class="ds-data-value">{{ profile()!.email || language.t('common.notProvided') }}</span></div>
+                <div class="ds-data-row"><span class="ds-data-key">{{ language.t('voyageur.profile.matricule') }}</span><span class="ds-data-value">{{ profile()!.matricule }}</span></div>
+              </div>
+
+              <div class="ds-data-list">
+                <div class="ds-data-row"><span class="ds-data-key">{{ language.t('voyageur.profile.type') }}</span><span class="ds-data-value"><span class="ds-badge" [class]="voyageurTypeBadgeClass(profile()!.typeVoyageur)">{{ profile()!.typeVoyageur }}</span></span></div>
+                <div class="ds-data-row"><span class="ds-data-key">{{ language.t('voyageur.profile.agence') }}</span><span class="ds-data-value">{{ profile()!.agenceNom || language.t('voyageur.home.tousAgences') }}</span></div>
+                <div class="ds-data-row"><span class="ds-data-key">{{ language.t('voyageur.profile.solde') }}</span><span class="ds-data-value">{{ profile()!.solde }} EUR</span></div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap gap-2">
+              <mat-chip-set>
+                <mat-chip [highlighted]="true" [color]="hasRestriction() ? 'warn' : 'primary'">
+                  {{ language.t('voyageur.profile.restrictionActive') }}: {{ hasRestriction() ? language.t('voyageur.profile.yes') : language.t('voyageur.profile.no') }}
+                </mat-chip>
+                <mat-chip [highlighted]="true" [color]="hasBalance() ? 'warn' : 'primary'">
+                  {{ language.t('voyageur.profile.balancePending') }}: {{ hasBalance() ? language.t('voyageur.profile.yes') : language.t('voyageur.profile.no') }}
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+          }
+
+          @if (errorMessage()) {
+            <p class="status-error mt-4">{{ errorMessage() }}</p>
+          }
+
+          <div class="mt-6">
+            <div class="mb-3 flex items-center gap-2">
+              <span class="text-xl">🎾</span>
+              <h3 class="m-0 text-lg font-bold text-slate-800">{{ language.t('voyageur.profile.createQuick') }}</h3>
+            </div>
+            <div class="grid gap-3 md:grid-cols-2">
+              <a [routerLink]="['/voyageur/trajets/new']" [queryParams]="{type:'PUBLIC'}"
+                 class="card-soft block rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50 p-5 no-underline transition hover:-translate-y-0.5 hover:shadow-md">
+                <div class="mb-2 flex items-center gap-3">
+                  <span class="text-3xl">🌍</span>
+                  <div>
+                    <div class="text-xs font-bold uppercase tracking-wide text-emerald-700">{{ language.t('voyageur.profile.publicTrajet') }}</div>
+                    <div class="text-lg font-extrabold text-emerald-900">{{ language.t('voyageur.profile.quickPublic') }}</div>
+                  </div>
+                </div>
+                <p class="m-0 text-sm text-emerald-800">{{ language.t('voyageur.profile.quickPublicBody') }}</p>
+              </a>
+
+              <a [routerLink]="['/voyageur/trajets/new']" [queryParams]="{type:'PRIVE'}"
+                 class="card-soft block rounded-2xl border border-violet-200 bg-gradient-to-r from-violet-50 to-purple-50 p-5 no-underline transition hover:-translate-y-0.5 hover:shadow-md">
+                <div class="mb-2 flex items-center gap-3">
+                  <span class="text-3xl">🔒</span>
+                  <div>
+                    <div class="text-xs font-bold uppercase tracking-wide text-violet-700">{{ language.t('voyageur.profile.privateTrajet') }}</div>
+                    <div class="text-lg font-extrabold text-violet-900">{{ language.t('voyageur.profile.quickPrivate') }}</div>
+                  </div>
+                </div>
+                <p class="m-0 text-sm text-violet-800">{{ language.t('voyageur.profile.quickPrivateBody') }}</p>
+              </a>
+            </div>
+          </div>
+
+          <div class="mt-6 grid gap-4 md:grid-cols-3">
+            <a routerLink="/voyageur/trajets" class="card-soft block rounded-2xl p-5 no-underline transition hover:-translate-y-0.5 hover:shadow-md">
+              <p class="text-sm font-medium uppercase tracking-wide text-indigo-700">🔍 {{ language.t('voyageur.profile.explore') }}</p>
+              <p class="mt-2 text-xl font-semibold text-slate-900">{{ language.t('voyageur.public.title') }}</p>
+              <p class="mt-2 text-sm text-slate-600">{{ language.t('voyageur.profile.exploreBody') }}</p>
+            </a>
+            <a routerLink="/voyageur/reservations" class="card-soft block rounded-2xl p-5 no-underline transition hover:-translate-y-0.5 hover:shadow-md">
+              <p class="text-sm font-medium uppercase tracking-wide text-emerald-700">📋 {{ language.t('voyageur.profile.followup') }}</p>
+              <p class="mt-2 text-xl font-semibold text-slate-900">{{ language.t('voyageur.reservations.title') }}</p>
+              <p class="mt-2 text-sm text-slate-600">{{ language.t('voyageur.profile.followupBody') }}</p>
+            </a>
+            <a routerLink="/voyageur/payments" class="card-soft block rounded-2xl p-5 no-underline transition hover:-translate-y-0.5 hover:shadow-md">
+              <p class="text-sm font-medium uppercase tracking-wide text-orange-700">💳 {{ language.t('voyageur.profile.finance') }}</p>
+              <p class="mt-2 text-xl font-semibold text-slate-900">{{ language.t('voyageur.payments.title') }}</p>
+              <p class="mt-2 text-sm text-slate-600">{{ language.t('voyageur.profile.financeBody') }}</p>
+            </a>
+          </div>
+
+          <div class="toolbar-actions mt-6 justify-start">
+            <button mat-flat-button color="primary" type="button" (click)="reload()">{{ language.t('voyageur.profile.refresh') }}</button>
+            <a mat-stroked-button routerLink="/voyageur/trajets">{{ language.t('voyageur.public.title') }}</a>
+            <a mat-stroked-button routerLink="/voyageur/reservations">{{ language.t('voyageur.reservations.title') }}</a>
+            <a mat-stroked-button routerLink="/voyageur">{{ language.t('common.profile') }}</a>
+            <button mat-stroked-button type="button" (click)="logout()">{{ language.t('voyageur.profile.logout') }}</button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </section>
+  `
+})
+export class VoyageurProfilePage {
+  private readonly voyageursApi = inject(VoyageursApiService);
+  private readonly voyageurSession = inject(VoyageurSessionService);
+  private readonly router = inject(Router);
+  readonly language = inject(LanguageService);
+
+  readonly loading = signal(false);
+  readonly errorMessage = signal('');
+  readonly profile = signal<VoyageurResponse | null>(null);
+  readonly hasRestriction = signal(false);
+  readonly hasBalance = signal(false);
+  readonly voyageurId = computed(() => this.voyageurSession.voyageurId());
+
+  constructor() {
+    this.reload();
+  }
+
+  reload(): void {
+    const voyageurId = this.voyageurId();
+    if (!voyageurId) {
+      this.logout();
+      return;
+    }
+
+    this.loading.set(true);
+    this.errorMessage.set('');
+
+    forkJoin({
+      profile: this.voyageursApi.getCurrent(),
+      hasRestriction: this.voyageursApi.hasRestriction(voyageurId),
+      hasBalance: this.voyageursApi.hasBalance(voyageurId)
+    }).subscribe({
+      next: ({ profile, hasRestriction, hasBalance }) => {
+        this.profile.set(profile);
+        this.voyageurSession.setVoyageur(profile, this.voyageurSession.token() ?? undefined);
+        this.hasRestriction.set(hasRestriction);
+        this.hasBalance.set(hasBalance);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+        this.errorMessage.set(this.language.t('voyageur.profile.loadError'));
+      }
+    });
+  }
+
+  logout(): void {
+    this.voyageurSession.clearVoyageur();
+    this.router.navigateByUrl('/voyageur');
+  }
+
+  voyageurTypeBadgeClass(type: VoyageurResponse['typeVoyageur']): string {
+    if (type === 'GLOBAL') {
+      return 'ds-badge-info';
+    }
+    if (type === 'AGENCE') {
+      return 'ds-badge-success';
+    }
+    return 'ds-badge-warning';
+  }
+}

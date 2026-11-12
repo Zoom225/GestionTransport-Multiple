@@ -103,11 +103,11 @@ describe('extractApiErrorMessage', () => {
     const message = extractApiErrorMessage({
       message: 'Erreur HTTP générique',
       error: {
-        message: 'Membre introuvable'
+        message: 'Voyageur introuvable'
       }
     });
 
-    expect(message).toBe('Membre introuvable');
+    expect(message).toBe('Voyageur introuvable');
   });
 
   // ── Scénarios métier réels ────────────────────────────────────────────────
@@ -131,11 +131,11 @@ describe('extractApiErrorMessage', () => {
     const message = extractApiErrorMessage({
       error: {
         status: 409,
-        message: 'Ce terrain est déjà réservé sur ce créneau.'
+        message: 'Ce vehicule est déjà réservé sur ce créneau.'
       }
     });
 
-    expect(message).toBe('Ce terrain est déjà réservé sur ce créneau.');
+    expect(message).toBe('Ce vehicule est déjà réservé sur ce créneau.');
   });
 
   it('devrait gérer un 403 Forbidden avec un message de secours personnalisé', () => {

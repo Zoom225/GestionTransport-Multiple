@@ -3,22 +3,22 @@
 export type TranslationKey =
   | 'nav.home'
   | 'nav.admin'
-  | 'nav.member'
+  | 'nav.voyageur'
   | 'nav.profile'
-  | 'nav.matches'
+  | 'nav.trajets'
   | 'nav.reservations'
   | 'nav.payments'
   | 'nav.create'
   | 'nav.public'
   | 'nav.private'
   | 'nav.logout'
-  | 'nav.memberArea'
+  | 'nav.voyageurArea'
   | 'nav.adminLogin'
   | 'nav.dashboard'
-  | 'nav.members'
-  | 'nav.sites'
-  | 'nav.courts'
-  | 'nav.closures'
+  | 'nav.voyageurs'
+  | 'nav.agences'
+  | 'nav.vehicules'
+  | 'nav.indisponibilites'
   | 'common.back'
   | 'common.save'
   | 'common.create'
@@ -29,9 +29,9 @@ export type TranslationKey =
   | 'common.confirm'
   | 'common.loading'
   | 'common.none'
-  | 'common.matchPlanned'
-  | 'common.matchFull'
-  | 'common.matchCanceled'
+  | 'common.trajetPlanned'
+  | 'common.trajetFull'
+  | 'common.trajetCanceled'
   | 'common.reservationPending'
   | 'common.reservationConfirmed'
   | 'common.reservationCanceled'
@@ -39,7 +39,7 @@ export type TranslationKey =
   | 'common.paymentPaid'
   | 'common.paymentRefunded'
   | 'common.paymentCanceled'
-  | 'common.allSites'
+  | 'common.allAgences'
   | 'common.profile'
   | 'common.refresh'
   | 'switcher.label'
@@ -48,8 +48,8 @@ export type TranslationKey =
   | 'landing.eyebrow'
   | 'landing.title'
   | 'landing.lead'
-  | 'landing.memberCta'
-  | 'landing.memberCtaConnected'
+  | 'landing.voyageurCta'
+  | 'landing.voyageurCtaConnected'
   | 'landing.adminCta'
   | 'landing.testApi'
   | 'landing.loadingApi'
@@ -63,12 +63,12 @@ export type TranslationKey =
   | 'landing.feature3.body'
   | 'landing.feature4.title'
   | 'landing.feature4.body'
-  | 'landing.matchPublic'
-  | 'landing.matchAvailable'
+  | 'landing.trajetPublic'
+  | 'landing.trajetAvailable'
   | 'landing.reservation'
   | 'landing.reservationBody'
   | 'landing.simpleReservation'
-  | 'landing.matchPreviewLabel'
+  | 'landing.trajetPreviewLabel'
   | 'admin.login.heroTitle'
   | 'admin.login.heroSubtitle'
   | 'admin.login.formTitle'
@@ -82,9 +82,9 @@ export type TranslationKey =
   | 'admin.home.title'
   | 'admin.home.subtitle'
   | 'admin.home.loading'
-  | 'admin.home.matches'
+  | 'admin.home.trajets'
   | 'admin.home.reservations'
-  | 'admin.home.members'
+  | 'admin.home.voyageurs'
   | 'admin.home.revenue'
   | 'admin.home.occupancy'
   | 'admin.home.occupancySub'
@@ -96,310 +96,310 @@ export type TranslationKey =
   | 'admin.home.validPayments'
   | 'admin.home.reservationsLoadError'
   | 'admin.home.dashboardLoadError'
-  | 'admin.matches.title'
-  | 'admin.matches.subtitle'
-  | 'admin.members.title'
-  | 'admin.members.subtitle'
-  | 'admin.members.matricule'
-  | 'admin.members.matriculeHint'
-  | 'admin.members.type'
-  | 'admin.members.typeGlobal'
-  | 'admin.members.typeSite'
-  | 'admin.members.typeLibre'
-  | 'admin.members.nom'
-  | 'admin.members.prenom'
-  | 'admin.members.email'
-  | 'admin.members.site'
-  | 'admin.members.siteNone'
-  | 'admin.members.searchPlaceholder'
-  | 'admin.members.filterAll'
-  | 'admin.members.filterGlobal'
-  | 'admin.members.filterSite'
-  | 'admin.members.filterLibre'
-  | 'admin.members.empty'
-  | 'admin.members.emptySub'
-  | 'admin.members.penalty'
-  | 'admin.members.emailMissing'
-  | 'admin.members.siteAll'
-  | 'admin.members.balance'
-  | 'admin.members.edit'
-  | 'admin.members.delete'
-  | 'admin.members.count'
-  | 'admin.sites.title'
-  | 'admin.sites.subtitle'
-  | 'admin.terrains.title'
-  | 'admin.terrains.subtitle'
-  | 'admin.closures.title'
-  | 'admin.closures.subtitle'
-  | 'member.home.title'
-  | 'member.home.subtitle'
-  | 'member.home.identification'
-  | 'member.home.loginHint'
-  | 'member.home.password'
-  | 'member.home.cta'
-  | 'member.home.invalid'
-  | 'member.home.global'
-  | 'member.home.site'
-  | 'member.home.livre'
-  | 'member.home.tousSites'
-  | 'member.create.title'
-  | 'member.create.subtitle'
-  | 'member.create.rappel'
-  | 'member.create.public'
-  | 'member.create.private'
-  | 'member.create.back'
-  | 'member.create.submit'
-  | 'member.create.mode'
-  | 'member.create.site'
-  | 'member.create.terrain'
-  | 'member.create.date'
-  | 'member.create.dateHint'
-  | 'member.create.time'
-  | 'member.create.matchType'
-  | 'member.create.privatePlayers'
-  | 'member.create.player2'
-  | 'member.create.player3'
-  | 'member.create.player4'
-  | 'member.create.noSite'
-  | 'member.create.noTerrain'
-  | 'member.create.selectedSite'
-  | 'member.create.bookingLimit'
-  | 'member.create.bookingLimitProfileError'
-  | 'member.create.ruleGlobal'
-  | 'member.create.ruleSite'
-  | 'member.create.ruleLibre'
-  | 'member.create.noSiteLoaded'
-  | 'member.create.noTerrainLoaded'
-  | 'member.create.success'
-  | 'member.create.successPrivate'
-  | 'member.create.partialSuccess'
-  | 'member.public.title'
-  | 'member.public.subtitle'
-  | 'member.public.filter'
-  | 'member.public.search'
-  | 'member.public.create'
-  | 'member.public.join'
-  | 'member.public.modify'
-  | 'member.public.delete'
-  | 'member.public.myProfile'
-  | 'member.public.myMatch'
-  | 'member.public.available'
-  | 'member.public.completion'
-  | 'member.public.none'
-  | 'member.public.organizer'
-  | 'member.public.status'
-  | 'member.public.type'
-  | 'member.public.players'
-  | 'member.public.price'
-  | 'member.public.registering'
-  | 'member.public.editTitle'
-  | 'member.public.editHint'
-  | 'member.public.noMatches'
-  | 'member.public.searchPlaceholder'
-  | 'member.public.noMatchPrompt'
-  | 'member.public.createBody'
-  | 'member.public.date'
-  | 'member.public.time'
-  | 'member.public.typeLabel'
-  | 'member.reservations.title'
-  | 'member.reservations.subtitle'
-  | 'member.reservations.createPublic'
-  | 'member.reservations.createPrivate'
-  | 'member.reservations.matches'
-  | 'member.reservations.select'
-  | 'member.reservations.addPlayer'
-  | 'member.reservations.noOrganized'
-  | 'member.reservations.edit'
-  | 'member.reservations.confirmation'
-  | 'member.reservations.players'
-  | 'member.reservations.empty'
-  | 'member.reservations.player'
-  | 'member.reservations.match'
-  | 'member.reservations.reservation'
-  | 'member.reservations.payment'
-  | 'member.reservations.amount'
-  | 'member.reservations.pay'
-  | 'member.reservations.cancel'
-  | 'member.reservations.organizedTitle'
-  | 'member.reservations.organizedSub'
-  | 'member.reservations.chooseMatch'
-  | 'member.reservations.inviteMatricule'
-  | 'member.reservations.noPlayer'
-  | 'member.reservations.reservationLabel'
-  | 'member.reservations.paymentLabel'
-  | 'member.reservations.removePlayer'
-  | 'member.reservations.emptyBody'
-  | 'member.payments.title'
-  | 'member.payments.subtitle'
-  | 'member.payments.reservations'
-  | 'member.payments.total'
-  | 'member.payments.paid'
-  | 'member.payments.pending'
-  | 'member.payments.refunded'
-  | 'member.payments.none'
-  | 'member.payments.notSet'
-  | 'member.profile.title'
-  | 'member.profile.subtitle'
-  | 'member.profile.createQuick'
-  | 'member.profile.publicMatch'
-  | 'member.profile.privateMatch'
-  | 'member.profile.quickPublic'
-  | 'member.profile.quickPrivate'
-  | 'member.profile.quickPublicBody'
-  | 'member.profile.quickPrivateBody'
-  | 'member.profile.explore'
-  | 'member.profile.followup'
-  | 'member.profile.finance'
-  | 'member.profile.refresh'
-  | 'member.profile.logout'
-  | 'member.profile.nom'
-  | 'member.profile.prenom'
-  | 'member.profile.email'
-  | 'member.profile.matricule'
-  | 'member.profile.type'
-  | 'member.profile.site'
-  | 'member.profile.solde'
-  | 'member.profile.penaltyActive'
-  | 'member.profile.balancePending'
-  | 'member.profile.yes'
-  | 'member.profile.no'
-  | 'member.profile.exploreBody'
-  | 'member.profile.followupBody'
-  | 'member.profile.financeBody'
-  | 'member.payments.payment'
-  | 'member.payments.loading'
-  | 'member.payments.error'
-  | 'member.payments.noMember'
-  | 'member.payments.idLabel'
-  | 'member.payments.noPayments'
-  | 'member.payments.loadingState'
-  | 'member.payments.errorState'
-  | 'member.payments.noMemberState'
-  | 'admin.matches.organizer'
-  | 'admin.matches.status'
-  | 'admin.matches.players'
-  | 'admin.matches.reservations'
-  | 'admin.matches.noReservations'
-  | 'admin.matches.hideDetails'
-  | 'admin.matches.showDetails'
-  | 'admin.matches.convert'
-  | 'admin.matches.convertSuccess'
-  | 'admin.matches.loadError'
-  | 'admin.matches.reservationsError'
-  | 'admin.matches.convertError'
-  | 'admin.matches.empty'
-  | 'admin.closures.date'
-  | 'admin.closures.reason'
-  | 'admin.closures.site'
-  | 'admin.closures.noneGlobal'
-  | 'admin.closures.global'
-  | 'admin.closures.add'
-  | 'admin.closures.reset'
-  | 'admin.closures.reasonEmpty'
-  | 'admin.closures.empty'
+  | 'admin.trajets.title'
+  | 'admin.trajets.subtitle'
+  | 'admin.voyageurs.title'
+  | 'admin.voyageurs.subtitle'
+  | 'admin.voyageurs.matricule'
+  | 'admin.voyageurs.matriculeHint'
+  | 'admin.voyageurs.type'
+  | 'admin.voyageurs.typeGlobal'
+  | 'admin.voyageurs.typeAgence'
+  | 'admin.voyageurs.typeLibre'
+  | 'admin.voyageurs.nom'
+  | 'admin.voyageurs.prenom'
+  | 'admin.voyageurs.email'
+  | 'admin.voyageurs.agence'
+  | 'admin.voyageurs.agenceNone'
+  | 'admin.voyageurs.searchPlaceholder'
+  | 'admin.voyageurs.filterAll'
+  | 'admin.voyageurs.filterGlobal'
+  | 'admin.voyageurs.filterAgence'
+  | 'admin.voyageurs.filterLibre'
+  | 'admin.voyageurs.empty'
+  | 'admin.voyageurs.emptySub'
+  | 'admin.voyageurs.restriction'
+  | 'admin.voyageurs.emailMissing'
+  | 'admin.voyageurs.agenceAll'
+  | 'admin.voyageurs.balance'
+  | 'admin.voyageurs.edit'
+  | 'admin.voyageurs.delete'
+  | 'admin.voyageurs.count'
+  | 'admin.agences.title'
+  | 'admin.agences.subtitle'
+  | 'admin.vehicules.title'
+  | 'admin.vehicules.subtitle'
+  | 'admin.indisponibilites.title'
+  | 'admin.indisponibilites.subtitle'
+  | 'voyageur.home.title'
+  | 'voyageur.home.subtitle'
+  | 'voyageur.home.identification'
+  | 'voyageur.home.loginHint'
+  | 'voyageur.home.password'
+  | 'voyageur.home.cta'
+  | 'voyageur.home.invalid'
+  | 'voyageur.home.global'
+  | 'voyageur.home.agence'
+  | 'voyageur.home.livre'
+  | 'voyageur.home.tousAgences'
+  | 'voyageur.create.title'
+  | 'voyageur.create.subtitle'
+  | 'voyageur.create.rappel'
+  | 'voyageur.create.public'
+  | 'voyageur.create.private'
+  | 'voyageur.create.back'
+  | 'voyageur.create.submit'
+  | 'voyageur.create.mode'
+  | 'voyageur.create.agence'
+  | 'voyageur.create.vehicule'
+  | 'voyageur.create.date'
+  | 'voyageur.create.dateHint'
+  | 'voyageur.create.time'
+  | 'voyageur.create.trajetType'
+  | 'voyageur.create.privatePassagers'
+  | 'voyageur.create.passager2'
+  | 'voyageur.create.passager3'
+  | 'voyageur.create.passager4'
+  | 'voyageur.create.noAgence'
+  | 'voyageur.create.noVehicule'
+  | 'voyageur.create.selectedAgence'
+  | 'voyageur.create.bookingLimit'
+  | 'voyageur.create.bookingLimitProfileError'
+  | 'voyageur.create.ruleGlobal'
+  | 'voyageur.create.ruleAgence'
+  | 'voyageur.create.ruleLibre'
+  | 'voyageur.create.noAgenceLoaded'
+  | 'voyageur.create.noVehiculeLoaded'
+  | 'voyageur.create.success'
+  | 'voyageur.create.successPrivate'
+  | 'voyageur.create.partialSuccess'
+  | 'voyageur.public.title'
+  | 'voyageur.public.subtitle'
+  | 'voyageur.public.filter'
+  | 'voyageur.public.search'
+  | 'voyageur.public.create'
+  | 'voyageur.public.join'
+  | 'voyageur.public.modify'
+  | 'voyageur.public.delete'
+  | 'voyageur.public.myProfile'
+  | 'voyageur.public.myTrajet'
+  | 'voyageur.public.available'
+  | 'voyageur.public.completion'
+  | 'voyageur.public.none'
+  | 'voyageur.public.organizer'
+  | 'voyageur.public.status'
+  | 'voyageur.public.type'
+  | 'voyageur.public.passagers'
+  | 'voyageur.public.price'
+  | 'voyageur.public.registering'
+  | 'voyageur.public.editTitle'
+  | 'voyageur.public.editHint'
+  | 'voyageur.public.noTrajets'
+  | 'voyageur.public.searchPlaceholder'
+  | 'voyageur.public.noTrajetPrompt'
+  | 'voyageur.public.createBody'
+  | 'voyageur.public.date'
+  | 'voyageur.public.time'
+  | 'voyageur.public.typeLabel'
+  | 'voyageur.reservations.title'
+  | 'voyageur.reservations.subtitle'
+  | 'voyageur.reservations.createPublic'
+  | 'voyageur.reservations.createPrivate'
+  | 'voyageur.reservations.trajets'
+  | 'voyageur.reservations.select'
+  | 'voyageur.reservations.addPassager'
+  | 'voyageur.reservations.noOrganized'
+  | 'voyageur.reservations.edit'
+  | 'voyageur.reservations.confirmation'
+  | 'voyageur.reservations.passagers'
+  | 'voyageur.reservations.empty'
+  | 'voyageur.reservations.passager'
+  | 'voyageur.reservations.trajet'
+  | 'voyageur.reservations.reservation'
+  | 'voyageur.reservations.payment'
+  | 'voyageur.reservations.amount'
+  | 'voyageur.reservations.pay'
+  | 'voyageur.reservations.cancel'
+  | 'voyageur.reservations.organizedTitle'
+  | 'voyageur.reservations.organizedSub'
+  | 'voyageur.reservations.chooseTrajet'
+  | 'voyageur.reservations.inviteMatricule'
+  | 'voyageur.reservations.noPassager'
+  | 'voyageur.reservations.reservationLabel'
+  | 'voyageur.reservations.paymentLabel'
+  | 'voyageur.reservations.removePassager'
+  | 'voyageur.reservations.emptyBody'
+  | 'voyageur.payments.title'
+  | 'voyageur.payments.subtitle'
+  | 'voyageur.payments.reservations'
+  | 'voyageur.payments.total'
+  | 'voyageur.payments.paid'
+  | 'voyageur.payments.pending'
+  | 'voyageur.payments.refunded'
+  | 'voyageur.payments.none'
+  | 'voyageur.payments.notSet'
+  | 'voyageur.profile.title'
+  | 'voyageur.profile.subtitle'
+  | 'voyageur.profile.createQuick'
+  | 'voyageur.profile.publicTrajet'
+  | 'voyageur.profile.privateTrajet'
+  | 'voyageur.profile.quickPublic'
+  | 'voyageur.profile.quickPrivate'
+  | 'voyageur.profile.quickPublicBody'
+  | 'voyageur.profile.quickPrivateBody'
+  | 'voyageur.profile.explore'
+  | 'voyageur.profile.followup'
+  | 'voyageur.profile.finance'
+  | 'voyageur.profile.refresh'
+  | 'voyageur.profile.logout'
+  | 'voyageur.profile.nom'
+  | 'voyageur.profile.prenom'
+  | 'voyageur.profile.email'
+  | 'voyageur.profile.matricule'
+  | 'voyageur.profile.type'
+  | 'voyageur.profile.agence'
+  | 'voyageur.profile.solde'
+  | 'voyageur.profile.restrictionActive'
+  | 'voyageur.profile.balancePending'
+  | 'voyageur.profile.yes'
+  | 'voyageur.profile.no'
+  | 'voyageur.profile.exploreBody'
+  | 'voyageur.profile.followupBody'
+  | 'voyageur.profile.financeBody'
+  | 'voyageur.payments.payment'
+  | 'voyageur.payments.loading'
+  | 'voyageur.payments.error'
+  | 'voyageur.payments.noVoyageur'
+  | 'voyageur.payments.idLabel'
+  | 'voyageur.payments.noPayments'
+  | 'voyageur.payments.loadingState'
+  | 'voyageur.payments.errorState'
+  | 'voyageur.payments.noVoyageurState'
+  | 'admin.trajets.organizer'
+  | 'admin.trajets.status'
+  | 'admin.trajets.passagers'
+  | 'admin.trajets.reservations'
+  | 'admin.trajets.noReservations'
+  | 'admin.trajets.hideDetails'
+  | 'admin.trajets.showDetails'
+  | 'admin.trajets.convert'
+  | 'admin.trajets.convertSuccess'
+  | 'admin.trajets.loadError'
+  | 'admin.trajets.reservationsError'
+  | 'admin.trajets.convertError'
+  | 'admin.trajets.empty'
+  | 'admin.indisponibilites.date'
+  | 'admin.indisponibilites.reason'
+  | 'admin.indisponibilites.agence'
+  | 'admin.indisponibilites.noneGlobal'
+  | 'admin.indisponibilites.global'
+  | 'admin.indisponibilites.add'
+  | 'admin.indisponibilites.reset'
+  | 'admin.indisponibilites.reasonEmpty'
+  | 'admin.indisponibilites.empty'
   | 'common.notProvided'
   | 'admin.home.allStatuses'
-  | 'admin.home.matchCount'
-  | 'admin.home.sitesVisible'
-  | 'admin.home.terrainsVisible'
-  | 'admin.home.completeMatches'
+  | 'admin.home.trajetCount'
+  | 'admin.home.agencesVisible'
+  | 'admin.home.vehiculesVisible'
+  | 'admin.home.completeTrajets'
   | 'admin.home.pendingReservations'
   | 'admin.login.globalBadge'
-  | 'admin.login.siteBadge'
+  | 'admin.login.agenceBadge'
   | 'admin.login.showPassword'
   | 'admin.login.hidePassword'
-  | 'admin.members.searchNoResult'
-  | 'admin.members.loadError'
-  | 'admin.members.saveError'
-  | 'admin.members.deleteError'
-  | 'admin.members.updateSuccess'
-  | 'admin.members.createSuccess'
-  | 'admin.members.deleteSuccess'
-  | 'admin.members.deleteConfirm'
-  | 'admin.sites.name'
-  | 'admin.sites.address'
-  | 'admin.sites.opening'
-  | 'admin.sites.closing'
-  | 'admin.sites.matchDuration'
-  | 'admin.sites.breakDuration'
-  | 'admin.sites.civilYear'
-  | 'admin.sites.hours'
-  | 'admin.sites.duration'
-  | 'admin.sites.break'
-  | 'admin.sites.year'
-  | 'admin.sites.empty'
-  | 'admin.sites.siteAdminEditBlocked'
-  | 'admin.sites.siteAdminDeleteBlocked'
-  | 'admin.sites.loadError'
-  | 'admin.sites.saveError'
-  | 'admin.sites.deleteError'
-  | 'admin.sites.deleteConfirm'
-  | 'admin.sites.updateSuccess'
-  | 'admin.sites.createSuccess'
-  | 'admin.sites.deleteSuccess'
-  | 'admin.terrains.name'
-  | 'admin.terrains.site'
-  | 'admin.terrains.empty'
-  | 'admin.terrains.loadError'
-  | 'admin.terrains.saveError'
-  | 'admin.terrains.deleteError'
-  | 'admin.terrains.deleteConfirm'
-  | 'admin.terrains.updateSuccess'
-  | 'admin.terrains.createSuccess'
-  | 'admin.terrains.deleteSuccess'
-  | 'admin.closures.loadError'
-  | 'admin.closures.addSuccess'
-  | 'admin.closures.addError'
-  | 'admin.closures.deleteSuccess'
-  | 'admin.closures.deleteError'
-  | 'member.home.matricule'
-  | 'member.home.matriculePlaceholder'
-  | 'member.home.showPassword'
-  | 'member.home.hidePassword'
-  | 'member.home.globalHint'
-  | 'member.home.siteHint'
-  | 'member.home.livreHint'
-  | 'member.home.allSites'
-  | 'member.profile.loadError'
-  | 'member.create.bookingLimitError'
-  | 'member.create.invalidType'
-  | 'member.create.createError'
-  | 'member.create.outstandingBalance'
-  | 'member.create.activePenalty'
-  | 'member.create.slotTaken'
-  | 'member.create.siteClosed'
-  | 'member.create.outOfHours'
-  | 'member.create.siteOnly'
-  | 'member.create.internalError'
-  | 'member.create.addPlayersError'
-  | 'member.public.loadError'
-  | 'member.public.noMember'
-  | 'member.public.joinBlocked'
-  | 'member.public.joinSuccess'
-  | 'member.public.joinError'
-  | 'member.public.modifyTooLate'
-  | 'member.public.updateSuccess'
-  | 'member.public.updateError'
-  | 'member.public.deleteConfirm'
-  | 'member.public.deleteSuccess'
-  | 'member.public.deleteError'
-  | 'member.reservations.reservationTitle'
-  | 'member.reservations.noMember'
-  | 'member.reservations.loadError'
-  | 'member.reservations.privateOnly'
-  | 'member.reservations.playersLoadError'
-  | 'member.reservations.updateSuccess'
-  | 'member.reservations.updateError'
-  | 'member.reservations.deleteSuccess'
-  | 'member.reservations.deleteError'
-  | 'member.reservations.playerAdded'
-  | 'member.reservations.playerAddError'
-  | 'member.reservations.playerRemoved'
-  | 'member.reservations.playerRemoveError'
-  | 'member.reservations.paymentSuccess'
-  | 'member.reservations.paymentError'
-  | 'member.reservations.reservationCanceled'
-  | 'member.reservations.reservationCancelError';
+  | 'admin.voyageurs.searchNoResult'
+  | 'admin.voyageurs.loadError'
+  | 'admin.voyageurs.saveError'
+  | 'admin.voyageurs.deleteError'
+  | 'admin.voyageurs.updateSuccess'
+  | 'admin.voyageurs.createSuccess'
+  | 'admin.voyageurs.deleteSuccess'
+  | 'admin.voyageurs.deleteConfirm'
+  | 'admin.agences.name'
+  | 'admin.agences.address'
+  | 'admin.agences.opening'
+  | 'admin.agences.closing'
+  | 'admin.agences.trajetDuration'
+  | 'admin.agences.breakDuration'
+  | 'admin.agences.civilYear'
+  | 'admin.agences.hours'
+  | 'admin.agences.duration'
+  | 'admin.agences.break'
+  | 'admin.agences.year'
+  | 'admin.agences.empty'
+  | 'admin.agences.agenceAdminEditBlocked'
+  | 'admin.agences.agenceAdminDeleteBlocked'
+  | 'admin.agences.loadError'
+  | 'admin.agences.saveError'
+  | 'admin.agences.deleteError'
+  | 'admin.agences.deleteConfirm'
+  | 'admin.agences.updateSuccess'
+  | 'admin.agences.createSuccess'
+  | 'admin.agences.deleteSuccess'
+  | 'admin.vehicules.name'
+  | 'admin.vehicules.agence'
+  | 'admin.vehicules.empty'
+  | 'admin.vehicules.loadError'
+  | 'admin.vehicules.saveError'
+  | 'admin.vehicules.deleteError'
+  | 'admin.vehicules.deleteConfirm'
+  | 'admin.vehicules.updateSuccess'
+  | 'admin.vehicules.createSuccess'
+  | 'admin.vehicules.deleteSuccess'
+  | 'admin.indisponibilites.loadError'
+  | 'admin.indisponibilites.addSuccess'
+  | 'admin.indisponibilites.addError'
+  | 'admin.indisponibilites.deleteSuccess'
+  | 'admin.indisponibilites.deleteError'
+  | 'voyageur.home.matricule'
+  | 'voyageur.home.matriculePlaceholder'
+  | 'voyageur.home.showPassword'
+  | 'voyageur.home.hidePassword'
+  | 'voyageur.home.globalHint'
+  | 'voyageur.home.agenceHint'
+  | 'voyageur.home.livreHint'
+  | 'voyageur.home.allAgences'
+  | 'voyageur.profile.loadError'
+  | 'voyageur.create.bookingLimitError'
+  | 'voyageur.create.invalidType'
+  | 'voyageur.create.createError'
+  | 'voyageur.create.outstandingBalance'
+  | 'voyageur.create.activeRestriction'
+  | 'voyageur.create.slotTaken'
+  | 'voyageur.create.agenceClosed'
+  | 'voyageur.create.outOfHours'
+  | 'voyageur.create.agenceOnly'
+  | 'voyageur.create.internalError'
+  | 'voyageur.create.addPassagersError'
+  | 'voyageur.public.loadError'
+  | 'voyageur.public.noVoyageur'
+  | 'voyageur.public.joinBlocked'
+  | 'voyageur.public.joinSuccess'
+  | 'voyageur.public.joinError'
+  | 'voyageur.public.modifyTooLate'
+  | 'voyageur.public.updateSuccess'
+  | 'voyageur.public.updateError'
+  | 'voyageur.public.deleteConfirm'
+  | 'voyageur.public.deleteSuccess'
+  | 'voyageur.public.deleteError'
+  | 'voyageur.reservations.reservationTitle'
+  | 'voyageur.reservations.noVoyageur'
+  | 'voyageur.reservations.loadError'
+  | 'voyageur.reservations.privateOnly'
+  | 'voyageur.reservations.passagersLoadError'
+  | 'voyageur.reservations.updateSuccess'
+  | 'voyageur.reservations.updateError'
+  | 'voyageur.reservations.deleteSuccess'
+  | 'voyageur.reservations.deleteError'
+  | 'voyageur.reservations.passagerAdded'
+  | 'voyageur.reservations.passagerAddError'
+  | 'voyageur.reservations.passagerRemoved'
+  | 'voyageur.reservations.passagerRemoveError'
+  | 'voyageur.reservations.paymentSuccess'
+  | 'voyageur.reservations.paymentError'
+  | 'voyageur.reservations.reservationCanceled'
+  | 'voyageur.reservations.reservationCancelError';
 
 export type TranslationParams = Record<string, string | number>;
 
@@ -407,22 +407,22 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
   fr: {
     'nav.home': 'Accueil',
     'nav.admin': 'Admin',
-    'nav.member': 'Espace membre',
+    'nav.voyageur': 'Espace voyageur',
     'nav.profile': 'Profil',
-    'nav.matches': 'Matchs',
+    'nav.trajets': 'Trajets',
     'nav.reservations': 'Reservations',
     'nav.payments': 'Paiements',
     'nav.create': 'Creer',
     'nav.public': 'Public',
     'nav.private': 'Prive',
     'nav.logout': 'Deconnexion',
-    'nav.memberArea': 'Espace membre',
+    'nav.voyageurArea': 'Espace voyageur',
     'nav.adminLogin': 'Connexion admin',
     'nav.dashboard': 'Dashboard',
-    'nav.members': 'Membres',
-    'nav.sites': 'Sites',
-    'nav.courts': 'Terrains',
-    'nav.closures': 'Fermetures',
+    'nav.voyageurs': 'Voyageurs',
+    'nav.agences': 'Agences',
+    'nav.vehicules': 'Vehicules',
+    'nav.indisponibilites': 'Indisponibilités',
     'common.back': 'Retour',
     'common.save': 'Enregistrer',
     'common.create': 'Creer',
@@ -433,9 +433,9 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'common.confirm': 'Confirmer',
     'common.loading': 'Chargement...',
     'common.none': 'Aucun',
-    'common.matchPlanned': 'Planifie',
-    'common.matchFull': 'Complet',
-    'common.matchCanceled': 'Annule',
+    'common.trajetPlanned': 'Planifie',
+    'common.trajetFull': 'Complet',
+    'common.trajetCanceled': 'Annule',
     'common.reservationPending': 'En attente',
     'common.reservationConfirmed': 'Confirmee',
     'common.reservationCanceled': 'Annulee',
@@ -443,39 +443,39 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'common.paymentPaid': 'Paye',
     'common.paymentRefunded': 'Rembourse',
     'common.paymentCanceled': 'Annule',
-    'common.allSites': 'Tous les sites',
+    'common.allAgences': 'Tous les agences',
     'common.profile': 'Profil',
     'common.refresh': 'Rafraichir',
     'switcher.label': 'Choix de langue',
     'switcher.fr': 'Francais',
     'switcher.en': 'English',
-    'landing.eyebrow': 'Gestion de club de padel',
-    'landing.title': 'PadelPlay',
+    'landing.eyebrow': 'Gestion du transport public et privé',
+    'landing.title': 'GestionTransport',
     'landing.lead':
-      'Une interface claire pour reserver, rejoindre un match, suivre les paiements et piloter les sites depuis un tableau de bord admin.',
-    'landing.memberCta': 'Entrer avec un matricule',
-    'landing.memberCtaConnected': 'Ouvrir mon espace',
+      'Une interface claire pour reserver, rejoindre un trajet, suivre les paiements et piloter les agences depuis un tableau de bord admin.',
+    'landing.voyageurCta': 'Entrer avec un matricule',
+    'landing.voyageurCtaConnected': 'Ouvrir mon espace',
     'landing.adminCta': 'Connexion admin',
     'landing.testApi': "Tester l'API",
-    'landing.loadingApi': 'Verification de /api/matches/public...',
-    'landing.apiSuccess': 'Proxy OK - {count} match(s) public(s) recupere(s)',
+    'landing.loadingApi': 'Verification de /api/trajets/public...',
+    'landing.apiSuccess': 'Proxy OK - {count} trajet(s) public(s) recupere(s)',
     'landing.apiError': "Echec de l'appel API. Verifiez que le backend tourne sur le port 8080.",
     'landing.feature1.title': 'Reservations',
-    'landing.feature1.body': 'Choix du terrain, controle des disponibilites et suivi du statut.',
-    'landing.feature2.title': 'Matchs publics et prives',
+    'landing.feature1.body': 'Choix du vehicule, controle des disponibilites et suivi du statut.',
+    'landing.feature2.title': 'Trajets publics et prives',
     'landing.feature2.body': 'Creation rapide avec des regles claires pour les participants.',
     'landing.feature3.title': 'Paiements',
-    'landing.feature3.body': 'Vue propre des paiements, penalites et confirmations.',
+    'landing.feature3.body': 'Vue propre des paiements, restrictions et confirmations.',
     'landing.feature4.title': 'Administration',
-    'landing.feature4.body': 'Indicateurs, membres, sites, terrains et fermetures au meme endroit.',
-    'landing.matchPublic': 'Match public',
-    'landing.matchAvailable': 'match(s) disponible(s)',
+    'landing.feature4.body': 'Indicateurs, voyageurs, agences, vehicules et indisponibilités au meme endroit.',
+    'landing.trajetPublic': 'Trajet public',
+    'landing.trajetAvailable': 'trajet(s) disponible(s)',
     'landing.reservation': 'Reservation',
-    'landing.reservationBody': 'membre, terrain, paiement',
+    'landing.reservationBody': 'voyageur, vehicule, paiement',
     'landing.simpleReservation': 'Simple',
-    'landing.matchPreviewLabel': 'Apercu des matchs',
-    'admin.login.heroTitle': 'PadelPlay Admin',
-    'admin.login.heroSubtitle': 'Espace reserve aux administrateurs de sites et superviseurs globaux',
+    'landing.trajetPreviewLabel': 'Apercu des trajets',
+    'admin.login.heroTitle': 'GestionTransport Admin',
+    'admin.login.heroSubtitle': 'Espace reserve aux administrateurs de agences et superviseurs globaux',
     'admin.login.formTitle': 'Connexion',
     'admin.login.formSubtitle': 'Acces reserve aux administrateurs',
     'admin.login.email': 'Email',
@@ -484,15 +484,15 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'admin.login.back': 'Retour',
     'admin.login.error': "Echec de connexion. Verifiez l'e-mail et le mot de passe.",
     'admin.home.eyebrow': 'Tableau de bord',
-    'admin.home.title': 'Administration PadelPlay',
-    'admin.home.subtitle': 'Vue {scope} des matchs, reservations, membres et ressources du club.',
+    'admin.home.title': 'Administration GestionTransport',
+    'admin.home.subtitle': 'Vue {scope} des trajets, reservations, voyageurs et ressources du réseau.',
     'admin.home.loading': 'Chargement du tableau de bord...',
-    'admin.home.matches': 'Matchs',
+    'admin.home.trajets': 'Trajets',
     'admin.home.reservations': 'Reservations',
-    'admin.home.members': 'Membres',
+    'admin.home.voyageurs': 'Voyageurs',
     'admin.home.revenue': "Chiffre d'affaires",
-    'admin.home.occupancy': 'Occupation par site',
-    'admin.home.occupancySub': 'Nombre de matchs rattaches a chaque site visible',
+    'admin.home.occupancy': 'Occupation par agence',
+    'admin.home.occupancySub': 'Nombre de trajets rattaches a chaque agence visible',
     'admin.home.resources': 'Ressources',
     'admin.home.resourcesSub': "Controle rapide des elements geres par l'administration",
     'admin.home.empty': 'Aucune donnee.',
@@ -501,310 +501,310 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'admin.home.validPayments': 'paiements valides',
     'admin.home.reservationsLoadError': 'Impossible de charger les reservations administrateur.',
     'admin.home.dashboardLoadError': 'Impossible de charger le tableau de bord administrateur.',
-    'admin.matches.title': 'Gestion des matchs',
-    'admin.matches.subtitle': 'Consultation, details et conversion en public',
-    'admin.members.title': 'Gestion des membres',
-    'admin.members.subtitle': 'Creation, modification et suppression des membres du club',
-    'admin.members.matricule': 'Matricule',
-    'admin.members.matriculeHint': 'GLOBAL: G+4ch · SITE: S+5ch · LIBRE: L+5ch',
-    'admin.members.type': 'Type de membre',
-    'admin.members.typeGlobal': 'Global - Tous les sites',
-    'admin.members.typeSite': 'Site - Site dédié',
-    'admin.members.typeLibre': 'Libre - Accès libre',
-    'admin.members.nom': 'Nom',
-    'admin.members.prenom': 'Prenom',
-    'admin.members.email': 'Email',
-    'admin.members.site': 'Site',
-    'admin.members.siteNone': 'Aucun site (GLOBAL / LIBRE)',
-    'admin.members.searchPlaceholder': 'Rechercher par matricule, nom ou prenom...',
-    'admin.members.filterAll': 'Tous',
-    'admin.members.filterGlobal': 'Global',
-    'admin.members.filterSite': 'Site',
-    'admin.members.filterLibre': 'Libre',
-    'admin.members.empty': 'Aucun membre trouve',
-    'admin.members.emptySub': 'Creer votre premier membre avec le formulaire ci-dessus.',
-    'admin.members.penalty': 'Pénalité active',
-    'admin.members.emailMissing': 'Non renseigne',
-    'admin.members.siteAll': 'Tous les sites',
-    'admin.members.balance': 'Solde',
-    'admin.members.edit': 'Modifier',
-    'admin.members.delete': 'Supprimer',
-    'admin.members.count': 'membre(s)',
-    'admin.sites.title': 'Gestion des sites',
-    'admin.sites.subtitle': 'Creation, edition et suppression des sites',
-    'admin.terrains.title': 'Gestion des terrains',
-    'admin.terrains.subtitle': 'Creation et gestion des terrains par site',
-    'admin.closures.title': 'Jours de fermeture',
-    'admin.closures.subtitle': 'Gestion des fermetures globales et par site',
-    'member.home.title': 'Espace Membre Padel',
-    'member.home.subtitle': 'Entrez votre matricule pour acceder a votre espace de jeu',
-    'member.home.identification': 'Identification',
-    'member.home.loginHint': 'Saisissez votre matricule et mot de passe pour rejoindre le court',
-    'member.home.password': 'Mot de passe',
-    'member.home.cta': 'Acceder a mon espace',
-    'member.home.invalid': 'Identifiants invalides. Verifiez le matricule et le mot de passe.',
-    'member.home.global': 'Global',
-    'member.home.site': 'Site dédié',
-    'member.home.livre': 'Libre',
-    'member.home.tousSites': 'Tous les sites',
-    'member.create.title': 'Creer un match',
-    'member.create.subtitle': 'Public ou prive, selon les regles du backend.',
-    'member.create.rappel': 'Rappel',
-    'member.create.public': 'PUBLIC',
-    'member.create.private': 'PRIVE',
-    'member.create.back': 'Retour profil',
-    'member.create.submit': 'Creer le match',
-    'member.create.mode': 'Mode creation',
-    'member.create.site': 'Site',
-    'member.create.terrain': 'Terrain',
-    'member.create.date': 'Date',
-    'member.create.dateHint': 'Entre',
-    'member.create.time': 'Heure debut',
-    'member.create.matchType': 'Type de match',
-    'member.create.privatePlayers': 'Joueurs a inviter maintenant (optionnel)',
-    'member.create.player2': 'Matricule joueur 2',
-    'member.create.player3': 'Matricule joueur 3',
-    'member.create.player4': 'Matricule joueur 4',
-    'member.create.noSite': 'Aucun site disponible pour creer un match.',
-    'member.create.noTerrain': 'Aucun terrain disponible pour le site selectionne.',
-    'member.create.selectedSite': 'Site selectionne',
-    'member.create.bookingLimit': 'Derniere date autorisee selon votre profil :',
-    'member.create.ruleGlobal': 'GLOBAL : jusqu\'a 3 semaines a l\'avance',
-    'member.create.ruleSite': 'SITE : jusqu\'a 2 semaines a l\'avance sur son site',
-    'member.create.ruleLibre': 'LIBRE : jusqu\'a 5 jours a l\'avance',
-    'member.create.noSiteLoaded': 'Aucun site charge.',
-    'member.create.noTerrainLoaded': 'Aucun terrain charge.',
-    'member.create.success': 'Match cree. Votre place sera confirmee apres paiement depuis vos reservations.',
-    'member.create.successPrivate': 'Match privé créé. Les invitations sont en attente de paiement des joueurs.',
-    'member.create.partialSuccess': "Match cree, mais certains joueurs n'ont pas pu etre ajoutes.",
-    'member.public.title': 'Matchs publics',
-    'member.public.subtitle': 'Rejoins un match public disponible. Premier paye = premier servi.',
-    'member.public.filter': 'Filtrer par site',
-    'member.public.search': 'Recherche',
-    'member.public.create': 'Creer un match',
-    'member.public.join': 'Rejoindre',
-    'member.public.modify': 'Modifier',
-    'member.public.delete': 'Supprimer',
-    'member.public.myProfile': 'Mon profil',
-    'member.public.myMatch': 'Mon match',
-    'member.public.available': 'Disponible',
-    'member.public.completion': 'Complet',
-    'member.public.none': 'Non rejoignable',
-    'member.public.organizer': 'Organisateur',
-    'member.public.status': 'Statut',
-    'member.public.type': 'Type',
-    'member.public.players': 'Joueurs',
-    'member.public.price': 'Prix par joueur',
-    'member.public.registering': 'Reservation...',
-    'member.public.editTitle': 'Modifier le match',
-    'member.public.editHint': 'Modification indisponible : un match ne peut plus etre modifie a moins de 24 h du debut.',
-    'member.public.noMatches': 'Aucun match public ne correspond aux filtres.',
-    'member.public.searchPlaceholder': 'Terrain, site, organisateur',
-    'member.public.noMatchPrompt': 'Tu ne trouves pas de match ?',
-    'member.public.createBody': 'En public ou en prive, avec choix du site et du terrain.',
-    'member.public.date': 'Date',
-    'member.public.time': 'Heure debut',
-    'member.public.typeLabel': 'Type',
-    'member.reservations.title': 'Mes reservations',
-    'member.reservations.subtitle': 'Paiement et annulation de vos inscriptions.',
-    'member.reservations.createPublic': 'Creer un match PUBLIC',
-    'member.reservations.createPrivate': 'Creer un match PRIVE',
-    'member.reservations.matches': 'Matchs publics',
-    'member.reservations.select': 'Selectionner un match organise',
-    'member.reservations.addPlayer': 'Ajouter joueur',
-    'member.reservations.noOrganized': 'Aucun match organise pour l\'instant. Creez un match PUBLIC ou PRIVE via les boutons ci-dessus.',
-    'member.reservations.edit': 'Modifier le match',
-    'member.reservations.confirmation': 'Confirmation requise',
-    'member.reservations.players': 'Joueurs inscrits :',
-    'member.reservations.empty': 'Aucune reservation trouvee.',
-    'member.reservations.player': 'Joueur',
-    'member.reservations.match': 'Match',
-    'member.reservations.reservation': 'Reservation',
-    'member.reservations.payment': 'Paiement',
-    'member.reservations.amount': 'Montant',
-    'member.reservations.pay': 'Payer',
-    'member.reservations.cancel': 'Annuler',
-    'member.reservations.organizedTitle': 'Mes matchs organises',
-    'member.reservations.organizedSub': 'Modifier, supprimer ou gerer les joueurs de vos matchs.',
-    'member.reservations.chooseMatch': '-- Choisir un match --',
-    'member.reservations.inviteMatricule': 'Matricule joueur a ajouter',
-    'member.reservations.noPlayer': 'Aucun joueur inscrit sur ce match.',
-    'member.reservations.reservationLabel': 'Reservation',
-    'member.reservations.paymentLabel': 'Paiement',
-    'member.reservations.removePlayer': 'Retirer',
-    'member.reservations.emptyBody': 'Creez un match ou rejoignez un match public pour voir vos reservations ici.',
-    'member.payments.title': 'Mes paiements',
-    'member.payments.subtitle': 'Historique des paiements et remboursements',
-    'member.payments.reservations': 'Mes reservations',
-    'member.payments.total': 'Total paiements',
-    'member.payments.paid': 'Total paye',
-    'member.payments.pending': 'En attente',
-    'member.payments.refunded': 'Rembourses',
-    'member.payments.none': 'Aucun paiement trouve',
-    'member.payments.notSet': 'Pas encore regle',
-    'member.payments.idLabel': 'Paiement',
-    'member.payments.noPayments': 'Aucun paiement trouve',
-    'member.payments.loadingState': 'Chargement des paiements...',
-    'member.payments.errorState': 'Impossible de charger les paiements.',
-    'member.payments.noMemberState': 'Aucun membre connecte.',
-    'member.profile.title': 'Mon profil membre',
-    'member.profile.subtitle': 'Informations rechargees depuis le backend',
-    'member.profile.createQuick': 'Creer un match rapidement',
-    'member.profile.publicMatch': 'Match ouvert',
-    'member.profile.privateMatch': 'Match sur invitation',
-    'member.profile.quickPublic': 'Creer un match PUBLIC',
-    'member.profile.quickPrivate': 'Creer un match PRIVE',
-    'member.profile.quickPublicBody': "N'importe quel membre peut rejoindre · 15 EUR/joueur · 4 joueurs requis",
-    'member.profile.quickPrivateBody': 'Tu invites 3 joueurs par matricule · Converti en public si incomplet la veille',
-    'member.profile.explore': 'Explorer',
-    'member.profile.followup': 'Suivi',
-    'member.profile.finance': 'Finances',
-    'member.profile.refresh': 'Rafraichir',
-    'member.profile.logout': 'Deconnexion membre',
-    'member.profile.nom': 'Nom',
-    'member.profile.prenom': 'Prenom',
-    'member.profile.email': 'Email',
-    'member.profile.matricule': 'Matricule',
-    'member.profile.type': 'Type',
-    'member.profile.site': 'Site',
-    'member.profile.solde': 'Solde',
-    'member.profile.penaltyActive': 'Penalite active',
-    'member.profile.balancePending': 'Solde en attente',
-    'member.profile.yes': 'Oui',
-    'member.profile.no': 'Non',
-    'member.profile.exploreBody': 'Rejoins rapidement une partie disponible.',
-    'member.profile.followupBody': 'Paie, annule ou suis tes inscriptions.',
-    'member.profile.financeBody': 'Historique de tes paiements.',
-    'member.payments.payment': 'Paiement',
-    'member.payments.loading': 'Chargement des paiements...',
-    'member.payments.error': 'Impossible de charger les paiements.',
-    'member.payments.noMember': 'Aucun membre connecte.',
-    'admin.matches.organizer': 'Organisateur',
-    'admin.matches.status': 'Statut',
-    'admin.matches.players': 'Joueurs',
-    'admin.matches.reservations': 'Reservations du match',
-    'admin.matches.noReservations': 'Aucune reservation.',
-    'admin.matches.hideDetails': 'Masquer',
-    'admin.matches.showDetails': 'Voir details',
-    'admin.matches.convert': 'Convertir en public',
-    'admin.matches.convertSuccess': 'Match converti en public.',
-    'admin.matches.loadError': 'Impossible de charger les matchs admin.',
-    'admin.matches.reservationsError': 'Impossible de charger les reservations du match.',
-    'admin.matches.convertError': 'Conversion impossible.',
-    'admin.matches.empty': 'Aucun match disponible',
-    'admin.closures.date': 'Date',
-    'admin.closures.reason': 'Raison (optionnel)',
-    'admin.closures.site': 'Site concerne',
-    'admin.closures.noneGlobal': 'Aucun (global)',
-    'admin.closures.global': 'Fermeture globale (tous les sites)',
-    'admin.closures.add': 'Ajouter la fermeture',
-    'admin.closures.reset': 'Reinitialiser',
-    'admin.closures.reasonEmpty': 'Raison non precisee',
-    'admin.closures.empty': 'Aucun jour de fermeture configure',
+    'admin.trajets.title': 'Gestion des trajets',
+    'admin.trajets.subtitle': 'Consultation, details et conversion en public',
+    'admin.voyageurs.title': 'Gestion des voyageurs',
+    'admin.voyageurs.subtitle': 'Creation, modification et suppression des voyageurs du réseau',
+    'admin.voyageurs.matricule': 'Matricule',
+    'admin.voyageurs.matriculeHint': 'GLOBAL: G+4ch · AGENCE: S+5ch · LIBRE: L+5ch',
+    'admin.voyageurs.type': 'Type de voyageur',
+    'admin.voyageurs.typeGlobal': 'Global - Tous les agences',
+    'admin.voyageurs.typeAgence': 'Agence - Agence dédié',
+    'admin.voyageurs.typeLibre': 'Libre - Accès libre',
+    'admin.voyageurs.nom': 'Nom',
+    'admin.voyageurs.prenom': 'Prenom',
+    'admin.voyageurs.email': 'Email',
+    'admin.voyageurs.agence': 'Agence',
+    'admin.voyageurs.agenceNone': 'Aucune agence (GLOBAL / LIBRE)',
+    'admin.voyageurs.searchPlaceholder': 'Rechercher par matricule, nom ou prenom...',
+    'admin.voyageurs.filterAll': 'Tous',
+    'admin.voyageurs.filterGlobal': 'Global',
+    'admin.voyageurs.filterAgence': 'Agence',
+    'admin.voyageurs.filterLibre': 'Libre',
+    'admin.voyageurs.empty': 'Aucun voyageur trouve',
+    'admin.voyageurs.emptySub': 'Creer votre premier voyageur avec le formulaire ci-dessus.',
+    'admin.voyageurs.restriction': 'Pénalité active',
+    'admin.voyageurs.emailMissing': 'Non renseigne',
+    'admin.voyageurs.agenceAll': 'Tous les agences',
+    'admin.voyageurs.balance': 'Solde',
+    'admin.voyageurs.edit': 'Modifier',
+    'admin.voyageurs.delete': 'Supprimer',
+    'admin.voyageurs.count': 'voyageur(s)',
+    'admin.agences.title': 'Gestion des agences',
+    'admin.agences.subtitle': 'Creation, edition et suppression des agences',
+    'admin.vehicules.title': 'Gestion des vehicules',
+    'admin.vehicules.subtitle': 'Creation et gestion des vehicules par agence',
+    'admin.indisponibilites.title': 'Indisponibilités de service',
+    'admin.indisponibilites.subtitle': 'Gestion des indisponibilités globales et par agence',
+    'voyageur.home.title': 'Espace Voyageur',
+    'voyageur.home.subtitle': 'Entrez votre matricule pour acceder a votre espace voyageur',
+    'voyageur.home.identification': 'Identification',
+    'voyageur.home.loginHint': 'Saisissez votre matricule et mot de passe pour rejoindre le vehicule',
+    'voyageur.home.password': 'Mot de passe',
+    'voyageur.home.cta': 'Acceder a mon espace',
+    'voyageur.home.invalid': 'Identifiants invalides. Verifiez le matricule et le mot de passe.',
+    'voyageur.home.global': 'Global',
+    'voyageur.home.agence': 'Agence dédié',
+    'voyageur.home.livre': 'Libre',
+    'voyageur.home.tousAgences': 'Tous les agences',
+    'voyageur.create.title': 'Creer un trajet',
+    'voyageur.create.subtitle': 'Public ou prive, selon les regles du backend.',
+    'voyageur.create.rappel': 'Rappel',
+    'voyageur.create.public': 'PUBLIC',
+    'voyageur.create.private': 'PRIVE',
+    'voyageur.create.back': 'Retour profil',
+    'voyageur.create.submit': 'Creer le trajet',
+    'voyageur.create.mode': 'Mode creation',
+    'voyageur.create.agence': 'Agence',
+    'voyageur.create.vehicule': 'Vehicule',
+    'voyageur.create.date': 'Date',
+    'voyageur.create.dateHint': 'Entre',
+    'voyageur.create.time': 'Heure debut',
+    'voyageur.create.trajetType': 'Type de trajet',
+    'voyageur.create.privatePassagers': 'Passagers a inviter maintenant (optionnel)',
+    'voyageur.create.passager2': 'Matricule passager 2',
+    'voyageur.create.passager3': 'Matricule passager 3',
+    'voyageur.create.passager4': 'Matricule passager 4',
+    'voyageur.create.noAgence': 'Aucune agence disponible pour creer un trajet.',
+    'voyageur.create.noVehicule': 'Aucun vehicule disponible pour cette agence selectionne.',
+    'voyageur.create.selectedAgence': 'Agence selectionne',
+    'voyageur.create.bookingLimit': 'Derniere date autorisee selon votre profil :',
+    'voyageur.create.ruleGlobal': 'GLOBAL : jusqu\'a 3 semaines a l\'avance',
+    'voyageur.create.ruleAgence': 'AGENCE : jusqu\'a 2 semaines a l\'avance sur son agence',
+    'voyageur.create.ruleLibre': 'LIBRE : jusqu\'a 5 jours a l\'avance',
+    'voyageur.create.noAgenceLoaded': 'Aucune agence charge.',
+    'voyageur.create.noVehiculeLoaded': 'Aucun vehicule charge.',
+    'voyageur.create.success': 'Trajet cree. Votre place sera confirmee apres paiement depuis vos reservations.',
+    'voyageur.create.successPrivate': 'Trajet privé créé. Les invitations sont en attente de paiement des passagers.',
+    'voyageur.create.partialSuccess': "Trajet cree, mais certains passagers n'ont pas pu etre ajoutes.",
+    'voyageur.public.title': 'Trajets publics',
+    'voyageur.public.subtitle': 'Rejoins un trajet public disponible. Premier paye = premier servi.',
+    'voyageur.public.filter': 'Filtrer par agence',
+    'voyageur.public.search': 'Recherche',
+    'voyageur.public.create': 'Creer un trajet',
+    'voyageur.public.join': 'Rejoindre',
+    'voyageur.public.modify': 'Modifier',
+    'voyageur.public.delete': 'Supprimer',
+    'voyageur.public.myProfile': 'Mon profil',
+    'voyageur.public.myTrajet': 'Mon trajet',
+    'voyageur.public.available': 'Disponible',
+    'voyageur.public.completion': 'Complet',
+    'voyageur.public.none': 'Non rejoignable',
+    'voyageur.public.organizer': 'Organisateur',
+    'voyageur.public.status': 'Statut',
+    'voyageur.public.type': 'Type',
+    'voyageur.public.passagers': 'Passagers',
+    'voyageur.public.price': 'Prix par passager',
+    'voyageur.public.registering': 'Reservation...',
+    'voyageur.public.editTitle': 'Modifier le trajet',
+    'voyageur.public.editHint': 'Modification indisponible : un trajet ne peut plus etre modifie a moins de 24 h du debut.',
+    'voyageur.public.noTrajets': 'Aucun trajet public ne correspond aux filtres.',
+    'voyageur.public.searchPlaceholder': 'Vehicule, agence, organisateur',
+    'voyageur.public.noTrajetPrompt': 'Tu ne trouves pas de trajet ?',
+    'voyageur.public.createBody': 'En public ou en prive, avec choix de cette agence et du vehicule.',
+    'voyageur.public.date': 'Date',
+    'voyageur.public.time': 'Heure debut',
+    'voyageur.public.typeLabel': 'Type',
+    'voyageur.reservations.title': 'Mes reservations',
+    'voyageur.reservations.subtitle': 'Paiement et annulation de vos inscriptions.',
+    'voyageur.reservations.createPublic': 'Creer un trajet PUBLIC',
+    'voyageur.reservations.createPrivate': 'Creer un trajet PRIVE',
+    'voyageur.reservations.trajets': 'Trajets publics',
+    'voyageur.reservations.select': 'Selectionner un trajet organise',
+    'voyageur.reservations.addPassager': 'Ajouter passager',
+    'voyageur.reservations.noOrganized': 'Aucun trajet organise pour l\'instant. Creez un trajet PUBLIC ou PRIVE via les boutons ci-dessus.',
+    'voyageur.reservations.edit': 'Modifier le trajet',
+    'voyageur.reservations.confirmation': 'Confirmation requise',
+    'voyageur.reservations.passagers': 'Passagers inscrits :',
+    'voyageur.reservations.empty': 'Aucune reservation trouvee.',
+    'voyageur.reservations.passager': 'Passager',
+    'voyageur.reservations.trajet': 'Trajet',
+    'voyageur.reservations.reservation': 'Reservation',
+    'voyageur.reservations.payment': 'Paiement',
+    'voyageur.reservations.amount': 'Montant',
+    'voyageur.reservations.pay': 'Payer',
+    'voyageur.reservations.cancel': 'Annuler',
+    'voyageur.reservations.organizedTitle': 'Mes trajets organises',
+    'voyageur.reservations.organizedSub': 'Modifier, supprimer ou gerer les passagers de vos trajets.',
+    'voyageur.reservations.chooseTrajet': '-- Choisir un trajet --',
+    'voyageur.reservations.inviteMatricule': 'Matricule passager a ajouter',
+    'voyageur.reservations.noPassager': 'Aucun passager inscrit sur ce trajet.',
+    'voyageur.reservations.reservationLabel': 'Reservation',
+    'voyageur.reservations.paymentLabel': 'Paiement',
+    'voyageur.reservations.removePassager': 'Retirer',
+    'voyageur.reservations.emptyBody': 'Creez un trajet ou rejoignez un trajet public pour voir vos reservations ici.',
+    'voyageur.payments.title': 'Mes paiements',
+    'voyageur.payments.subtitle': 'Historique des paiements et remboursements',
+    'voyageur.payments.reservations': 'Mes reservations',
+    'voyageur.payments.total': 'Total paiements',
+    'voyageur.payments.paid': 'Total paye',
+    'voyageur.payments.pending': 'En attente',
+    'voyageur.payments.refunded': 'Rembourses',
+    'voyageur.payments.none': 'Aucun paiement trouve',
+    'voyageur.payments.notSet': 'Pas encore regle',
+    'voyageur.payments.idLabel': 'Paiement',
+    'voyageur.payments.noPayments': 'Aucun paiement trouve',
+    'voyageur.payments.loadingState': 'Chargement des paiements...',
+    'voyageur.payments.errorState': 'Impossible de charger les paiements.',
+    'voyageur.payments.noVoyageurState': 'Aucun voyageur connecte.',
+    'voyageur.profile.title': 'Mon profil voyageur',
+    'voyageur.profile.subtitle': 'Informations rechargees depuis le backend',
+    'voyageur.profile.createQuick': 'Creer un trajet rapidement',
+    'voyageur.profile.publicTrajet': 'Trajet ouvert',
+    'voyageur.profile.privateTrajet': 'Trajet sur invitation',
+    'voyageur.profile.quickPublic': 'Creer un trajet PUBLIC',
+    'voyageur.profile.quickPrivate': 'Creer un trajet PRIVE',
+    'voyageur.profile.quickPublicBody': "N'importe quel voyageur peut rejoindre · 15 EUR/passager · 4 passagers requis",
+    'voyageur.profile.quickPrivateBody': 'Tu invites 3 passagers par matricule · Converti en public si incomplet la veille',
+    'voyageur.profile.explore': 'Explorer',
+    'voyageur.profile.followup': 'Suivi',
+    'voyageur.profile.finance': 'Finances',
+    'voyageur.profile.refresh': 'Rafraichir',
+    'voyageur.profile.logout': 'Deconnexion voyageur',
+    'voyageur.profile.nom': 'Nom',
+    'voyageur.profile.prenom': 'Prenom',
+    'voyageur.profile.email': 'Email',
+    'voyageur.profile.matricule': 'Matricule',
+    'voyageur.profile.type': 'Type',
+    'voyageur.profile.agence': 'Agence',
+    'voyageur.profile.solde': 'Solde',
+    'voyageur.profile.restrictionActive': 'Restriction active',
+    'voyageur.profile.balancePending': 'Solde en attente',
+    'voyageur.profile.yes': 'Oui',
+    'voyageur.profile.no': 'Non',
+    'voyageur.profile.exploreBody': 'Rejoins rapidement une partie disponible.',
+    'voyageur.profile.followupBody': 'Paie, annule ou suis tes inscriptions.',
+    'voyageur.profile.financeBody': 'Historique de tes paiements.',
+    'voyageur.payments.payment': 'Paiement',
+    'voyageur.payments.loading': 'Chargement des paiements...',
+    'voyageur.payments.error': 'Impossible de charger les paiements.',
+    'voyageur.payments.noVoyageur': 'Aucun voyageur connecte.',
+    'admin.trajets.organizer': 'Organisateur',
+    'admin.trajets.status': 'Statut',
+    'admin.trajets.passagers': 'Passagers',
+    'admin.trajets.reservations': 'Reservations du trajet',
+    'admin.trajets.noReservations': 'Aucune reservation.',
+    'admin.trajets.hideDetails': 'Masquer',
+    'admin.trajets.showDetails': 'Voir details',
+    'admin.trajets.convert': 'Convertir en public',
+    'admin.trajets.convertSuccess': 'Trajet converti en public.',
+    'admin.trajets.loadError': 'Impossible de charger les trajets admin.',
+    'admin.trajets.reservationsError': 'Impossible de charger les reservations du trajet.',
+    'admin.trajets.convertError': 'Conversion impossible.',
+    'admin.trajets.empty': 'Aucun trajet disponible',
+    'admin.indisponibilites.date': 'Date',
+    'admin.indisponibilites.reason': 'Raison (optionnel)',
+    'admin.indisponibilites.agence': 'Agence concerne',
+    'admin.indisponibilites.noneGlobal': 'Aucun (global)',
+    'admin.indisponibilites.global': 'Indisponibilité globale (toutes les agences)',
+    'admin.indisponibilites.add': 'Ajouter la indisponibilité',
+    'admin.indisponibilites.reset': 'Reinitialiser',
+    'admin.indisponibilites.reasonEmpty': 'Raison non precisee',
+    'admin.indisponibilites.empty': 'Aucun indisponibilité de service configure',
     'common.notProvided': 'Non renseigne',
     'admin.home.allStatuses': 'tous statuts',
-    'admin.home.matchCount': 'match(s)',
-    'admin.home.sitesVisible': 'Sites visibles',
-    'admin.home.terrainsVisible': 'Terrains visibles',
-    'admin.home.completeMatches': 'Matchs complets',
+    'admin.home.trajetCount': 'trajet(s)',
+    'admin.home.agencesVisible': 'Agences visibles',
+    'admin.home.vehiculesVisible': 'Vehicules visibles',
+    'admin.home.completeTrajets': 'Trajets complets',
     'admin.home.pendingReservations': 'Reservations en attente',
     'admin.login.globalBadge': '🌐 Admin global',
-    'admin.login.siteBadge': '🏟️ Admin site',
+    'admin.login.agenceBadge': '🏟️ Admin agence',
     'admin.login.showPassword': 'Afficher le mot de passe admin',
     'admin.login.hidePassword': 'Masquer le mot de passe admin',
-    'admin.members.searchNoResult': 'Aucun resultat pour "{query}"',
-    'admin.members.loadError': 'Impossible de charger les membres.',
-    'admin.members.saveError': 'Sauvegarde du membre impossible.',
-    'admin.members.deleteError': 'Suppression impossible.',
-    'admin.members.updateSuccess': 'Membre mis à jour.',
-    'admin.members.createSuccess': 'Membre cree avec succes.',
-    'admin.members.deleteSuccess': 'Membre supprimé.',
-    'admin.members.deleteConfirm': 'Confirmer la suppression de ce membre ?',
-    'admin.sites.name': 'Nom',
-    'admin.sites.address': 'Adresse',
-    'admin.sites.opening': 'Ouverture',
-    'admin.sites.closing': 'Fermeture',
-    'admin.sites.matchDuration': 'Duree match (min)',
-    'admin.sites.breakDuration': 'Pause entre matchs (min)',
-    'admin.sites.civilYear': 'Annee civile',
-    'admin.sites.hours': 'Horaires',
-    'admin.sites.duration': 'Duree match',
-    'admin.sites.break': 'Pause',
-    'admin.sites.year': 'Annee',
-    'admin.sites.empty': 'Aucun site configure',
-    'admin.sites.siteAdminEditBlocked': 'Un admin SITE ne peut pas modifier les sites.',
-    'admin.sites.siteAdminDeleteBlocked': 'Un admin SITE ne peut pas supprimer de site.',
-    'admin.sites.loadError': 'Impossible de charger les sites.',
-    'admin.sites.saveError': 'Sauvegarde du site impossible.',
-    'admin.sites.deleteError': 'Suppression du site impossible.',
-    'admin.sites.deleteConfirm': 'Confirmer la suppression de ce site ?',
-    'admin.sites.updateSuccess': 'Site mis a jour.',
-    'admin.sites.createSuccess': 'Site cree.',
-    'admin.sites.deleteSuccess': 'Site supprime.',
-    'admin.terrains.name': 'Nom du terrain',
-    'admin.terrains.site': 'Site',
-    'admin.terrains.empty': 'Aucun terrain configure',
-    'admin.terrains.loadError': 'Impossible de charger les terrains.',
-    'admin.terrains.saveError': 'Sauvegarde du terrain impossible.',
-    'admin.terrains.deleteError': 'Suppression du terrain impossible.',
-    'admin.terrains.deleteConfirm': 'Confirmer la suppression de ce terrain ?',
-    'admin.terrains.updateSuccess': 'Terrain mis a jour.',
-    'admin.terrains.createSuccess': 'Terrain cree.',
-    'admin.terrains.deleteSuccess': 'Terrain supprime.',
-    'admin.closures.loadError': 'Impossible de charger les jours de fermeture.',
-    'admin.closures.addSuccess': 'Jour de fermeture ajoute.',
-    'admin.closures.addError': 'Ajout impossible.',
-    'admin.closures.deleteSuccess': 'Jour de fermeture supprime.',
-    'admin.closures.deleteError': 'Suppression impossible.',
-    'member.home.matricule': 'Matricule',
-    'member.home.matriculePlaceholder': 'Ex: G1234, S12345, L12345',
-    'member.home.showPassword': 'Afficher le mot de passe membre',
-    'member.home.hidePassword': 'Masquer le mot de passe membre',
-    'member.home.globalHint': 'G + 4 chiffres · Tous les sites',
-    'member.home.siteHint': 'S + 5 chiffres · Site dédié',
-    'member.home.livreHint': 'L + 5 chiffres · Accès libre',
-    'member.home.allSites': 'Tous les sites',
-    'member.profile.loadError': 'Impossible de charger le profil membre.',
-    'member.create.bookingLimitError': 'Dernière date autorisée : {date}.',
-    'member.create.bookingLimitProfileError': 'Le profil {type} ne peut pas réserver plus de {days} jours à l\'avance. Date limite : {date}.',
-    'member.create.invalidType': 'Type de match invalide.',
-    'member.create.createError': 'Creation du match impossible.',
-    'member.create.outstandingBalance': 'Vous avez un solde impaye. Reglez vos dettes avant de creer un match.',
-    'member.create.activePenalty': 'Vous avez une penalite active. Attendez avant de creer un match.',
-    'member.create.slotTaken': 'Ce creneau est deja reserve. Choisissez un autre horaire.',
-    'member.create.siteClosed': 'Le site est ferme a cette date.',
-    'member.create.outOfHours': "Cet horaire est en dehors des heures d'ouverture du site.",
-    'member.create.siteOnly': 'Un membre SITE ne peut creer un match que sur son propre site.',
-    'member.create.internalError': 'Une erreur interne du serveur est survenue lors de la creation du match.',
-    'member.create.addPlayersError': "Impossible d'ajouter tous les joueurs.",
-    'member.public.loadError': 'Impossible de charger les matchs publics.',
-    'member.public.noMember': 'Aucun membre connecte.',
-    'member.public.joinBlocked': 'Ce match ne peut pas etre rejoint (complet, annule ou non autorise).',
-    'member.public.joinSuccess': "Demande créée. Votre place ne sera confirmée qu'après paiement.",
-    'member.public.joinError': 'Impossible de reserver ce match.',
-    'member.public.modifyTooLate': 'Modification impossible a moins de 24 h du debut du match.',
-    'member.public.updateSuccess': 'Match modifie avec succes.',
-    'member.public.updateError': 'Modification du match impossible.',
-    'member.public.deleteConfirm': 'Confirmer la suppression (annulation) du match #{id} ?',
-    'member.public.deleteSuccess': 'Match annule avec succes.',
-    'member.public.deleteError': 'Suppression du match impossible.',
-    'member.reservations.reservationTitle': 'Reservation',
-    'member.reservations.noMember': 'Aucun membre connecte.',
-    'member.reservations.loadError': 'Impossible de charger les reservations.',
-    'member.reservations.privateOnly': 'La gestion des joueurs est réservée aux matchs PRIVÉS.',
-    'member.reservations.playersLoadError': 'Impossible de charger les joueurs du match.',
-    'member.reservations.updateSuccess': 'Match mis à jour avec succès.',
-    'member.reservations.updateError': 'Modification du match impossible.',
-    'member.reservations.deleteSuccess': 'Match annule avec succes.',
-    'member.reservations.deleteError': 'Suppression du match impossible.',
-    'member.reservations.playerAdded': 'Joueur ajoute avec succes.',
-    'member.reservations.playerAddError': "Ajout du joueur impossible.",
-    'member.reservations.playerRemoved': 'Joueur retire du match.',
-    'member.reservations.playerRemoveError': 'Suppression du joueur impossible.',
-    'member.reservations.paymentSuccess': 'Paiement effectue avec succes.',
-    'member.reservations.paymentError': 'Paiement impossible.',
-    'member.reservations.reservationCanceled': 'Reservation annulee.',
-    'member.reservations.reservationCancelError': 'Annulation impossible.'
+    'admin.voyageurs.searchNoResult': 'Aucun resultat pour "{query}"',
+    'admin.voyageurs.loadError': 'Impossible de charger les voyageurs.',
+    'admin.voyageurs.saveError': 'Sauvegarde du voyageur impossible.',
+    'admin.voyageurs.deleteError': 'Suppression impossible.',
+    'admin.voyageurs.updateSuccess': 'Voyageur mis à jour.',
+    'admin.voyageurs.createSuccess': 'Voyageur cree avec succes.',
+    'admin.voyageurs.deleteSuccess': 'Voyageur supprimé.',
+    'admin.voyageurs.deleteConfirm': 'Confirmer la suppression de ce voyageur ?',
+    'admin.agences.name': 'Nom',
+    'admin.agences.address': 'Adresse',
+    'admin.agences.opening': 'Ouverture',
+    'admin.agences.closing': 'Fermeture',
+    'admin.agences.trajetDuration': 'Duree trajet (min)',
+    'admin.agences.breakDuration': 'Pause entre trajets (min)',
+    'admin.agences.civilYear': 'Annee civile',
+    'admin.agences.hours': 'Horaires',
+    'admin.agences.duration': 'Duree trajet',
+    'admin.agences.break': 'Pause',
+    'admin.agences.year': 'Annee',
+    'admin.agences.empty': 'Aucune agence configure',
+    'admin.agences.agenceAdminEditBlocked': 'Un admin AGENCE ne peut pas modifier les agences.',
+    'admin.agences.agenceAdminDeleteBlocked': 'Un admin AGENCE ne peut pas supprimer de agence.',
+    'admin.agences.loadError': 'Impossible de charger les agences.',
+    'admin.agences.saveError': 'Sauvegarde de cette agence impossible.',
+    'admin.agences.deleteError': 'Suppression de cette agence impossible.',
+    'admin.agences.deleteConfirm': 'Confirmer la suppression de ce agence ?',
+    'admin.agences.updateSuccess': 'Agence mis a jour.',
+    'admin.agences.createSuccess': 'Agence cree.',
+    'admin.agences.deleteSuccess': 'Agence supprime.',
+    'admin.vehicules.name': 'Nom du vehicule',
+    'admin.vehicules.agence': 'Agence',
+    'admin.vehicules.empty': 'Aucun vehicule configure',
+    'admin.vehicules.loadError': 'Impossible de charger les vehicules.',
+    'admin.vehicules.saveError': 'Sauvegarde du vehicule impossible.',
+    'admin.vehicules.deleteError': 'Suppression du vehicule impossible.',
+    'admin.vehicules.deleteConfirm': 'Confirmer la suppression de ce vehicule ?',
+    'admin.vehicules.updateSuccess': 'Vehicule mis a jour.',
+    'admin.vehicules.createSuccess': 'Vehicule cree.',
+    'admin.vehicules.deleteSuccess': 'Vehicule supprime.',
+    'admin.indisponibilites.loadError': 'Impossible de charger les indisponibilités de service.',
+    'admin.indisponibilites.addSuccess': 'Jour de indisponibilité ajoute.',
+    'admin.indisponibilites.addError': 'Ajout impossible.',
+    'admin.indisponibilites.deleteSuccess': 'Jour de indisponibilité supprime.',
+    'admin.indisponibilites.deleteError': 'Suppression impossible.',
+    'voyageur.home.matricule': 'Matricule',
+    'voyageur.home.matriculePlaceholder': 'Ex: G1234, S12345, L12345',
+    'voyageur.home.showPassword': 'Afficher le mot de passe voyageur',
+    'voyageur.home.hidePassword': 'Masquer le mot de passe voyageur',
+    'voyageur.home.globalHint': 'G + 4 chiffres · Tous les agences',
+    'voyageur.home.agenceHint': 'S + 5 chiffres · Agence dédié',
+    'voyageur.home.livreHint': 'L + 5 chiffres · Accès libre',
+    'voyageur.home.allAgences': 'Tous les agences',
+    'voyageur.profile.loadError': 'Impossible de charger le profil voyageur.',
+    'voyageur.create.bookingLimitError': 'Dernière date autorisée : {date}.',
+    'voyageur.create.bookingLimitProfileError': 'Le profil {type} ne peut pas réserver plus de {days} jours à l\'avance. Date limite : {date}.',
+    'voyageur.create.invalidType': 'Type de trajet invalide.',
+    'voyageur.create.createError': 'Creation du trajet impossible.',
+    'voyageur.create.outstandingBalance': 'Vous avez un solde impaye. Reglez vos dettes avant de creer un trajet.',
+    'voyageur.create.activeRestriction': 'Vous avez une restriction active. Attendez avant de creer un trajet.',
+    'voyageur.create.slotTaken': 'Ce creneau est deja reserve. Choisissez un autre horaire.',
+    'voyageur.create.agenceClosed': 'Le agence est ferme a cette date.',
+    'voyageur.create.outOfHours': "Cet horaire est en dehors des heures d'ouverture de cette agence.",
+    'voyageur.create.agenceOnly': 'Un voyageur AGENCE ne peut creer un trajet que sur sa propre agence.',
+    'voyageur.create.internalError': 'Une erreur interne du serveur est survenue lors de la creation du trajet.',
+    'voyageur.create.addPassagersError': "Impossible d'ajouter tous les passagers.",
+    'voyageur.public.loadError': 'Impossible de charger les trajets publics.',
+    'voyageur.public.noVoyageur': 'Aucun voyageur connecte.',
+    'voyageur.public.joinBlocked': 'Ce trajet ne peut pas etre rejoint (complet, annule ou non autorise).',
+    'voyageur.public.joinSuccess': "Demande créée. Votre place ne sera confirmée qu'après paiement.",
+    'voyageur.public.joinError': 'Impossible de reserver ce trajet.',
+    'voyageur.public.modifyTooLate': 'Modification impossible a moins de 24 h du debut du trajet.',
+    'voyageur.public.updateSuccess': 'Trajet modifie avec succes.',
+    'voyageur.public.updateError': 'Modification du trajet impossible.',
+    'voyageur.public.deleteConfirm': 'Confirmer la suppression (annulation) du trajet #{id} ?',
+    'voyageur.public.deleteSuccess': 'Trajet annule avec succes.',
+    'voyageur.public.deleteError': 'Suppression du trajet impossible.',
+    'voyageur.reservations.reservationTitle': 'Reservation',
+    'voyageur.reservations.noVoyageur': 'Aucun voyageur connecte.',
+    'voyageur.reservations.loadError': 'Impossible de charger les reservations.',
+    'voyageur.reservations.privateOnly': 'La gestion des passagers est réservée aux trajets PRIVÉS.',
+    'voyageur.reservations.passagersLoadError': 'Impossible de charger les passagers du trajet.',
+    'voyageur.reservations.updateSuccess': 'Trajet mis à jour avec succès.',
+    'voyageur.reservations.updateError': 'Modification du trajet impossible.',
+    'voyageur.reservations.deleteSuccess': 'Trajet annule avec succes.',
+    'voyageur.reservations.deleteError': 'Suppression du trajet impossible.',
+    'voyageur.reservations.passagerAdded': 'Passager ajoute avec succes.',
+    'voyageur.reservations.passagerAddError': "Ajout du passager impossible.",
+    'voyageur.reservations.passagerRemoved': 'Passager retire du trajet.',
+    'voyageur.reservations.passagerRemoveError': 'Suppression du passager impossible.',
+    'voyageur.reservations.paymentSuccess': 'Paiement effectue avec succes.',
+    'voyageur.reservations.paymentError': 'Paiement impossible.',
+    'voyageur.reservations.reservationCanceled': 'Reservation annulee.',
+    'voyageur.reservations.reservationCancelError': 'Annulation impossible.'
   },
   en: {
     'common.back': 'Back',
@@ -817,9 +817,9 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'common.confirm': 'Confirm',
     'common.loading': 'Loading...',
     'common.none': 'None',
-    'common.matchPlanned': 'Planned',
-    'common.matchFull': 'Full',
-    'common.matchCanceled': 'Canceled',
+    'common.trajetPlanned': 'Planned',
+    'common.trajetFull': 'Full',
+    'common.trajetCanceled': 'Canceled',
     'common.reservationPending': 'Pending',
     'common.reservationConfirmed': 'Confirmed',
     'common.reservationCanceled': 'Canceled',
@@ -827,57 +827,57 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'common.paymentPaid': 'Paid',
     'common.paymentRefunded': 'Refunded',
     'common.paymentCanceled': 'Canceled',
-    'common.allSites': 'All sites',
+    'common.allAgences': 'All agencies',
     'common.profile': 'Profile',
     'common.refresh': 'Refresh',
     'nav.home': 'Home',
     'nav.admin': 'Admin',
-    'nav.member': 'Member area',
+    'nav.voyageur': 'Passenger area',
     'nav.profile': 'Profile',
-    'nav.matches': 'Matches',
+    'nav.trajets': 'Trips',
     'nav.reservations': 'Reservations',
     'nav.payments': 'Payments',
     'nav.create': 'Create',
     'nav.public': 'Public',
     'nav.private': 'Private',
     'nav.logout': 'Logout',
-    'nav.memberArea': 'Member area',
+    'nav.voyageurArea': 'Passenger area',
     'nav.adminLogin': 'Admin login',
     'nav.dashboard': 'Dashboard',
-    'nav.members': 'Members',
-    'nav.sites': 'Sites',
-    'nav.courts': 'Courts',
-    'nav.closures': 'Closures',
+    'nav.voyageurs': 'Passengers',
+    'nav.agences': 'Agencies',
+    'nav.vehicules': 'Vehicles',
+    'nav.indisponibilites': 'Service unavailability',
     'switcher.label': 'Language switch',
     'switcher.fr': 'French',
     'switcher.en': 'English',
-    'landing.eyebrow': 'Padel club management',
-    'landing.title': 'PadelPlay',
+    'landing.eyebrow': 'Public and private transport management',
+    'landing.title': 'GestionTransport',
     'landing.lead':
-      'A clear interface to book, join a match, track payments, and run the club from an admin dashboard.',
-    'landing.memberCta': 'Enter with a member ID',
-    'landing.memberCtaConnected': 'Open my area',
+      'A clear interface to book, join a trip, track payments, and run the network from an admin dashboard.',
+    'landing.voyageurCta': 'Enter with a passenger ID',
+    'landing.voyageurCtaConnected': 'Open my area',
     'landing.adminCta': 'Admin login',
     'landing.testApi': 'Test the API',
-    'landing.loadingApi': 'Checking /api/matches/public...',
-    'landing.apiSuccess': 'Proxy OK - {count} public match(es) fetched',
+    'landing.loadingApi': 'Checking /api/trajets/public...',
+    'landing.apiSuccess': 'Proxy OK - {count} public trips fetched',
     'landing.apiError': 'API call failed. Check that the backend is running on port 8080.',
     'landing.feature1.title': 'Reservations',
-    'landing.feature1.body': 'Court selection, availability checks, and status tracking.',
-    'landing.feature2.title': 'Public and private matches',
+    'landing.feature1.body': 'Vehicle selection, availability checks, and status tracking.',
+    'landing.feature2.title': 'Public and private trips',
     'landing.feature2.body': 'Fast creation with clear rules for participants.',
     'landing.feature3.title': 'Payments',
-    'landing.feature3.body': 'Clean view of payments, penalties, and confirmations.',
+    'landing.feature3.body': 'Clean view of payments, restrictions, and confirmations.',
     'landing.feature4.title': 'Administration',
-    'landing.feature4.body': 'Metrics, members, sites, courts, and closures in one place.',
-    'landing.matchPublic': 'Public match',
-    'landing.matchAvailable': 'match(es) available',
+    'landing.feature4.body': 'Metrics, passengers, agencies, vehicles, and service unavailability in one place.',
+    'landing.trajetPublic': 'Public trip',
+    'landing.trajetAvailable': 'trips available',
     'landing.reservation': 'Reservation',
-    'landing.reservationBody': 'member, court, payment',
+    'landing.reservationBody': 'passenger, vehicle, payment',
     'landing.simpleReservation': 'Simple',
-    'landing.matchPreviewLabel': 'Match preview',
-    'admin.login.heroTitle': 'PadelPlay Admin',
-    'admin.login.heroSubtitle': 'Area reserved for site administrators and global supervisors',
+    'landing.trajetPreviewLabel': 'Trip preview',
+    'admin.login.heroTitle': 'GestionTransport Admin',
+    'admin.login.heroSubtitle': 'Area reserved for agency administrators and global supervisors',
     'admin.login.formTitle': 'Login',
     'admin.login.formSubtitle': 'Access reserved for administrators',
     'admin.login.email': 'Email',
@@ -886,15 +886,15 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'admin.login.back': 'Back',
     'admin.login.error': 'Login failed. Check the email and password.',
     'admin.home.eyebrow': 'Dashboard',
-    'admin.home.title': 'PadelPlay administration',
-    'admin.home.subtitle': '{scope} view of club matches, reservations, members, and resources.',
+    'admin.home.title': 'GestionTransport administration',
+    'admin.home.subtitle': '{scope} view of network trips, reservations, passengers, and resources.',
     'admin.home.loading': 'Loading dashboard...',
-    'admin.home.matches': 'Matches',
+    'admin.home.trajets': 'Trips',
     'admin.home.reservations': 'Reservations',
-    'admin.home.members': 'Members',
+    'admin.home.voyageurs': 'Passengers',
     'admin.home.revenue': 'Revenue',
-    'admin.home.occupancy': 'Occupancy by site',
-    'admin.home.occupancySub': 'Number of matches linked to each visible site',
+    'admin.home.occupancy': 'Occupancy by agency',
+    'admin.home.occupancySub': 'Number of trips linked to each visible agency',
     'admin.home.resources': 'Resources',
     'admin.home.resourcesSub': 'Quick control of elements managed by the administration',
     'admin.home.empty': 'No data.',
@@ -903,309 +903,309 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'admin.home.validPayments': 'valid payments',
     'admin.home.reservationsLoadError': 'Unable to load admin reservations.',
     'admin.home.dashboardLoadError': 'Unable to load the admin dashboard.',
-    'admin.matches.title': 'Match management',
-    'admin.matches.subtitle': 'Review, details, and conversion to public',
-    'admin.members.title': 'Member management',
-    'admin.members.subtitle': 'Create, edit, and delete club members',
-    'admin.members.matricule': 'Member ID',
-    'admin.members.matriculeHint': 'GLOBAL: G+4 chars · SITE: S+5 chars · LIBRE: L+5 chars',
-    'admin.members.type': 'Member type',
-    'admin.members.typeGlobal': 'Global - All sites',
-    'admin.members.typeSite': 'Site - Dedicated site',
-    'admin.members.typeLibre': 'Libre - Free access',
-    'admin.members.nom': 'Last name',
-    'admin.members.prenom': 'First name',
-    'admin.members.email': 'Email',
-    'admin.members.site': 'Site',
-    'admin.members.siteNone': 'No site (GLOBAL / LIBRE)',
-    'admin.members.searchPlaceholder': 'Search by member ID, last name, or first name...',
-    'admin.members.filterAll': 'All',
-    'admin.members.filterGlobal': 'Global',
-    'admin.members.filterSite': 'Site',
-    'admin.members.filterLibre': 'Free access',
-    'admin.members.empty': 'No member found',
-    'admin.members.emptySub': 'Create your first member with the form above.',
-    'admin.members.penalty': 'Active penalty',
-    'admin.members.emailMissing': 'Not set',
-    'admin.members.siteAll': 'All sites',
-    'admin.members.balance': 'Balance',
-    'admin.members.edit': 'Edit',
-    'admin.members.delete': 'Delete',
-    'admin.members.count': 'member(s)',
-    'admin.sites.title': 'Site management',
-    'admin.sites.subtitle': 'Create, edit, and delete sites',
-    'admin.terrains.title': 'Court management',
-    'admin.terrains.subtitle': 'Create and manage courts by site',
-    'admin.closures.title': 'Closure days',
-    'admin.closures.subtitle': 'Global and site-based closure management',
-    'member.home.title': 'Padel member area',
-    'member.home.subtitle': 'Enter your member ID to access your play area',
-    'member.home.identification': 'Identification',
-    'member.home.loginHint': 'Enter your member ID and password to join the court',
-    'member.home.password': 'Password',
-    'member.home.cta': 'Open my area',
-    'member.home.invalid': 'Invalid credentials. Check the member ID and password.',
-    'member.home.global': 'Global',
-    'member.home.site': 'Dedicated site',
-    'member.home.livre': 'Free access',
-    'member.home.tousSites': 'All sites',
-    'member.create.title': 'Create a match',
-    'member.create.subtitle': 'Public or private, according to backend rules.',
-    'member.create.rappel': 'Reminder',
-    'member.create.public': 'PUBLIC',
-    'member.create.private': 'PRIVATE',
-    'member.create.back': 'Back to profile',
-    'member.create.submit': 'Create match',
-    'member.create.mode': 'Creation mode',
-    'member.create.site': 'Site',
-    'member.create.terrain': 'Court',
-    'member.create.date': 'Date',
-    'member.create.dateHint': 'Between',
-    'member.create.time': 'Start time',
-    'member.create.matchType': 'Match type',
-    'member.create.privatePlayers': 'Players to invite now (optional)',
-    'member.create.player2': 'Player ID 2',
-    'member.create.player3': 'Player ID 3',
-    'member.create.player4': 'Player ID 4',
-    'member.create.noSite': 'No site available to create a match.',
-    'member.create.noTerrain': 'No court available for the selected site.',
-    'member.create.selectedSite': 'Selected site',
-    'member.create.bookingLimit': 'Latest allowed date according to your profile:',
-    'member.create.ruleGlobal': 'GLOBAL: up to 3 weeks ahead',
-    'member.create.ruleSite': 'SITE: up to 2 weeks ahead on your site',
-    'member.create.ruleLibre': 'LIBRE: up to 5 days ahead',
-    'member.create.noSiteLoaded': 'No site loaded.',
-    'member.create.noTerrainLoaded': 'No court loaded.',
-    'member.create.success': 'Match created. Your place will be confirmed after payment from your reservations.',
-    'member.create.successPrivate': 'Private match created. Invitations are pending player payments.',
-    'member.create.partialSuccess': 'Match created, but some players could not be added.',
-    'member.public.title': 'Public matches',
-    'member.public.subtitle': 'Join an available public match. First paid, first served.',
-    'member.public.filter': 'Filter by site',
-    'member.public.search': 'Search',
-    'member.public.create': 'Create a match',
-    'member.public.join': 'Join',
-    'member.public.modify': 'Edit',
-    'member.public.delete': 'Delete',
-    'member.public.myProfile': 'My profile',
-    'member.public.myMatch': 'My match',
-    'member.public.available': 'Available',
-    'member.public.completion': 'Full',
-    'member.public.none': 'Not joinable',
-    'member.public.organizer': 'Organizer',
-    'member.public.status': 'Status',
-    'member.public.type': 'Type',
-    'member.public.players': 'Players',
-    'member.public.price': 'Price per player',
-    'member.public.registering': 'Booking...',
-    'member.public.editTitle': 'Edit match',
-    'member.public.editHint': 'Editing unavailable: a match cannot be edited less than 24 hours before start.',
-    'member.public.noMatches': 'No public match matches the filters.',
-    'member.public.searchPlaceholder': 'Court, site, organizer',
-    'member.public.noMatchPrompt': 'Can\'t find a match?',
-    'member.public.createBody': 'Public or private, with site and court choice.',
-    'member.public.date': 'Date',
-    'member.public.time': 'Start time',
-    'member.public.typeLabel': 'Type',
-    'member.reservations.title': 'My reservations',
-    'member.reservations.subtitle': 'Payment and cancellation of your registrations.',
-    'member.reservations.createPublic': 'Create PUBLIC match',
-    'member.reservations.createPrivate': 'Create PRIVATE match',
-    'member.reservations.matches': 'Public matches',
-    'member.reservations.select': 'Select an organized match',
-    'member.reservations.addPlayer': 'Add player',
-    'member.reservations.noOrganized': 'No organized match yet. Create a PUBLIC or PRIVATE match using the buttons above.',
-    'member.reservations.edit': 'Edit match',
-    'member.reservations.confirmation': 'Confirmation required',
-    'member.reservations.players': 'Registered players:',
-    'member.reservations.empty': 'No reservation found.',
-    'member.reservations.player': 'Player',
-    'member.reservations.match': 'Match',
-    'member.reservations.reservation': 'Reservation',
-    'member.reservations.payment': 'Payment',
-    'member.reservations.amount': 'Amount',
-    'member.reservations.pay': 'Pay',
-    'member.reservations.cancel': 'Cancel',
-    'member.reservations.organizedTitle': 'My organized matches',
-    'member.reservations.organizedSub': 'Edit, delete, or manage players for your matches.',
-    'member.reservations.chooseMatch': '-- Choose a match --',
-    'member.reservations.inviteMatricule': 'Player member ID to add',
-    'member.reservations.noPlayer': 'No player registered for this match.',
-    'member.reservations.reservationLabel': 'Reservation',
-    'member.reservations.paymentLabel': 'Payment',
-    'member.reservations.removePlayer': 'Remove',
-    'member.reservations.emptyBody': 'Create a match or join a public match to see your reservations here.',
-    'member.payments.title': 'My payments',
-    'member.payments.subtitle': 'Payment and refund history',
-    'member.payments.reservations': 'My reservations',
-    'member.payments.total': 'Total payments',
-    'member.payments.paid': 'Total paid',
-    'member.payments.pending': 'Pending',
-    'member.payments.refunded': 'Refunded',
-    'member.payments.none': 'No payment found',
-    'member.payments.notSet': 'Not set yet',
-    'member.payments.idLabel': 'Payment',
-    'member.payments.noPayments': 'No payment found',
-    'member.payments.loadingState': 'Loading payments...',
-    'member.payments.errorState': 'Unable to load payments.',
-    'member.payments.noMemberState': 'No member logged in.',
-    'member.profile.title': 'My member profile',
-    'member.profile.subtitle': 'Information loaded from the backend',
-    'member.profile.createQuick': 'Create a match quickly',
-    'member.profile.publicMatch': 'Open match',
-    'member.profile.privateMatch': 'Invitation match',
-    'member.profile.quickPublic': 'Create a PUBLIC match',
-    'member.profile.quickPrivate': 'Create a PRIVATE match',
-    'member.profile.quickPublicBody': 'Any member can join · 15 EUR/player · 4 players required',
-    'member.profile.quickPrivateBody': 'Invite 3 players by member ID · Converts to public if incomplete the day before',
-    'member.profile.explore': 'Explore',
-    'member.profile.followup': 'Follow-up',
-    'member.profile.finance': 'Finance',
-    'member.profile.refresh': 'Refresh',
-    'member.profile.logout': 'Logout member',
-    'member.profile.nom': 'Last name',
-    'member.profile.prenom': 'First name',
-    'member.profile.email': 'Email',
-    'member.profile.matricule': 'Member ID',
-    'member.profile.type': 'Type',
-    'member.profile.site': 'Site',
-    'member.profile.solde': 'Balance',
-    'member.profile.penaltyActive': 'Active penalty',
-    'member.profile.balancePending': 'Pending balance',
-    'member.profile.yes': 'Yes',
-    'member.profile.no': 'No',
-    'member.profile.exploreBody': 'Join an available match quickly.',
-    'member.profile.followupBody': 'Pay, cancel, or track your registrations.',
-    'member.profile.financeBody': 'Payment history.',
-    'member.payments.payment': 'Payment',
-    'member.payments.loading': 'Loading payments...',
-    'member.payments.error': 'Unable to load payments.',
-    'member.payments.noMember': 'No member logged in.',
-    'admin.matches.organizer': 'Organizer',
-    'admin.matches.status': 'Status',
-    'admin.matches.players': 'Players',
-    'admin.matches.reservations': 'Match reservations',
-    'admin.matches.noReservations': 'No reservations.',
-    'admin.matches.hideDetails': 'Hide',
-    'admin.matches.showDetails': 'View details',
-    'admin.matches.convert': 'Convert to public',
-    'admin.matches.convertSuccess': 'Match converted to public.',
-    'admin.matches.loadError': 'Unable to load admin matches.',
-    'admin.matches.reservationsError': 'Unable to load match reservations.',
-    'admin.matches.convertError': 'Unable to convert match.',
-    'admin.matches.empty': 'No match available',
-    'admin.closures.date': 'Date',
-    'admin.closures.reason': 'Reason (optional)',
-    'admin.closures.site': 'Site concerned',
-    'admin.closures.noneGlobal': 'None (global)',
-    'admin.closures.global': 'Global closure (all sites)',
-    'admin.closures.add': 'Add closure',
-    'admin.closures.reset': 'Reset',
-    'admin.closures.reasonEmpty': 'No reason specified',
-    'admin.closures.empty': 'No closure day configured',
+    'admin.trajets.title': 'Trip management',
+    'admin.trajets.subtitle': 'Review, details, and conversion to public',
+    'admin.voyageurs.title': 'Passenger management',
+    'admin.voyageurs.subtitle': 'Create, edit, and delete network passengers',
+    'admin.voyageurs.matricule': 'Passenger ID',
+    'admin.voyageurs.matriculeHint': 'GLOBAL: G+4 chars · AGENCE: S+5 chars · LIBRE: L+5 chars',
+    'admin.voyageurs.type': 'Passenger type',
+    'admin.voyageurs.typeGlobal': 'Global - All agencies',
+    'admin.voyageurs.typeAgence': 'Agency - Dedicated agency',
+    'admin.voyageurs.typeLibre': 'Libre - Free access',
+    'admin.voyageurs.nom': 'Last name',
+    'admin.voyageurs.prenom': 'First name',
+    'admin.voyageurs.email': 'Email',
+    'admin.voyageurs.agence': 'Agency',
+    'admin.voyageurs.agenceNone': 'No agency (GLOBAL / LIBRE)',
+    'admin.voyageurs.searchPlaceholder': 'Search by passenger ID, last name, or first name...',
+    'admin.voyageurs.filterAll': 'All',
+    'admin.voyageurs.filterGlobal': 'Global',
+    'admin.voyageurs.filterAgence': 'Agency',
+    'admin.voyageurs.filterLibre': 'Free access',
+    'admin.voyageurs.empty': 'No passenger found',
+    'admin.voyageurs.emptySub': 'Create your first passenger with the form above.',
+    'admin.voyageurs.restriction': 'Active restriction',
+    'admin.voyageurs.emailMissing': 'Not set',
+    'admin.voyageurs.agenceAll': 'All agencies',
+    'admin.voyageurs.balance': 'Balance',
+    'admin.voyageurs.edit': 'Edit',
+    'admin.voyageurs.delete': 'Delete',
+    'admin.voyageurs.count': 'passenger(s)',
+    'admin.agences.title': 'Agency management',
+    'admin.agences.subtitle': 'Create, edit, and delete agencies',
+    'admin.vehicules.title': 'Vehicle management',
+    'admin.vehicules.subtitle': 'Create and manage vehicles by agency',
+    'admin.indisponibilites.title': 'Indisponibilite days',
+    'admin.indisponibilites.subtitle': 'Global and agency-based indisponibilite management',
+    'voyageur.home.title': 'Passenger area',
+    'voyageur.home.subtitle': 'Enter your passenger ID to access your play area',
+    'voyageur.home.identification': 'Identification',
+    'voyageur.home.loginHint': 'Enter your passenger ID and password to join the vehicle',
+    'voyageur.home.password': 'Password',
+    'voyageur.home.cta': 'Open my area',
+    'voyageur.home.invalid': 'Invalid credentials. Check the passenger ID and password.',
+    'voyageur.home.global': 'Global',
+    'voyageur.home.agence': 'Dedicated agency',
+    'voyageur.home.livre': 'Free access',
+    'voyageur.home.tousAgences': 'All agencies',
+    'voyageur.create.title': 'Create a trip',
+    'voyageur.create.subtitle': 'Public or private, according to backend rules.',
+    'voyageur.create.rappel': 'Reminder',
+    'voyageur.create.public': 'PUBLIC',
+    'voyageur.create.private': 'PRIVATE',
+    'voyageur.create.back': 'Back to profile',
+    'voyageur.create.submit': 'Create trip',
+    'voyageur.create.mode': 'Creation mode',
+    'voyageur.create.agence': 'Agency',
+    'voyageur.create.vehicule': 'Vehicle',
+    'voyageur.create.date': 'Date',
+    'voyageur.create.dateHint': 'Between',
+    'voyageur.create.time': 'Start time',
+    'voyageur.create.trajetType': 'Trip type',
+    'voyageur.create.privatePassagers': 'Passengers to invite now (optional)',
+    'voyageur.create.passager2': 'Passenger ID 2',
+    'voyageur.create.passager3': 'Passenger ID 3',
+    'voyageur.create.passager4': 'Passenger ID 4',
+    'voyageur.create.noAgence': 'No agency available to create a trip.',
+    'voyageur.create.noVehicule': 'No vehicle available for the selected agency.',
+    'voyageur.create.selectedAgence': 'Selected agency',
+    'voyageur.create.bookingLimit': 'Latest allowed date according to your profile:',
+    'voyageur.create.ruleGlobal': 'GLOBAL: up to 3 weeks ahead',
+    'voyageur.create.ruleAgence': 'AGENCE: up to 2 weeks ahead on your agency',
+    'voyageur.create.ruleLibre': 'LIBRE: up to 5 days ahead',
+    'voyageur.create.noAgenceLoaded': 'No agency loaded.',
+    'voyageur.create.noVehiculeLoaded': 'No vehicle loaded.',
+    'voyageur.create.success': 'Trip created. Your place will be confirmed after payment from your reservations.',
+    'voyageur.create.successPrivate': 'Private trip created. Invitations are pending passenger payments.',
+    'voyageur.create.partialSuccess': 'Trip created, but some passengers could not be added.',
+    'voyageur.public.title': 'Public trips',
+    'voyageur.public.subtitle': 'Join an available public trip. First paid, first served.',
+    'voyageur.public.filter': 'Filter by agency',
+    'voyageur.public.search': 'Search',
+    'voyageur.public.create': 'Create a trip',
+    'voyageur.public.join': 'Join',
+    'voyageur.public.modify': 'Edit',
+    'voyageur.public.delete': 'Delete',
+    'voyageur.public.myProfile': 'My profile',
+    'voyageur.public.myTrajet': 'My trip',
+    'voyageur.public.available': 'Available',
+    'voyageur.public.completion': 'Full',
+    'voyageur.public.none': 'Not joinable',
+    'voyageur.public.organizer': 'Organizer',
+    'voyageur.public.status': 'Status',
+    'voyageur.public.type': 'Type',
+    'voyageur.public.passagers': 'Passengers',
+    'voyageur.public.price': 'Price per passenger',
+    'voyageur.public.registering': 'Booking...',
+    'voyageur.public.editTitle': 'Edit trip',
+    'voyageur.public.editHint': 'Editing unavailable: a trip cannot be edited less than 24 hours before start.',
+    'voyageur.public.noTrajets': 'No public trip trips the filters.',
+    'voyageur.public.searchPlaceholder': 'Vehicle, agency, organizer',
+    'voyageur.public.noTrajetPrompt': 'Can\'t find a trip?',
+    'voyageur.public.createBody': 'Public or private, with agency and vehicle choice.',
+    'voyageur.public.date': 'Date',
+    'voyageur.public.time': 'Start time',
+    'voyageur.public.typeLabel': 'Type',
+    'voyageur.reservations.title': 'My reservations',
+    'voyageur.reservations.subtitle': 'Payment and cancellation of your registrations.',
+    'voyageur.reservations.createPublic': 'Create PUBLIC trip',
+    'voyageur.reservations.createPrivate': 'Create PRIVATE trip',
+    'voyageur.reservations.trajets': 'Public trips',
+    'voyageur.reservations.select': 'Select an organized trip',
+    'voyageur.reservations.addPassager': 'Add passenger',
+    'voyageur.reservations.noOrganized': 'No organized trip yet. Create a PUBLIC or PRIVATE trip using the buttons above.',
+    'voyageur.reservations.edit': 'Edit trip',
+    'voyageur.reservations.confirmation': 'Confirmation required',
+    'voyageur.reservations.passagers': 'Registered passengers:',
+    'voyageur.reservations.empty': 'No reservation found.',
+    'voyageur.reservations.passager': 'Passenger',
+    'voyageur.reservations.trajet': 'Trip',
+    'voyageur.reservations.reservation': 'Reservation',
+    'voyageur.reservations.payment': 'Payment',
+    'voyageur.reservations.amount': 'Amount',
+    'voyageur.reservations.pay': 'Pay',
+    'voyageur.reservations.cancel': 'Cancel',
+    'voyageur.reservations.organizedTitle': 'My organized trips',
+    'voyageur.reservations.organizedSub': 'Edit, delete, or manage passengers for your trips.',
+    'voyageur.reservations.chooseTrajet': '-- Choose a trip --',
+    'voyageur.reservations.inviteMatricule': 'Passenger passenger ID to add',
+    'voyageur.reservations.noPassager': 'No passenger registered for this trip.',
+    'voyageur.reservations.reservationLabel': 'Reservation',
+    'voyageur.reservations.paymentLabel': 'Payment',
+    'voyageur.reservations.removePassager': 'Remove',
+    'voyageur.reservations.emptyBody': 'Create a trip or join a public trip to see your reservations here.',
+    'voyageur.payments.title': 'My payments',
+    'voyageur.payments.subtitle': 'Payment and refund history',
+    'voyageur.payments.reservations': 'My reservations',
+    'voyageur.payments.total': 'Total payments',
+    'voyageur.payments.paid': 'Total paid',
+    'voyageur.payments.pending': 'Pending',
+    'voyageur.payments.refunded': 'Refunded',
+    'voyageur.payments.none': 'No payment found',
+    'voyageur.payments.notSet': 'Not set yet',
+    'voyageur.payments.idLabel': 'Payment',
+    'voyageur.payments.noPayments': 'No payment found',
+    'voyageur.payments.loadingState': 'Loading payments...',
+    'voyageur.payments.errorState': 'Unable to load payments.',
+    'voyageur.payments.noVoyageurState': 'No passenger logged in.',
+    'voyageur.profile.title': 'My passenger profile',
+    'voyageur.profile.subtitle': 'Information loaded from the backend',
+    'voyageur.profile.createQuick': 'Create a trip quickly',
+    'voyageur.profile.publicTrajet': 'Open trip',
+    'voyageur.profile.privateTrajet': 'Invitation trip',
+    'voyageur.profile.quickPublic': 'Create a PUBLIC trip',
+    'voyageur.profile.quickPrivate': 'Create a PRIVATE trip',
+    'voyageur.profile.quickPublicBody': 'Any passenger can join · 15 EUR/passenger · 4 passengers required',
+    'voyageur.profile.quickPrivateBody': 'Invite 3 passengers by passenger ID · Converts to public if incomplete the day before',
+    'voyageur.profile.explore': 'Explore',
+    'voyageur.profile.followup': 'Follow-up',
+    'voyageur.profile.finance': 'Finance',
+    'voyageur.profile.refresh': 'Refresh',
+    'voyageur.profile.logout': 'Logout passenger',
+    'voyageur.profile.nom': 'Last name',
+    'voyageur.profile.prenom': 'First name',
+    'voyageur.profile.email': 'Email',
+    'voyageur.profile.matricule': 'Passenger ID',
+    'voyageur.profile.type': 'Type',
+    'voyageur.profile.agence': 'Agency',
+    'voyageur.profile.solde': 'Balance',
+    'voyageur.profile.restrictionActive': 'Active restriction',
+    'voyageur.profile.balancePending': 'Pending balance',
+    'voyageur.profile.yes': 'Yes',
+    'voyageur.profile.no': 'No',
+    'voyageur.profile.exploreBody': 'Join an available trip quickly.',
+    'voyageur.profile.followupBody': 'Pay, cancel, or track your registrations.',
+    'voyageur.profile.financeBody': 'Payment history.',
+    'voyageur.payments.payment': 'Payment',
+    'voyageur.payments.loading': 'Loading payments...',
+    'voyageur.payments.error': 'Unable to load payments.',
+    'voyageur.payments.noVoyageur': 'No passenger logged in.',
+    'admin.trajets.organizer': 'Organizer',
+    'admin.trajets.status': 'Status',
+    'admin.trajets.passagers': 'Passengers',
+    'admin.trajets.reservations': 'Trip reservations',
+    'admin.trajets.noReservations': 'No reservations.',
+    'admin.trajets.hideDetails': 'Hide',
+    'admin.trajets.showDetails': 'View details',
+    'admin.trajets.convert': 'Convert to public',
+    'admin.trajets.convertSuccess': 'Trip converted to public.',
+    'admin.trajets.loadError': 'Unable to load admin trips.',
+    'admin.trajets.reservationsError': 'Unable to load trip reservations.',
+    'admin.trajets.convertError': 'Unable to convert trip.',
+    'admin.trajets.empty': 'No trip available',
+    'admin.indisponibilites.date': 'Date',
+    'admin.indisponibilites.reason': 'Reason (optional)',
+    'admin.indisponibilites.agence': 'Agency concerned',
+    'admin.indisponibilites.noneGlobal': 'None (global)',
+    'admin.indisponibilites.global': 'Global indisponibilite (all agencies)',
+    'admin.indisponibilites.add': 'Add indisponibilite',
+    'admin.indisponibilites.reset': 'Reset',
+    'admin.indisponibilites.reasonEmpty': 'No reason specified',
+    'admin.indisponibilites.empty': 'No indisponibilite day configured',
     'common.notProvided': 'Not provided',
     'admin.home.allStatuses': 'all statuses',
-    'admin.home.matchCount': 'match(es)',
-    'admin.home.sitesVisible': 'Visible sites',
-    'admin.home.terrainsVisible': 'Visible courts',
-    'admin.home.completeMatches': 'Complete matches',
+    'admin.home.trajetCount': 'trips',
+    'admin.home.agencesVisible': 'Visible agencies',
+    'admin.home.vehiculesVisible': 'Visible vehicles',
+    'admin.home.completeTrajets': 'Complete trips',
     'admin.home.pendingReservations': 'Pending reservations',
     'admin.login.globalBadge': '🌐 Global admin',
-    'admin.login.siteBadge': '🏟️ Site admin',
+    'admin.login.agenceBadge': '🏟️ Agency admin',
     'admin.login.showPassword': 'Show admin password',
     'admin.login.hidePassword': 'Hide admin password',
-    'admin.members.searchNoResult': 'No result for "{query}"',
-    'admin.members.loadError': 'Unable to load members.',
-    'admin.members.saveError': 'Unable to save member.',
-    'admin.members.deleteError': 'Unable to delete.',
-    'admin.members.updateSuccess': 'Member updated.',
-    'admin.members.createSuccess': 'Member created successfully.',
-    'admin.members.deleteSuccess': 'Member deleted.',
-    'admin.members.deleteConfirm': 'Confirm deletion of this member?',
-    'admin.sites.name': 'Name',
-    'admin.sites.address': 'Address',
-    'admin.sites.opening': 'Opening',
-    'admin.sites.closing': 'Closing',
-    'admin.sites.matchDuration': 'Match duration (min)',
-    'admin.sites.breakDuration': 'Break between matches (min)',
-    'admin.sites.civilYear': 'Calendar year',
-    'admin.sites.hours': 'Hours',
-    'admin.sites.duration': 'Match duration',
-    'admin.sites.break': 'Break',
-    'admin.sites.year': 'Year',
-    'admin.sites.empty': 'No site configured',
-    'admin.sites.siteAdminEditBlocked': 'A SITE admin cannot modify sites.',
-    'admin.sites.siteAdminDeleteBlocked': 'A SITE admin cannot delete sites.',
-    'admin.sites.loadError': 'Unable to load sites.',
-    'admin.sites.saveError': 'Unable to save site.',
-    'admin.sites.deleteError': 'Unable to delete site.',
-    'admin.sites.deleteConfirm': 'Confirm deletion of this site?',
-    'admin.sites.updateSuccess': 'Site updated.',
-    'admin.sites.createSuccess': 'Site created.',
-    'admin.sites.deleteSuccess': 'Site deleted.',
-    'admin.terrains.name': 'Court name',
-    'admin.terrains.site': 'Site',
-    'admin.terrains.empty': 'No court configured',
-    'admin.terrains.loadError': 'Unable to load courts.',
-    'admin.terrains.saveError': 'Unable to save court.',
-    'admin.terrains.deleteError': 'Unable to delete court.',
-    'admin.terrains.deleteConfirm': 'Confirm deletion of this court?',
-    'admin.terrains.updateSuccess': 'Court updated.',
-    'admin.terrains.createSuccess': 'Court created.',
-    'admin.terrains.deleteSuccess': 'Court deleted.',
-    'admin.closures.loadError': 'Unable to load closure days.',
-    'admin.closures.addSuccess': 'Closure day added.',
-    'admin.closures.addError': 'Unable to add closure day.',
-    'admin.closures.deleteSuccess': 'Closure day deleted.',
-    'admin.closures.deleteError': 'Unable to delete closure day.',
-    'member.home.matricule': 'Member ID',
-    'member.home.matriculePlaceholder': 'Ex: G1234, S12345, L12345',
-    'member.home.showPassword': 'Show member password',
-    'member.home.hidePassword': 'Hide member password',
-    'member.home.globalHint': 'G + 4 digits · All sites',
-    'member.home.siteHint': 'S + 5 digits · Dedicated site',
-    'member.home.livreHint': 'L + 5 digits · Open access',
-    'member.home.allSites': 'All sites',
-    'member.profile.loadError': 'Unable to load member profile.',
-    'member.create.bookingLimitError': 'Latest allowed date: {date}.',
-    'member.create.bookingLimitProfileError': 'The {type} profile cannot book more than {days} days ahead. Deadline: {date}.',
-    'member.create.invalidType': 'Invalid match type.',
-    'member.create.createError': 'Unable to create match.',
-    'member.create.outstandingBalance': 'You have an outstanding balance. Settle your debts before creating a match.',
-    'member.create.activePenalty': 'You have an active penalty. Wait before creating a match.',
-    'member.create.slotTaken': 'This slot is already booked. Pick another time.',
-    'member.create.siteClosed': 'The site is closed on this date.',
-    'member.create.outOfHours': "This time is outside the site's opening hours.",
-    'member.create.siteOnly': 'A SITE member can only create a match on their own site.',
-    'member.create.internalError': 'An internal server error occurred while creating the match.',
-    'member.create.addPlayersError': 'Unable to add all players.',
-    'member.public.loadError': 'Unable to load public matches.',
-    'member.public.noMember': 'No member logged in.',
-    'member.public.joinBlocked': 'This match cannot be joined (full, canceled, or not allowed).',
-    'member.public.joinSuccess': 'Request created. Your spot will be confirmed after payment.',
-    'member.public.joinError': 'Unable to reserve this match.',
-    'member.public.modifyTooLate': 'Modification unavailable less than 24 hours before match start.',
-    'member.public.updateSuccess': 'Match updated successfully.',
-    'member.public.updateError': 'Unable to update match.',
-    'member.public.deleteConfirm': 'Confirm deletion (cancellation) of match #{id}?',
-    'member.public.deleteSuccess': 'Match canceled successfully.',
-    'member.public.deleteError': 'Unable to delete match.',
-    'member.reservations.reservationTitle': 'Reservation',
-    'member.reservations.noMember': 'No member logged in.',
-    'member.reservations.loadError': 'Unable to load reservations.',
-    'member.reservations.privateOnly': 'Player management is reserved for PRIVATE matches.',
-    'member.reservations.playersLoadError': 'Unable to load match players.',
-    'member.reservations.updateSuccess': 'Match updated successfully.',
-    'member.reservations.updateError': 'Unable to update match.',
-    'member.reservations.deleteSuccess': 'Match canceled successfully.',
-    'member.reservations.deleteError': 'Unable to delete match.',
-    'member.reservations.playerAdded': 'Player added successfully.',
-    'member.reservations.playerAddError': 'Unable to add player.',
-    'member.reservations.playerRemoved': 'Player removed from match.',
-    'member.reservations.playerRemoveError': 'Unable to remove player.',
-    'member.reservations.paymentSuccess': 'Payment completed successfully.',
-    'member.reservations.paymentError': 'Unable to process payment.',
-    'member.reservations.reservationCanceled': 'Reservation canceled.',
-    'member.reservations.reservationCancelError': 'Unable to cancel reservation.'
+    'admin.voyageurs.searchNoResult': 'No result for "{query}"',
+    'admin.voyageurs.loadError': 'Unable to load passengers.',
+    'admin.voyageurs.saveError': 'Unable to save passenger.',
+    'admin.voyageurs.deleteError': 'Unable to delete.',
+    'admin.voyageurs.updateSuccess': 'Passenger updated.',
+    'admin.voyageurs.createSuccess': 'Passenger created successfully.',
+    'admin.voyageurs.deleteSuccess': 'Passenger deleted.',
+    'admin.voyageurs.deleteConfirm': 'Confirm deletion of this passenger?',
+    'admin.agences.name': 'Name',
+    'admin.agences.address': 'Address',
+    'admin.agences.opening': 'Opening',
+    'admin.agences.closing': 'Closing',
+    'admin.agences.trajetDuration': 'Trip duration (min)',
+    'admin.agences.breakDuration': 'Break between trips (min)',
+    'admin.agences.civilYear': 'Calendar year',
+    'admin.agences.hours': 'Hours',
+    'admin.agences.duration': 'Trip duration',
+    'admin.agences.break': 'Break',
+    'admin.agences.year': 'Year',
+    'admin.agences.empty': 'No agency configured',
+    'admin.agences.agenceAdminEditBlocked': 'A AGENCE admin cannot modify agencies.',
+    'admin.agences.agenceAdminDeleteBlocked': 'A AGENCE admin cannot delete agencies.',
+    'admin.agences.loadError': 'Unable to load agencies.',
+    'admin.agences.saveError': 'Unable to save agency.',
+    'admin.agences.deleteError': 'Unable to delete agency.',
+    'admin.agences.deleteConfirm': 'Confirm deletion of this agency?',
+    'admin.agences.updateSuccess': 'Agency updated.',
+    'admin.agences.createSuccess': 'Agency created.',
+    'admin.agences.deleteSuccess': 'Agency deleted.',
+    'admin.vehicules.name': 'Vehicle name',
+    'admin.vehicules.agence': 'Agency',
+    'admin.vehicules.empty': 'No vehicle configured',
+    'admin.vehicules.loadError': 'Unable to load vehicles.',
+    'admin.vehicules.saveError': 'Unable to save vehicle.',
+    'admin.vehicules.deleteError': 'Unable to delete vehicle.',
+    'admin.vehicules.deleteConfirm': 'Confirm deletion of this vehicle?',
+    'admin.vehicules.updateSuccess': 'Vehicle updated.',
+    'admin.vehicules.createSuccess': 'Vehicle created.',
+    'admin.vehicules.deleteSuccess': 'Vehicle deleted.',
+    'admin.indisponibilites.loadError': 'Unable to load indisponibilite days.',
+    'admin.indisponibilites.addSuccess': 'Indisponibilite day added.',
+    'admin.indisponibilites.addError': 'Unable to add indisponibilite day.',
+    'admin.indisponibilites.deleteSuccess': 'Indisponibilite day deleted.',
+    'admin.indisponibilites.deleteError': 'Unable to delete indisponibilite day.',
+    'voyageur.home.matricule': 'Passenger ID',
+    'voyageur.home.matriculePlaceholder': 'Ex: G1234, S12345, L12345',
+    'voyageur.home.showPassword': 'Show passenger password',
+    'voyageur.home.hidePassword': 'Hide passenger password',
+    'voyageur.home.globalHint': 'G + 4 digits · All agencies',
+    'voyageur.home.agenceHint': 'S + 5 digits · Dedicated agency',
+    'voyageur.home.livreHint': 'L + 5 digits · Open access',
+    'voyageur.home.allAgences': 'All agencies',
+    'voyageur.profile.loadError': 'Unable to load passenger profile.',
+    'voyageur.create.bookingLimitError': 'Latest allowed date: {date}.',
+    'voyageur.create.bookingLimitProfileError': 'The {type} profile cannot book more than {days} days ahead. Deadline: {date}.',
+    'voyageur.create.invalidType': 'Invalid trip type.',
+    'voyageur.create.createError': 'Unable to create trip.',
+    'voyageur.create.outstandingBalance': 'You have an outstanding balance. Settle your debts before creating a trip.',
+    'voyageur.create.activeRestriction': 'You have an active restriction. Wait before creating a trip.',
+    'voyageur.create.slotTaken': 'This slot is already booked. Pick another time.',
+    'voyageur.create.agenceClosed': 'The agency is closed on this date.',
+    'voyageur.create.outOfHours': "This time is outside the agency's opening hours.",
+    'voyageur.create.agenceOnly': 'A AGENCE passenger can only create a trip on their own agency.',
+    'voyageur.create.internalError': 'An internal server error occurred while creating the trip.',
+    'voyageur.create.addPassagersError': 'Unable to add all passengers.',
+    'voyageur.public.loadError': 'Unable to load public trips.',
+    'voyageur.public.noVoyageur': 'No passenger logged in.',
+    'voyageur.public.joinBlocked': 'This trip cannot be joined (full, canceled, or not allowed).',
+    'voyageur.public.joinSuccess': 'Request created. Your spot will be confirmed after payment.',
+    'voyageur.public.joinError': 'Unable to reserve this trip.',
+    'voyageur.public.modifyTooLate': 'Modification unavailable less than 24 hours before trip start.',
+    'voyageur.public.updateSuccess': 'Trip updated successfully.',
+    'voyageur.public.updateError': 'Unable to update trip.',
+    'voyageur.public.deleteConfirm': 'Confirm deletion (cancellation) of trip #{id}?',
+    'voyageur.public.deleteSuccess': 'Trip canceled successfully.',
+    'voyageur.public.deleteError': 'Unable to delete trip.',
+    'voyageur.reservations.reservationTitle': 'Reservation',
+    'voyageur.reservations.noVoyageur': 'No passenger logged in.',
+    'voyageur.reservations.loadError': 'Unable to load reservations.',
+    'voyageur.reservations.privateOnly': 'Passenger management is reserved for PRIVATE trips.',
+    'voyageur.reservations.passagersLoadError': 'Unable to load trip passengers.',
+    'voyageur.reservations.updateSuccess': 'Trip updated successfully.',
+    'voyageur.reservations.updateError': 'Unable to update trip.',
+    'voyageur.reservations.deleteSuccess': 'Trip canceled successfully.',
+    'voyageur.reservations.deleteError': 'Unable to delete trip.',
+    'voyageur.reservations.passagerAdded': 'Passenger added successfully.',
+    'voyageur.reservations.passagerAddError': 'Unable to add passenger.',
+    'voyageur.reservations.passagerRemoved': 'Passenger removed from trip.',
+    'voyageur.reservations.passagerRemoveError': 'Unable to remove passenger.',
+    'voyageur.reservations.paymentSuccess': 'Payment completed successfully.',
+    'voyageur.reservations.paymentError': 'Unable to process payment.',
+    'voyageur.reservations.reservationCanceled': 'Reservation canceled.',
+    'voyageur.reservations.reservationCancelError': 'Unable to cancel reservation.'
   }
 };

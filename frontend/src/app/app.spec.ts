@@ -8,7 +8,7 @@ describe('App', () => {
   beforeEach(async () => {
     TestBed.overrideComponent(App, {
       set: {
-        template: '<span>PadelPlay</span>'
+        template: '<span>GestionTransport</span>'
       }
     });
 
@@ -16,7 +16,7 @@ describe('App', () => {
       imports: [App],
       providers: [
         provideRouter([]),
-        { provide: AuthApiService, useValue: { loginMembre: vi.fn() } }
+        { provide: AuthApiService, useValue: { loginVoyageur: vi.fn() } }
       ]
     }).compileComponents();
   });
@@ -31,6 +31,6 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('PadelPlay');
+    expect(compiled.textContent).toContain('GestionTransport');
   });
 });

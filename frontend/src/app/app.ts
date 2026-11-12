@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router, RouterModule } from '@angular/router';
 import { AdminSessionService } from './core/auth/admin-session.service';
-import { MemberSessionService } from './core/auth/member-session.service';
+import { VoyageurSessionService } from './core/auth/voyageur-session.service';
 import { LanguageService } from './core/i18n/language.service';
 import { LanguageSwitcherComponent } from './shared/components/language-switcher.component';
 
@@ -16,7 +16,7 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
   <div class="app-header-inner">
     <a routerLink="/" class="app-logo">
       <span class="app-logo-badge">P</span>
-      <span class="app-logo-text">PadelPlay</span>
+      <span class="app-logo-text">GestionTransport</span>
     </a>
 
     <nav class="app-nav">
@@ -28,32 +28,32 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
         <a routerLink="/admin/login" class="nav-link">{{ navText().admin }}</a>
       }
 
-      @if (!memberSession.isAuthenticated()) {
-        <a routerLink="/member" class="nav-btn-outline">{{ navText().member }}</a>
+      @if (!voyageurSession.isAuthenticated()) {
+        <a routerLink="/voyageur" class="nav-btn-outline">{{ navText().voyageur }}</a>
       }
 
-      @if (memberSession.isAuthenticated()) {
+      @if (voyageurSession.isAuthenticated()) {
         <div class="nav-divider"></div>
-        <a routerLink="/member/profile" routerLinkActive="nav-active" class="nav-link">{{ navText().profile }}</a>
-        <a routerLink="/member/matches" routerLinkActive="nav-active" class="nav-link">{{ navText().matches }}</a>
-        <a routerLink="/member/reservations" routerLinkActive="nav-active" class="nav-link">{{ navText().reservations }}</a>
-        <a routerLink="/member/payments" routerLinkActive="nav-active" class="nav-link">{{ navText().payments }}</a>
+        <a routerLink="/voyageur/profile" routerLinkActive="nav-active" class="nav-link">{{ navText().profile }}</a>
+        <a routerLink="/voyageur/trajets" routerLinkActive="nav-active" class="nav-link">{{ navText().trajets }}</a>
+        <a routerLink="/voyageur/reservations" routerLinkActive="nav-active" class="nav-link">{{ navText().reservations }}</a>
+        <a routerLink="/voyageur/payments" routerLinkActive="nav-active" class="nav-link">{{ navText().payments }}</a>
         <div class="nav-divider"></div>
-        <a routerLink="/member/matches/new" class="nav-btn-create">{{ navText().create }}</a>
-        <a routerLink="/member/matches/new" [queryParams]="{type:'PUBLIC'}" class="nav-btn-green">{{ navText().public }}</a>
-        <a routerLink="/member/matches/new" [queryParams]="{type:'PRIVE'}" class="nav-btn-purple">{{ navText().private }}</a>
+        <a routerLink="/voyageur/trajets/new" class="nav-btn-create">{{ navText().create }}</a>
+        <a routerLink="/voyageur/trajets/new" [queryParams]="{type:'PUBLIC'}" class="nav-btn-green">{{ navText().public }}</a>
+        <a routerLink="/voyageur/trajets/new" [queryParams]="{type:'PRIVE'}" class="nav-btn-purple">{{ navText().private }}</a>
         <div class="nav-divider"></div>
-        <button class="nav-btn-logout" type="button" (click)="logoutMember()">{{ navText().logout }}</button>
+        <button class="nav-btn-logout" type="button" (click)="logoutVoyageur()">{{ navText().logout }}</button>
       }
 
       @if (adminSession.isAuthenticated()) {
         <div class="nav-divider"></div>
         <a routerLink="/admin" routerLinkActive="nav-active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">{{ navText().dashboard }}</a>
-        <a routerLink="/admin/members" routerLinkActive="nav-active" class="nav-link">{{ navText().members }}</a>
-        <a routerLink="/admin/matches" routerLinkActive="nav-active" class="nav-link">{{ navText().matches }}</a>
-        <a routerLink="/admin/sites" routerLinkActive="nav-active" class="nav-link">{{ navText().sites }}</a>
-        <a routerLink="/admin/terrains" routerLinkActive="nav-active" class="nav-link">{{ navText().courts }}</a>
-        <a routerLink="/admin/fermetures" routerLinkActive="nav-active" class="nav-link">{{ navText().closures }}</a>
+        <a routerLink="/admin/voyageurs" routerLinkActive="nav-active" class="nav-link">{{ navText().voyageurs }}</a>
+        <a routerLink="/admin/trajets" routerLinkActive="nav-active" class="nav-link">{{ navText().trajets }}</a>
+        <a routerLink="/admin/agences" routerLinkActive="nav-active" class="nav-link">{{ navText().agences }}</a>
+        <a routerLink="/admin/vehicules" routerLinkActive="nav-active" class="nav-link">{{ navText().vehicules }}</a>
+        <a routerLink="/admin/indisponibilites" routerLinkActive="nav-active" class="nav-link">{{ navText().indisponibilites }}</a>
         <div class="nav-divider"></div>
         <button class="nav-btn-logout" type="button" (click)="logoutAdmin()">{{ navText().logout }}</button>
       }
@@ -252,20 +252,20 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
 })
 export class App {
   readonly adminSession = inject(AdminSessionService);
-  readonly memberSession = inject(MemberSessionService);
+  readonly voyageurSession = inject(VoyageurSessionService);
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
   readonly navText = computed(() => ({
     home: this.language.t('nav.home'),
     admin: this.language.t('nav.admin'),
-    member: this.language.t('nav.member'),
+    voyageur: this.language.t('nav.voyageur'),
     profile: this.language.t('nav.profile'),
-    matches: this.language.t('nav.matches'),
+    trajets: this.language.t('nav.trajets'),
     dashboard: this.language.t('nav.dashboard'),
-    members: this.language.t('nav.members'),
-    sites: this.language.t('nav.sites'),
-    courts: this.language.t('nav.courts'),
-    closures: this.language.t('nav.closures'),
+    voyageurs: this.language.t('nav.voyageurs'),
+    agences: this.language.t('nav.agences'),
+    vehicules: this.language.t('nav.vehicules'),
+    indisponibilites: this.language.t('nav.indisponibilites'),
     reservations: this.language.t('nav.reservations'),
     payments: this.language.t('nav.payments'),
     create: this.language.t('nav.create'),
@@ -279,8 +279,8 @@ export class App {
     this.router.navigateByUrl('/admin/login');
   }
 
-  logoutMember(): void {
-    this.memberSession.clearMember();
-    this.router.navigateByUrl('/member');
+  logoutVoyageur(): void {
+    this.voyageurSession.clearVoyageur();
+    this.router.navigateByUrl('/voyageur');
   }
 }

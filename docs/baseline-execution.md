@@ -1,5 +1,8 @@
 # Exécuter le socle sans modifier les données existantes
 
+Après renommage, consulter aussi [Exécution Transport](transport-execution.md)
+pour les packages et routes actuels. Ce document conserve le protocole de baseline.
+
 Java 21, Maven et les versions de dépendances du dépôt sont conservés.
 
 ## Backend et données
