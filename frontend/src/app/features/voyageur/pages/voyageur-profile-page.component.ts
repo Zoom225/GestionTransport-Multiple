@@ -42,35 +42,43 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         <mat-card-content>
           @if (loading()) {
             <div class="py-4">
-              <mat-spinner diameter="28"></mat-spinner>
+              <mat-spinner
+                [attr.aria-label]="language.t('transport.searching')"
+                diameter="28"
+              ></mat-spinner>
             </div>
           } @else if (profile()) {
             <div class="grid gap-4 md:grid-cols-2">
               <div class="ds-data-list">
                 <div class="ds-data-row">
-                  <span class="ds-data-key">{{ language.t('voyageur.profile.nom') }}</span
-                  ><span class="ds-data-value">{{ profile()!.nom }}</span>
+                  <span class="ds-data-key">{{ language.t('voyageur.profile.nom') }}</span><span
+                    class="ds-data-value"
+                    >{{ profile()!.nom }}</span
+                  >
                 </div>
                 <div class="ds-data-row">
-                  <span class="ds-data-key">{{ language.t('voyageur.profile.prenom') }}</span
-                  ><span class="ds-data-value">{{ profile()!.prenom }}</span>
+                  <span class="ds-data-key">{{ language.t('voyageur.profile.prenom') }}</span><span
+                    class="ds-data-value"
+                    >{{ profile()!.prenom }}</span
+                  >
                 </div>
                 <div class="ds-data-row">
-                  <span class="ds-data-key">{{ language.t('voyageur.profile.email') }}</span
-                  ><span class="ds-data-value">{{
-                    profile()!.email || language.t('common.notProvided')
-                  }}</span>
+                  <span class="ds-data-key">{{ language.t('voyageur.profile.email') }}</span><span
+                    class="ds-data-value"
+                    >{{ profile()!.email || language.t('common.notProvided') }}</span
+                  >
                 </div>
                 <div class="ds-data-row">
-                  <span class="ds-data-key">{{ language.t('voyageur.profile.matricule') }}</span
-                  ><span class="ds-data-value">{{ profile()!.matricule }}</span>
+                  <span class="ds-data-key">{{
+                    language.t('voyageur.profile.matricule')
+                  }}</span><span class="ds-data-value">{{ profile()!.matricule }}</span>
                 </div>
               </div>
 
               <div class="ds-data-list">
                 <div class="ds-data-row">
-                  <span class="ds-data-key">{{ language.t('voyageur.profile.type') }}</span
-                  ><span class="ds-data-value"
+                  <span class="ds-data-key">{{ language.t('voyageur.profile.type') }}</span><span
+                    class="ds-data-value"
                     ><span
                       class="ds-badge"
                       [class]="voyageurTypeBadgeClass(profile()!.typeVoyageur)"
@@ -79,14 +87,16 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
                   >
                 </div>
                 <div class="ds-data-row">
-                  <span class="ds-data-key">{{ language.t('voyageur.profile.agence') }}</span
-                  ><span class="ds-data-value">{{
-                    profile()!.agenceNom || language.t('voyageur.home.tousAgences')
-                  }}</span>
+                  <span class="ds-data-key">{{ language.t('voyageur.profile.agence') }}</span><span
+                    class="ds-data-value"
+                    >{{ profile()!.agenceNom || language.t('voyageur.home.tousAgences') }}</span
+                  >
                 </div>
                 <div class="ds-data-row">
-                  <span class="ds-data-key">{{ language.t('voyageur.profile.solde') }}</span
-                  ><span class="ds-data-value">{{ profile()!.solde }} EUR</span>
+                  <span class="ds-data-key">{{ language.t('voyageur.profile.solde') }}</span><span
+                    class="ds-data-value"
+                    >{{ profile()!.solde }} EUR</span
+                  >
                 </div>
               </div>
             </div>
@@ -114,12 +124,12 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
           }
 
           @if (errorMessage()) {
-            <p class="status-error mt-4">{{ errorMessage() }}</p>
+            <p role="alert" class="status-error mt-4">{{ errorMessage() }}</p>
           }
 
           <div class="mt-6">
             <div class="mb-3 flex items-center gap-2">
-              <span class="text-xl">🚗</span>
+              <span class="text-xl"></span>
               <h3 class="m-0 text-lg font-bold text-slate-800">
                 {{ language.t('voyageur.profile.createQuick') }}
               </h3>
@@ -131,7 +141,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
                 class="card-soft block rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50 p-5 no-underline transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div class="mb-2 flex items-center gap-3">
-                  <span class="text-3xl">🌍</span>
+                  <span class="text-3xl"></span>
                   <div>
                     <div class="text-xs font-bold uppercase tracking-wide text-emerald-700">
                       {{ language.t('voyageur.profile.publicTrajet') }}
@@ -152,7 +162,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
                 class="card-soft block rounded-2xl border border-violet-200 bg-gradient-to-r from-violet-50 to-purple-50 p-5 no-underline transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div class="mb-2 flex items-center gap-3">
-                  <span class="text-3xl">🔒</span>
+                  <span class="text-3xl"></span>
                   <div>
                     <div class="text-xs font-bold uppercase tracking-wide text-violet-700">
                       {{ language.t('voyageur.profile.privateTrajet') }}
@@ -175,7 +185,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
               class="card-soft block rounded-2xl p-5 no-underline transition hover:-translate-y-0.5 hover:shadow-md"
             >
               <p class="text-sm font-medium uppercase tracking-wide text-indigo-700">
-                🔍 {{ language.t('voyageur.profile.explore') }}
+                {{ language.t('voyageur.profile.explore') }}
               </p>
               <p class="mt-2 text-xl font-semibold text-slate-900">
                 {{ language.t('voyageur.public.title') }}
@@ -189,7 +199,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
               class="card-soft block rounded-2xl p-5 no-underline transition hover:-translate-y-0.5 hover:shadow-md"
             >
               <p class="text-sm font-medium uppercase tracking-wide text-emerald-700">
-                📋 {{ language.t('voyageur.profile.followup') }}
+                {{ language.t('voyageur.profile.followup') }}
               </p>
               <p class="mt-2 text-xl font-semibold text-slate-900">
                 {{ language.t('voyageur.reservations.title') }}
@@ -203,7 +213,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
               class="card-soft block rounded-2xl p-5 no-underline transition hover:-translate-y-0.5 hover:shadow-md"
             >
               <p class="text-sm font-medium uppercase tracking-wide text-orange-700">
-                💳 {{ language.t('voyageur.profile.finance') }}
+                {{ language.t('voyageur.profile.finance') }}
               </p>
               <p class="mt-2 text-xl font-semibold text-slate-900">
                 {{ language.t('voyageur.payments.title') }}
@@ -369,7 +379,11 @@ export class VoyageurProfilePage {
       },
       error: (erreur) => {
         this.annulationId.set(null);
-        this.errorMessage.set(extractApiErrorMessage(erreur, 'Impossible d’annuler ce trajet.'));
+        this.errorMessage.set(
+          extractApiErrorMessage(erreur, 'Impossible d’annuler ce trajet.', (key) =>
+            this.language.t(key),
+          ),
+        );
       },
     });
   }
