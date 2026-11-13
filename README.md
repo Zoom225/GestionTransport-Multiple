@@ -8,6 +8,33 @@ Le chauffeur ne réserve aucune place. Chaque client paie **25 €** ; quatre cl
 représentent **100 €**. Les places inoccupées ne sont facturées à personne.
 Les paiements et remboursements sont **simulés**, sans prestataire bancaire.
 
+## Connexions de validation
+
+Administrateurs : [connexion](http://127.0.0.1:4202/admin/login).
+Voyageurs : [connexion](http://127.0.0.1:4202/voyageur).
+
+| Compte | Identifiant | Mot de passe de validation |
+| --- | --- | --- |
+| Administrateur global | `admin@transp.com` | `Admin1234!` |
+| Administrateur local Lyon | `admin.lyon@transp.com` | `Admin1234!` |
+| Administrateur local Paris | `admin.paris@transp.com` | `Admin1234!` |
+| Voyageurs VIP | `V1001`, `V1002` | `Voyage1234!` |
+| Voyageurs locaux | `L10001`, `L10002` | `Voyage1234!` |
+| Voyageurs libres | `F10001`, `F10002` | `Voyage1234!` |
+
+Ces identifiants concernent la copie locale de validation. Les suffixes numériques,
+identifiants internes, catégories, agences et historiques sont conservés.
+Les mots de passe sont enregistrés sous forme de hachages BCrypt. Après leur
+modification, se déconnecter puis se reconnecter avec les nouveaux identifiants.
+Les informations sont également visibles au début de `DataInitializer.java`.
+
+L'initialiseur reste désactivé par défaut. Une mise à jour de comptes existants
+exige explicitement le profil `dev`, `DEMO_DATA_ENABLED=true` et
+`DEMO_UPDATE_CREDENTIALS=true`, exclusivement sur une copie locale nommée
+`transport_schema_copy_...` ou `transport_demo_...`. Les doublons sont contrôlés
+avant écriture et les changements sont transactionnels. Aucune mise à jour des
+comptes de transportService n'est autorisée par ce mécanisme.
+
 ## Fonctionnement métier
 
 - Départ et destination sont deux villes belges distinctes, choisies dans la liste centrale
@@ -39,9 +66,9 @@ Les paiements et remboursements sont **simulés**, sans prestataire bancaire.
 
 | Catégorie | Matricule      | Fenêtre de réservation | Zone                          |
 | --------- | -------------- | ---------------------- | ----------------------------- |
-| VIP       | G + 4 chiffres | Jusqu'à J-21           | Toutes les agences autorisées |
-| Local     | S + 5 chiffres | Jusqu'à J-14           | Agence autorisée              |
-| Libre     | L + 5 chiffres | Jusqu'à J-5            | Trajets publics autorisés     |
+| VIP       | V + 4 chiffres | Jusqu'à J-21           | Toutes les agences autorisées |
+| Local     | L + 5 chiffres | Jusqu'à J-14           | Agence autorisée              |
+| Libre     | F + 5 chiffres | Jusqu'à J-5            | Trajets publics autorisés     |
 
 Les fenêtres concernent les clients qui réservent, pas la date de création d'un trajet par son chauffeur.
 
@@ -381,14 +408,18 @@ Comptes créés uniquement dans cette base de démonstration :
 
 | Connexion      | Identifiant         | Fonction                                  |
 | -------------- | ------------------- | ----------------------------------------- |
-| Voyageur       | G1001               | Chauffeur autorisé                        |
-| Voyageur       | G1002               | Client VIP                                |
-| Voyageur       | S10001              | Client local                              |
-| Voyageur       | L10001              | Client libre                              |
-| Administrateur | admin@example.test  | Administrateur global                     |
-| Administrateur | agence@example.test | Gestionnaire de l'agence de démonstration |
+| Voyageur       | V1001               | Chauffeur autorisé                        |
+| Voyageur       | V1002               | Client VIP                                |
+| Voyageur       | L10001              | Client local                              |
+| Voyageur       | F10001              | Client libre                              |
+| Administrateur | admin@transp.com    | Administrateur global                     |
+| Administrateur | admin.lyon@transp.com | Gestionnaire de l'agence de démonstration |
+| Administrateur | admin.paris@transp.com | Second gestionnaire de cette même agence de démonstration |
 
-Le mot de passe est celui fourni par `DEMO_PASSWORD`.
+Lorsque `DEMO_PASSWORD` est fourni comme dans la commande ci-dessus, il remplace
+les deux mots de passe de démonstration. Sans cette variable, les valeurs sont
+`Admin1234!` pour les administrateurs et `Voyage1234!` pour les voyageurs ; elles
+sont personnalisables avec `DEMO_ADMIN_PASSWORD` et `DEMO_VOYAGEUR_PASSWORD`.
 Les huit trajets de démonstration proposent chacun quatre places,
 sans réservation du chauffeur. Ils ne sont jamais insérés automatiquement dans la base métier.
 
@@ -397,7 +428,7 @@ Parcours de présentation :
 1. Se connecter comme client et rechercher Mons → Bruxelles.
 2. Créer une demande, puis payer depuis « Mes réservations » : une place est confirmée.
 3. Consulter les paiements et l'historique ; annuler une réservation autorisée.
-4. Se connecter comme G1001 et proposer un trajet avec ses villes et son véhicule.
+4. Se connecter comme V1001 et proposer un trajet avec ses villes et son véhicule.
 5. Créer un trajet privé, inviter des clients et choisir explicitement la publication H-24.
 6. Se connecter comme administrateur, gérer les voyageurs autorisés à conduire,
    créer un trajet avec chauffeur sélectionné et consulter les statistiques du périmètre autorisé.

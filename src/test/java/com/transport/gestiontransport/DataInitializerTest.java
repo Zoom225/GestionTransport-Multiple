@@ -65,6 +65,50 @@ class DataInitializerTest {
     }
 
     @Test
+    void demonstrationUtiliseLesTroisComptesTransportEtDesMotsDePasseDistinctsParRole() {
+        ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://localhost:5541/transport_demo_connexions");
+        when(passwordEncoder.encode("Admin1234!")).thenReturn("hash-admin");
+        when(passwordEncoder.encode("Voyage1234!")).thenReturn("hash-voyageur");
+        when(agenceRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(vehiculeRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(voyageurRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        dataInitializer.run();
+        for (String email : new String[]{"admin@transp.com", "admin.lyon@transp.com", "admin.paris@transp.com"}) {
+            verify(administrateurRepository).save(argThat(a -> email.equals(a.getEmail()) && "hash-admin".equals(a.getPasswordHash())));
+        }
+        verify(voyageurRepository, times(4)).save(argThat(v -> "hash-voyageur".equals(v.getPasswordHash())));
+    }
+
+    @Test
+    void refuseLaMiseAJourDesComptesSurLaBaseMetier() {
+        when(agenceRepository.count()).thenReturn(1L);
+        ReflectionTestUtils.setField(dataInitializer, "updateCredentials", true);
+        ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://localhost:5440/transportService");
+        assertThatThrownBy(() -> dataInitializer.run()).isInstanceOf(IllegalStateException.class);
+        verifyNoInteractions(passwordEncoder);
+        verify(administrateurRepository, never()).findAll();
+    }
+
+    @Test
+    void refuseUnDoublonDeMatriculeAvantTouteEcriture() {
+        when(agenceRepository.count()).thenReturn(1L);
+        ReflectionTestUtils.setField(dataInitializer, "updateCredentials", true);
+        ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://127.0.0.1:5541/transport_schema_copy_test");
+        when(administrateurRepository.findAll()).thenReturn(java.util.List.of(
+                Administrateur.builder().email("admin@padel.com").build(),
+                Administrateur.builder().email("admin.lyon@padel.com").build(),
+                Administrateur.builder().email("admin.paris@padel.com").build()));
+        Voyageur ancien = Voyageur.builder().matricule("G1001").typeVoyageur(com.transport.gestiontransport.entity.enums.TypeVoyageur.VIP).build();
+        ancien.setId(1L);
+        Voyageur nouveau = Voyageur.builder().matricule("V1001").typeVoyageur(com.transport.gestiontransport.entity.enums.TypeVoyageur.VIP).build();
+        nouveau.setId(2L);
+        when(voyageurRepository.findAll()).thenReturn(java.util.List.of(ancien, nouveau));
+        assertThatThrownBy(() -> dataInitializer.run()).isInstanceOf(IllegalStateException.class).hasMessageContaining("doublon");
+        verify(voyageurRepository, never()).saveAllAndFlush(any());
+        verifyNoInteractions(passwordEncoder);
+    }
+
+    @Test
     void refuseUnMotDePasseDepassantLaLimiteBcryptAvantTouteInsertion() {
         ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://localhost:5440/transport_demo_test");
         ReflectionTestUtils.setField(dataInitializer, "demoPassword", "a".repeat(73));

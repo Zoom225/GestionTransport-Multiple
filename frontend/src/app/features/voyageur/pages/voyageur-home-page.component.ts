@@ -418,7 +418,7 @@ export class VoyageurHomePage {
   readonly form = new FormGroup({
     matricule: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.pattern(/^(G\d{4}|S\d{5}|L\d{5})$/i)],
+      validators: [Validators.required, Validators.pattern(/^([VG]\d{4}|[SLF]\d{5})$/i)],
     }),
     password: new FormControl('', {
       nonNullable: true,

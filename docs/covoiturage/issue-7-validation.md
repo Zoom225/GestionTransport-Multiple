@@ -1,5 +1,48 @@
 # Issue #7 — Intégration et validation
 
+## Connexions de validation demandées — branche feature/issue-7-comptes-validation
+
+Depuis #24, les comptes de la copie locale ont été adaptés à la demande explicite
+de l'utilisateur : administrateurs admin@transp.com, admin.lyon@transp.com et
+admin.paris@transp.com ; voyageurs V1001/V1002, L10001/L10002, F10001/F10002.
+La table des mots de passe de validation figure au début du README et les
+informations complètes sont visibles dans DataInitializer. Les suffixes numériques,
+PK, catégories, agences et relations restent inchangés.
+
+L'initialiseur existant est réutilisé, sans second service de comptes. Il reste
+désactivé par défaut et préserve les bases non vides, sauf activation explicite
+de DEMO_UPDATE_CREDENTIALS sur copie locale avec profil dev et démo activée.
+Le contrôle des trois adresses administrateur et des doublons de matricules
+précède les écritures. Le passage temporaire des matricules libère les anciens L
+avant leur affectation aux locaux ; la transaction couvre les deux étapes.
+Les mots de passe sont hachés BCrypt, jamais stockés en clair dans PostgreSQL.
+Un second passage ne réencode pas un mot de passe déjà conforme.
+
+La sauvegarde préalable de la copie est conservée hors Git. Mise à jour réelle
+sur transport_schema_copy_20261113181001595 uniquement ; aucune écriture sur
+transportService. La copie conserve six voyageurs distincts, trois administrateurs
+et huit paiements. Deux exécutions : empreintes complètes des comptes identiques
+au second passage, aucune nouvelle ligne ni nouveau hachage.
+
+Vérifications exécutées :
+
+- mvn -B verify : 162 tests réussis, dont les tests PostgreSQL isolés et JPA validate.
+- Après ajout du contrôle de doublon : sept tests DataInitializer réussis, dont
+  refus d'une base métier, refus du doublon avant écriture, mots de passe par rôle,
+  absence de réservation du chauffeur et préservation des bases non vides.
+- Build Angular réussi et 72 tests réussis ; compilation IntelliJ réussie après
+  expiration d'un premier appel pendant les autres vérifications.
+- Neuf connexions REST réussies avec les nouveaux identifiants/mots de passe.
+- Connexions Angular réelles réussies : les trois administrateurs et V1001,
+  L10001, F10001. Chaque connexion aboutit à son espace autorisé.
+- Backend habituel relancé sur8080, frontend4202 conservé. L'initialiseur de mise
+  à jour n'est pas activé dans ce lancement habituel. Après changement d'identifiant,
+  se déconnecter puis se reconnecter.
+
+Les anciens formats G/S/L restent acceptés pour compatibilité avec des données
+historiques non migrées ; les exemples et comptes de validation utilisent V/L/F.
+Les valeurs SQL des catégories, rôles, tarifs et règles de réservation ne changent pas.
+
 ## Correction du démarrage et intégration des chantiers ouverts — novembre 2026
 
 Branche `fix/issue-7-demarrage-validation` : intégration de #20 (lancement/JWT),

@@ -418,7 +418,7 @@ export class VoyageurReservationsPage {
   });
   readonly inviteMatricule = new FormControl('', {
     nonNullable: true,
-    validators: [Validators.required, Validators.pattern(/^(G\d{4}|S\d{5}|L\d{5})$/)],
+    validators: [Validators.required, Validators.pattern(/^([VG]\d{4}|[SLF]\d{5})$/)],
   });
   readonly voyageurId = computed(() => this.voyageurSession.voyageurId());
 

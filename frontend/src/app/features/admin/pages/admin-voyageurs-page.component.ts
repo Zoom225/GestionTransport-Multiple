@@ -90,7 +90,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
               matInput
               formControlName="matricule"
               [readonly]="editingId() !== null"
-              [placeholder]="editingId() ? '' : 'G1234 / S12345 / L12345'"
+              [placeholder]="editingId() ? '' : 'V1234 / L12345 / F12345'"
               class="uppercase font-semibold tracking-wider"
             />
             @if (!editingId()) {
