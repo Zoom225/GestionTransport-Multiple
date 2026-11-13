@@ -151,9 +151,9 @@ public class VoyageurServiceImpl implements VoyageurService {
 
     private void validateMatricule(String matricule, TypeVoyageur type) {
         boolean valid = switch (type) {
-            case VIP -> matricule.matches("^G\\d{4}$");
-            case LOCAL -> matricule.matches("^S\\d{5}$");
-            case LIBRE  -> matricule.matches("^L\\d{5}$");
+            case VIP -> matricule.matches("^[VG]\\d{4}$");
+            case LOCAL -> matricule.matches("^[LS]\\d{5}$");
+            case LIBRE  -> matricule.matches("^[FL]\\d{5}$");
         };
         // Regle metier : un matricule doit respecter le format du type de voyageur.
         if (!valid) {
