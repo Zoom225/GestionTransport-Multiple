@@ -42,6 +42,29 @@ jobs:
           java-version: "21"
           cache: maven
       - run: bash ./mvnw -B verify
+      - name: Vérifier migration et mappings sur copie PostgreSQL
+        env:
+          PGPASSWORD: transport_ci_only
+          TRANSPORT_SCHEMA_URL: jdbc:postgresql://localhost:5432/transport_schema_copy_ci
+        run: |
+          createdb -h localhost -U transport transport_schema_copy_ci
+          pg_dump -h localhost -U transport --no-owner issue1_validation_ci | psql -h localhost -U transport -v ON_ERROR_STOP=1 transport_schema_copy_ci
+          psql -h localhost -U transport -d transport_schema_copy_ci -f src/test/resources/schema-historique-fixture.sql
+          psql -h localhost -U transport -d transport_schema_copy_ci -At -f scripts/migrations/issue-3-empreintes.sql > /tmp/schema-before.txt
+          psql -h localhost -U transport -d transport_schema_copy_ci -f scripts/migrations/issue-3-schema-transport.sql
+          psql -h localhost -U transport -d transport_schema_copy_ci -At -f scripts/migrations/issue-3-empreintes.sql > /tmp/schema-after.txt
+          cmp /tmp/schema-before.txt /tmp/schema-after.txt
+          psql -h localhost -U transport -d transport_schema_copy_ci -f scripts/migrations/issue-3-schema-transport.sql
+          psql -h localhost -U transport -d transport_schema_copy_ci -At -f scripts/migrations/issue-3-empreintes.sql > /tmp/schema-second.txt
+          cmp /tmp/schema-after.txt /tmp/schema-second.txt
+          psql -h localhost -U transport -d transport_schema_copy_ci -v ON_ERROR_STOP=1 -c 'CREATE TABLE sites(id bigint)'
+          if psql -h localhost -U transport -d transport_schema_copy_ci -f scripts/migrations/issue-3-schema-transport.sql; then
+            echo 'La migration aurait dû refuser les tables parallèles'; exit 1
+          fi
+          psql -h localhost -U transport -d transport_schema_copy_ci -v ON_ERROR_STOP=1 -c 'DROP TABLE sites'
+          psql -h localhost -U transport -d transport_schema_copy_ci -At -f scripts/migrations/issue-3-empreintes.sql > /tmp/schema-refusal.txt
+          cmp /tmp/schema-after.txt /tmp/schema-refusal.txt
+          bash ./mvnw -B -Dtest=TransportSchemaValidationTest test
 
   frontend:
     runs-on: ubuntu-latest
