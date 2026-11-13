@@ -240,4 +240,3 @@ contrôles sans débordement et aucune erreur JS. Le serveur Angular de dévelop
 a été relancé après un écran d'erreur résiduel de compilation intermédiaire des
 clés de traduction ; les builds finaux et le contrôle navigateur sont réussis.
 Le serveur du projet reste sur http://127.0.0.1:4202.
-
