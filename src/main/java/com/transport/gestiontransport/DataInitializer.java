@@ -16,17 +16,37 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-/** Démonstration sur base vide ; mise à jour des connexions sur copie locale, uniquement sur demande explicite. */
+/**
+ * COMPTES DE VALIDATION — identifiants et mots de passe pour les essais locaux.
+ * <pre>
+ * +----------------------+-------------------------+----------------+
+ * | Compte               | Identifiant             | Mot de passe   |
+ * +----------------------+-------------------------+----------------+
+ * | Admin global         | admin@transp.com        | Admin1234!     |
+ * | Admin local Lyon     | admin.lyon@transp.com   | Admin1234!     |
+ * | Admin local Paris    | admin.paris@transp.com  | Admin1234!     |
+ * | Voyageur VIP         | V1001                   | Voyage1234!    |
+ * | Voyageur VIP         | V1002                   | Voyage1234!    |
+ * | Voyageur local       | L10001                  | Voyage1234!    |
+ * | Voyageur local       | L10002                  | Voyage1234!    |
+ * | Voyageur libre       | F10001                  | Voyage1234!    |
+ * | Voyageur libre       | F10002                  | Voyage1234!    |
+ * +----------------------+-------------------------+----------------+
+ * </pre>
+ * Copie locale configurée : les neuf comptes ci-dessus sont disponibles.
+ * Base dev vide : création de V1001, V1002, L10001, F10001 et des trois admins.
+ * Les mots de passe ci-dessus sont les valeurs de validation par défaut ;
+ * DEMO_PASSWORD ou les variables DEMO_ADMIN_PASSWORD/DEMO_VOYAGEUR_PASSWORD
+ * peuvent les remplacer lors de la préparation d'une démonstration.
+ * Initialisation désactivée par défaut, jamais sur la base métier réelle.
+ * Mise à jour des comptes existants uniquement sur copie locale et demande explicite.
+ */
 @Slf4j
 @Component
 @Profile("dev")
 @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "app.demo-data.enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
-    // Comptes de validation : admin@transp.com, admin.lyon@transp.com, admin.paris@transp.com.
-    // Mot de passe administrateurs : Admin1234! ; voyageurs : Voyage1234!
-    // Matricules voyageurs : V1001/V1002 (VIP), L10001/L10002 (locaux), F10001/F10002 (libres).
-    // Ces comptes ne sont jamais initialisés dans la base métier réelle.
     private final AgenceRepository agenceRepository;
     private final VehiculeRepository vehiculeRepository;
     private final VoyageurRepository voyageurRepository;
