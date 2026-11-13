@@ -87,14 +87,42 @@ docker info
 git status
 ```
 
+## Repères pour compiler et démarrer sous Windows
+
+Ouvrir trois terminaux PowerShell dans le dossier contenant `pom.xml` et
+`docker-compose.yml`. Adapter ce chemin à l'emplacement du dépôt :
+
+```powershell
+Set-Location 'C:\chemin\vers\GestionTransport-Multiple'
+```
+
+| Terminal | Dossier de travail | Commandes détaillées |
+| --- | --- | --- |
+| 1 — Docker / PostgreSQL | Racine du dépôt | [Démarrer et vérifier PostgreSQL](#1-postgresql-et-docker) |
+| 2 — Backend Java 21 | Racine du dépôt | [Compiler, tester et démarrer Spring Boot](#3-compiler-et-démarrer-le-backend) |
+| 3 — Frontend Angular | `frontend` | [Installer, compiler, tester et démarrer Angular](#4-installer-tester-et-lancer-angular) |
+
+Arrêter une instance backend avant une reconstruction Maven et éviter une
+compilation IntelliJ simultanée. Arrêter `ng serve` avec **Ctrl+C** avant `npm ci`
+pour éviter le verrouillage d'esbuild sous Windows. Les commandes de compilation
+ci-dessous ne démarrent pas les serveurs ; les commandes de lancement sont séparées.
+
 ## 1. PostgreSQL et Docker
+
+Depuis la racine du dépôt, dans le terminal 1 :
 
 ```powershell
 docker compose config --quiet
-docker compose up -d
+docker compose up -d postgres
 docker compose ps
+docker compose exec postgres pg_isready -U transport -d transportService
 docker compose logs --tail=100 postgres
 ```
+
+Le fichier Compose utilise l'image officielle `postgres:15`, sans Dockerfile
+applicatif. Il démarre PostgreSQL ; le backend et le frontend sont compilés avec
+Maven et npm dans les sections suivantes. Le contrôle `pg_isready` doit indiquer
+que PostgreSQL accepte les connexions.
 
 Configuration locale de développement :
 
@@ -132,8 +160,12 @@ Pour arrêter les services en conservant le stockage : `docker compose stop`.
 ## 2. Données existantes et schéma
 
 Le mécanisme initial `spring.jpa.hibernate.ddl-auto=update` est conservé.
-Un démarrage peut donc ajouter des colonnes : effectuer une sauvegarde avant d'utiliser
-une base métier existante. Aucun traitement ne remplace les anciens montants.
+Le garde de schéma refuse les tables historiques ou parallèles avant Hibernate.
+Le lancement de validation utilise explicitement `ddl-auto=validate` sur une copie
+déjà migrée. La copie de validation actuellement configurée est sur le port **5541** ;
+le Compose principal ci-dessus expose la base métier sur **5440**.
+La préparation de cette copie est décrite dans [l'audit SQL](docs/covoiturage/issue-3-modele-simple.md).
+Aucun traitement ne remplace les anciens montants.
 
 Exemple de sauvegarde PostgreSQL, sans redirection binaire PowerShell :
 
@@ -160,9 +192,12 @@ Le script [invariants PostgreSQL](scripts/migrations/issue-7-invariants-covoitur
 ajoute les index de recherche/créneau, l'unicité d'une demande active et le contrôle
 des villes, horaires et quatre places pour les trajets qualifiés. Même procédure
 explicite après sauvegarde ; il refuse les doublons existants, sans les supprimer.
-Il est aussi exécuté par les tests PostgreSQL sur leur base isolée.
+Les tests PostgreSQL actuels utilisent son équivalent sous les noms Transport :
+[issue-3-invariants-transport.sql](scripts/migrations/issue-3-invariants-transport.sql).
 
-Les noms SQL historiques sont conservés pour éviter une migration destructive.
+Les scripts ci-dessus concernent uniquement l'ancien schéma : ne pas les rejouer
+après renommage. Les mappings actuels utilisent les noms Transport ; la migration
+explicite est détaillée dans [l'audit SQL](docs/covoiturage/issue-3-modele-simple.md).
 Les catégories VIP/LOCAL utilisent encore les valeurs SQL GLOBAL/SITE via le convertisseur existant.
 Les anciens trajets sans villes renseignées ne sont pas vendus comme trajets de covoiturage :
 ils restent dans l'historique, en attente d'une qualification explicite.
@@ -170,16 +205,55 @@ Aucune ville, date de création ou nouvelle tarification n'est inventée pour ce
 
 ## 3. Compiler et démarrer le backend
 
-Compilation, tests et JAR :
+Depuis la racine du dépôt, dans le terminal 2. Vérifier que Maven utilise Java 21 :
+
+```powershell
+java -version
+.\mvnw.cmd -version
+```
+
+Si nécessaire, définir le JDK 21 installé avant de poursuivre, en adaptant le chemin :
+
+```powershell
+$env:JAVA_HOME = 'C:\chemin\vers\jdk-21'
+$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
+.\mvnw.cmd -version
+```
+
+**Compilation seule** :
+
+```powershell
+.\mvnw.cmd -B compile
+```
+
+**Tests backend** :
+
+```powershell
+.\mvnw.cmd -B test
+```
+
+**Compilation, tests et génération du JAR** — commande de validation habituelle :
 
 ```powershell
 .\mvnw.cmd -B verify
 ```
 
+Pour reconstruire entièrement les fichiers générés, backend et compilation IDE arrêtés :
+
+```powershell
+.\mvnw.cmd -B clean verify
+```
+
+Le JAR est généré dans `target/`. Son nom dépend de l'`artifactId` du `pom.xml` ;
+la valeur locale `industri` reste préservée. Les rapports de tests sont dans
+`target/surefire-reports/`.
+
 Sans `POSTGRES_BASELINE_URL`, les tests usuels utilisent H2 et les tests PostgreSQL opt-in sont ignorés.
 La compilation ne prouve pas le démarrage HTTP : ce dernier fait l'objet des vérifications décrites plus bas.
 
-Créer une clé JWT neuve dans l'environnement, sans l'afficher :
+**Démarrage Spring Boot**, après compilation : remplacer `<identifiant>` par
+le nom d'une copie PostgreSQL restaurée et migrée existante sur le port 5541.
+Créer une clé JWT dans l'environnement, sans l'afficher :
 
 ```powershell
 $octetsJwtTransport = New-Object byte[] 48
@@ -188,12 +262,19 @@ try { $generateurTransport.GetBytes($octetsJwtTransport) }
 finally { $generateurTransport.Dispose() }
 $env:JWT_SECRET = [Convert]::ToBase64String($octetsJwtTransport)
 $env:DB_URL = 'jdbc:postgresql://127.0.0.1:5541/transport_schema_copy_<identifiant>'
-$env:DB_USER = 'transport'
-$env:DB_PASSWORD = 'transport'
+$identifiantsPostgres = Get-Credential -UserName 'transport' -Message 'Identifiants PostgreSQL de la copie de validation'
+$env:DB_USER = $identifiantsPostgres.UserName
+$env:DB_PASSWORD = $identifiantsPostgres.GetNetworkCredential().Password
 $env:DEMO_DATA_ENABLED = 'false'
 $env:SPRING_JPA_HIBERNATE_DDL_AUTO = 'validate'
 .\mvnw.cmd '-Dspring-boot.run.jvmArguments=-Dspring.devtools.restart.enabled=false' spring-boot:run
 ```
+
+Laisser ce terminal ouvert. **Ctrl+C** arrête le backend.
+
+- Backend : [http://127.0.0.1:8080](http://127.0.0.1:8080) — les endpoints sont sous `/api`.
+- Swagger : [http://127.0.0.1:8080/swagger-ui.html](http://127.0.0.1:8080/swagger-ui.html).
+- OpenAPI : [http://127.0.0.1:8080/v3/api-docs](http://127.0.0.1:8080/v3/api-docs).
 
 Conserver `DEMO_DATA_ENABLED=false` sur toute base métier.
 Remplacer `<identifiant>` par une copie restaurée/migrée existante. Ne pas
@@ -229,17 +310,39 @@ au démarrage. Aucun secret par défaut n'est ajouté à `application.properties
 
 ## 4. Installer, tester et lancer Angular
 
-Dans un autre terminal :
+Depuis la racine du dépôt, dans le terminal 3 :
 
 ```powershell
-cd frontend
+Set-Location frontend
 npm ci
-npm test
-npm run build
-npm start
 ```
 
-- Interface : [http://localhost:4200](http://localhost:4200).
+`npm ci` installe les versions du `package-lock.json` sans le remplacer.
+
+**Compilation de production** :
+
+```powershell
+npm run build
+```
+
+**Tests frontend** — le script du projet exécute Vitest puis se termine :
+
+```powershell
+npm test
+```
+
+**Démarrage du serveur de développement**, backend déjà démarré :
+
+```powershell
+npm start -- --host 127.0.0.1 --port 4202
+```
+
+Laisser ce terminal ouvert. **Ctrl+C** arrête Angular. Pour revenir à la racine :
+`Set-Location ..`.
+
+- Interface : [http://127.0.0.1:4202](http://127.0.0.1:4202).
+- Le port 4202 est utilisé pour laisser le port 4200 de l'autre application intact.
+  Sur une autre machine où 4200 est libre, `npm start` utilise ce port par défaut.
 - Le proxy existant transmet `/api` à `http://localhost:8080`.
 - Build de production : `frontend/dist/frontend/browser`.
 - L'interceptor JWT et les guards existants sont réutilisés.
