@@ -71,7 +71,7 @@ const formatDateForInput = (date: Date): string => {
         <mat-card-content>
           <form [formGroup]="form" class="grid gap-4 pt-4 md:grid-cols-2" (ngSubmit)="submit()">
             <mat-form-field appearance="outline"
-              ><mat-label>Ville de départ</mat-label
+              ><mat-label>{{ language.t('transport.departure') }}</mat-label
               ><mat-select formControlName="villeDepart">
                 @for (ville of villes(); track ville.code) {
                   <mat-option [value]="ville.code">{{ ville.libelle }}</mat-option>
@@ -79,7 +79,7 @@ const formatDateForInput = (date: Date): string => {
               </mat-select></mat-form-field
             >
             <mat-form-field appearance="outline"
-              ><mat-label>Destination</mat-label
+              ><mat-label>{{ language.t('transport.destination') }}</mat-label
               ><mat-select formControlName="villeArrivee">
                 @for (ville of villes(); track ville.code) {
                   <mat-option [value]="ville.code">{{ ville.libelle }}</mat-option>
@@ -88,7 +88,7 @@ const formatDateForInput = (date: Date): string => {
             >
             @if (adminSession.isAuthenticated()) {
               <mat-form-field appearance="outline"
-                ><mat-label>Chauffeur autorisé</mat-label
+                ><mat-label>{{ language.t('ui.driverAuthorized') }}</mat-label
                 ><mat-select formControlName="chauffeurId">
                   @for (chauffeur of chauffeurs(); track chauffeur.id) {
                     <mat-option [value]="chauffeur.id"
@@ -99,8 +99,8 @@ const formatDateForInput = (date: Date): string => {
               >
             } @else {
               <p class="md:col-span-2">
-                Chauffeur : {{ voyageur()?.prenom }} {{ voyageur()?.nom }}. Vous ne réservez aucune
-                des quatre places clients.
+                {{ language.t('transport.driver') }} : {{ voyageur()?.prenom }}
+                {{ voyageur()?.nom }}. {{ language.t('ui.driverExcluded') }}
               </p>
             }
             <mat-form-field appearance="outline">
@@ -159,7 +159,7 @@ const formatDateForInput = (date: Date): string => {
             </div>
 
             @if (errorMessage()) {
-              <p class="status-error md:col-span-2">{{ errorMessage() }}</p>
+              <p role="alert" class="status-error md:col-span-2">{{ errorMessage() }}</p>
             } @else if (!agences().length && !loading()) {
               <p class="status-info md:col-span-2">{{ language.t('voyageur.create.noAgence') }}</p>
             }
@@ -201,7 +201,9 @@ const formatDateForInput = (date: Date): string => {
               privé.</mat-checkbox
             >
             @if (message()) {
-              <p class="status-success md:col-span-2">{{ message() }}</p>
+              <p role="status" aria-live="polite" class="status-success md:col-span-2">
+                {{ message() }}
+              </p>
             }
 
             <div class="toolbar-actions justify-start md:col-span-2">
@@ -217,7 +219,10 @@ const formatDateForInput = (date: Date): string => {
                 language.t('voyageur.create.back')
               }}</a>
               @if (loading()) {
-                <mat-spinner diameter="24"></mat-spinner>
+                <mat-spinner
+                  [attr.aria-label]="language.t('transport.searching')"
+                  diameter="24"
+                ></mat-spinner>
               }
             </div>
           </form>
@@ -335,7 +340,9 @@ export class VoyageurCreateTrajetPage {
       },
       error: (error) => {
         this.errorMessage.set(
-          extractApiErrorMessage(error, this.language.t('voyageur.create.noAgenceLoaded')),
+          extractApiErrorMessage(error, this.language.t('voyageur.create.noAgenceLoaded'), (key) =>
+            this.language.t(key),
+          ),
         );
         this.loading.set(false);
       },
@@ -368,7 +375,11 @@ export class VoyageurCreateTrajetPage {
           this.errorMessage.set(this.language.t('voyageur.create.noVehiculeLoaded'));
         } else {
           this.errorMessage.set(
-            extractApiErrorMessage(error, this.language.t('voyageur.create.noVehiculeLoaded')),
+            extractApiErrorMessage(
+              error,
+              this.language.t('voyageur.create.noVehiculeLoaded'),
+              (key) => this.language.t(key),
+            ),
           );
         }
         this.vehicules.set([]);
@@ -456,6 +467,7 @@ export class VoyageurCreateTrajetPage {
     const apiMessage = extractApiErrorMessage(
       error,
       this.language.t('voyageur.create.createError'),
+      (key) => this.language.t(key),
     );
     const status = (error as any)?.status || (error as any)?.error?.status;
 
@@ -543,7 +555,11 @@ export class VoyageurCreateTrajetPage {
           this.loading.set(false);
           this.message.set(this.language.t('voyageur.create.partialSuccess'));
           this.errorMessage.set(
-            extractApiErrorMessage(error, this.language.t('voyageur.create.addPassagersError')),
+            extractApiErrorMessage(
+              error,
+              this.language.t('voyageur.create.addPassagersError'),
+              (key) => this.language.t(key),
+            ),
           );
           setTimeout(
             () =>

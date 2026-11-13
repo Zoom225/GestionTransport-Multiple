@@ -35,7 +35,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
   ],
   template: `
     <section class="page-shell">
@@ -45,8 +45,12 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
           <p class="ds-subtitle">{{ language.t('voyageur.public.subtitle') }}</p>
         </div>
         <div class="toolbar-actions">
-          <a mat-stroked-button routerLink="/voyageur/profile">{{ language.t('voyageur.public.myProfile') }}</a>
-          <a mat-flat-button color="primary" routerLink="/voyageur/trajets/new">{{ language.t('voyageur.public.create') }}</a>
+          <a mat-stroked-button routerLink="/voyageur/profile">{{
+            language.t('voyageur.public.myProfile')
+          }}</a>
+          <a mat-flat-button color="primary" routerLink="/voyageur/trajets/new">{{
+            language.t('voyageur.public.create')
+          }}</a>
         </div>
       </div>
 
@@ -68,7 +72,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
             <input
               matInput
               [value]="search()"
-              (input)="search.set(($any($event.target)).value)"
+              (input)="search.set($any($event.target).value)"
               [placeholder]="language.t('voyageur.public.searchPlaceholder')"
             />
           </mat-form-field>
@@ -77,41 +81,73 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
 
       @if (loading()) {
         <div class="py-4">
-          <mat-spinner diameter="32"></mat-spinner>
+          <mat-spinner
+            [attr.aria-label]="language.t('transport.searching')"
+            diameter="32"
+          ></mat-spinner>
         </div>
       }
 
       @if (message()) {
-        <p class="status-success">{{ message() }}</p>
+        <p role="status" aria-live="polite" class="status-success">{{ message() }}</p>
       }
 
       @if (errorMessage()) {
-        <p class="status-error">{{ errorMessage() }}</p>
+        <p role="alert" class="status-error">{{ errorMessage() }}</p>
       }
 
-      <a routerLink="/voyageur/trajets/new" class="card-soft block rounded-2xl border border-sky-200 bg-gradient-to-r from-sky-50 to-indigo-50 p-5 no-underline transition hover:-translate-y-0.5 hover:shadow-md">
-        <p class="text-sm font-medium uppercase tracking-wide text-sky-700">{{ language.t('voyageur.public.noTrajetPrompt') }}</p>
+      <a
+        routerLink="/voyageur/trajets/new"
+        class="card-soft block rounded-2xl border border-sky-200 bg-gradient-to-r from-sky-50 to-indigo-50 p-5 no-underline transition hover:-translate-y-0.5 hover:shadow-md"
+      >
+        <p class="text-sm font-medium uppercase tracking-wide text-sky-700">
+          {{ language.t('voyageur.public.noTrajetPrompt') }}
+        </p>
         <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p class="text-xl font-semibold text-slate-900">{{ language.t('voyageur.public.create') }}</p>
+            <p class="text-xl font-semibold text-slate-900">
+              {{ language.t('voyageur.public.create') }}
+            </p>
             <p class="text-sm text-slate-600">{{ language.t('voyageur.public.createBody') }}</p>
           </div>
-          <span class="rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white">{{ language.t('voyageur.public.create') }}</span>
+          <span class="ds-btn-primary">{{ language.t('voyageur.public.create') }}</span>
         </div>
       </a>
 
       <div class="grid gap-4 lg:grid-cols-2">
         @for (trajet of filteredTrajets(); track trajet.id) {
           <mat-card class="card-soft">
-            <app-trajet-card [trajet]="trajet" [disabled]="joiningTrajetId() === trajet.id || !canJoin(trajet)" (reservationDemandee)="joinTrajet($event)">
+            <app-trajet-card
+              [trajet]="trajet"
+              [disabled]="joiningTrajetId() === trajet.id || !canJoin(trajet)"
+              (reservationDemandee)="joinTrajet($event)"
+            >
               @if (isOrganizer(trajet)) {
-                <span class="ds-badge ds-badge-info">{{ language.t('voyageur.public.myTrajet') }}</span>
-                <button mat-stroked-button type="button" (click)="startEdit(trajet)" [disabled]="!canModify(trajet) || actionTrajetId() === trajet.id">{{ language.t('voyageur.public.modify') }}</button>
-                <button mat-stroked-button type="button" (click)="cancelOwnTrajet(trajet)" [disabled]="actionTrajetId() === trajet.id">{{ language.t('voyageur.public.delete') }}</button>
+                <span class="ds-badge ds-badge-info">{{
+                  language.t('voyageur.public.myTrajet')
+                }}</span>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  (click)="startEdit(trajet)"
+                  [disabled]="!canModify(trajet) || actionTrajetId() === trajet.id"
+                >
+                  {{ language.t('voyageur.public.modify') }}
+                </button>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  (click)="cancelOwnTrajet(trajet)"
+                  [disabled]="actionTrajetId() === trajet.id"
+                >
+                  {{ language.t('voyageur.public.delete') }}
+                </button>
               }
             </app-trajet-card>
             @if (isOrganizer(trajet) && !canModify(trajet)) {
-              <p class="px-4 pb-3 text-xs text-amber-700">{{ language.t('voyageur.public.editHint') }}</p>
+              <p class="px-4 pb-3 text-xs text-amber-700">
+                {{ language.t('voyageur.public.editHint') }}
+              </p>
             }
 
             @if (editingTrajetId() === trajet.id) {
@@ -129,16 +165,31 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
                 <mat-form-field appearance="outline">
                   <mat-label>{{ language.t('voyageur.public.typeLabel') }}</mat-label>
                   <mat-select [formControl]="editForm.controls.typeTrajet">
-                    <mat-option value="PUBLIC">{{ language.t('voyageur.create.public') }}</mat-option>
-                    <mat-option value="PRIVE">{{ language.t('voyageur.create.private') }}</mat-option>
+                    <mat-option value="PUBLIC">{{
+                      language.t('voyageur.create.public')
+                    }}</mat-option>
+                    <mat-option value="PRIVE">{{
+                      language.t('voyageur.create.private')
+                    }}</mat-option>
                   </mat-select>
                 </mat-form-field>
 
                 <div class="flex items-end gap-2">
-                  <button mat-flat-button color="primary" type="button" (click)="saveEdit(trajet)" [disabled]="editForm.invalid || actionTrajetId() === trajet.id">
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    type="button"
+                    (click)="saveEdit(trajet)"
+                    [disabled]="editForm.invalid || actionTrajetId() === trajet.id"
+                  >
                     {{ language.t('common.save') }}
                   </button>
-                  <button mat-stroked-button type="button" (click)="cancelEdit()" [disabled]="actionTrajetId() === trajet.id">
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    (click)="cancelEdit()"
+                    [disabled]="actionTrajetId() === trajet.id"
+                  >
                     {{ language.t('common.back') }}
                   </button>
                 </div>
@@ -156,7 +207,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         }
       </div>
     </section>
-  `
+  `,
 })
 export class VoyageurPublicTrajetsPage {
   private readonly trajetsApi = inject(TrajetsApiService);
@@ -178,7 +229,10 @@ export class VoyageurPublicTrajetsPage {
   readonly editForm = new FormGroup({
     date: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     heureDebut: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    typeTrajet: new FormControl<'PUBLIC' | 'PRIVE'>('PUBLIC', { nonNullable: true, validators: [Validators.required] })
+    typeTrajet: new FormControl<'PUBLIC' | 'PRIVE'>('PUBLIC', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
   });
 
   readonly filteredTrajets = computed(() => {
@@ -188,7 +242,8 @@ export class VoyageurPublicTrajetsPage {
     return this.trajets()
       .filter((trajet) => {
         const trajetsAgence = !agenceId || trajet.agenceId === agenceId;
-        const haystack = `${trajet.vehiculeNom} ${trajet.agenceNom} ${trajet.organisateurNom} ${trajet.villeDepart} ${trajet.villeArrivee}`.toLowerCase();
+        const haystack =
+          `${trajet.vehiculeNom} ${trajet.agenceNom} ${trajet.organisateurNom} ${trajet.villeDepart} ${trajet.villeArrivee}`.toLowerCase();
         const trajetsSearch = !search || haystack.includes(search);
         return trajetsAgence && trajetsSearch;
       })
@@ -204,7 +259,10 @@ export class VoyageurPublicTrajetsPage {
   }
 
   private filtres: RechercheTrajet = {};
-  rechercher(filtres: RechercheTrajet): void { this.filtres = filtres; this.loadData(); }
+  rechercher(filtres: RechercheTrajet): void {
+    this.filtres = filtres;
+    this.loadData();
+  }
 
   loadData(): void {
     this.loading.set(true);
@@ -213,7 +271,7 @@ export class VoyageurPublicTrajetsPage {
 
     forkJoin({
       trajets: this.trajetsApi.getPublic(this.filtres),
-      agences: this.agencesApi.getAll()
+      agences: this.agencesApi.getAll(),
     }).subscribe({
       next: ({ trajets, agences }) => {
         this.trajets.set(trajets);
@@ -222,8 +280,12 @@ export class VoyageurPublicTrajetsPage {
       },
       error: (error) => {
         this.loading.set(false);
-        this.errorMessage.set(extractApiErrorMessage(error, this.language.t('voyageur.public.loadError')));
-      }
+        this.errorMessage.set(
+          extractApiErrorMessage(error, this.language.t('voyageur.public.loadError'), (key) =>
+            this.language.t(key),
+          ),
+        );
+      },
     });
   }
 
@@ -247,7 +309,7 @@ export class VoyageurPublicTrajetsPage {
       .create({
         trajetId: trajet.id,
         voyageurId: voyageurId,
-        requesterId: voyageurId
+        requesterId: voyageurId,
       })
       .subscribe({
         next: () => {
@@ -256,8 +318,12 @@ export class VoyageurPublicTrajetsPage {
         },
         error: (error) => {
           this.joiningTrajetId.set(null);
-          this.errorMessage.set(extractApiErrorMessage(error, this.language.t('voyageur.public.joinError')));
-        }
+          this.errorMessage.set(
+            extractApiErrorMessage(error, this.language.t('voyageur.public.joinError'), (key) =>
+              this.language.t(key),
+            ),
+          );
+        },
       });
   }
 
@@ -292,7 +358,9 @@ export class VoyageurPublicTrajetsPage {
   }
 
   typeLabel(type: TrajetResponse['typeTrajet']): string {
-    return type === 'PRIVE' ? this.language.t('voyageur.create.private') : this.language.t('voyageur.create.public');
+    return type === 'PRIVE'
+      ? this.language.t('voyageur.create.private')
+      : this.language.t('voyageur.create.public');
   }
 
   trajetStatusLabel(statut: TrajetResponse['statut']): string {
@@ -315,7 +383,7 @@ export class VoyageurPublicTrajetsPage {
     this.editForm.patchValue({
       date: trajet.date,
       heureDebut: trajet.heureDebut.slice(0, 5),
-      typeTrajet: trajet.typeTrajet
+      typeTrajet: trajet.typeTrajet,
     });
   }
 
@@ -339,7 +407,7 @@ export class VoyageurPublicTrajetsPage {
         organisateurId: voyageurId,
         date: this.editForm.controls.date.getRawValue(),
         heureDebut: this.editForm.controls.heureDebut.getRawValue(),
-        typeTrajet: this.editForm.controls.typeTrajet.getRawValue()
+        typeTrajet: this.editForm.controls.typeTrajet.getRawValue(),
       })
       .subscribe({
         next: () => {
@@ -350,8 +418,12 @@ export class VoyageurPublicTrajetsPage {
         },
         error: (error) => {
           this.actionTrajetId.set(null);
-          this.errorMessage.set(extractApiErrorMessage(error, this.language.t('voyageur.public.updateError')));
-        }
+          this.errorMessage.set(
+            extractApiErrorMessage(error, this.language.t('voyageur.public.updateError'), (key) =>
+              this.language.t(key),
+            ),
+          );
+        },
       });
   }
 
@@ -378,8 +450,12 @@ export class VoyageurPublicTrajetsPage {
       },
       error: (error) => {
         this.actionTrajetId.set(null);
-        this.errorMessage.set(extractApiErrorMessage(error, this.language.t('voyageur.public.deleteError')));
-      }
+        this.errorMessage.set(
+          extractApiErrorMessage(error, this.language.t('voyageur.public.deleteError'), (key) =>
+            this.language.t(key),
+          ),
+        );
+      },
     });
   }
 

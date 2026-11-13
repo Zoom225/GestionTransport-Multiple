@@ -68,15 +68,15 @@ function depart(jours, heure) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
   const admin = await call("POST", "/api/auth/login", null, {
-    email: "admin@example.test",
+    email: "admin@transp.com",
     password,
   });
   const localAdmin = await call("POST", "/api/auth/login", null, {
-    email: "agence@example.test",
+    email: "admin.lyon@transp.com",
     password,
   });
-  const chauffeur = await login("G1001");
-  const clients = await Promise.all(["G1002", "S10001", "L10001"].map(login));
+  const chauffeur = await login("V1001");
+  const clients = await Promise.all(["V1002", "L10001", "F10001"].map(login));
   const agences = await call("GET", "/api/agences");
   assert.equal(agences.length, 1);
   assert.match(agences[0].nom, /DÉMONSTRATION/);
@@ -124,7 +124,7 @@ function depart(jours, heure) {
     "POST",
     "/api/reservations/private-invites",
     chauffeur.token,
-    { trajetId: prive.id, inviteeMatricules: ["G1002"] },
+    { trajetId: prive.id, inviteeMatricules: ["V1002"] },
     201,
   );
   await call("GET", `/api/trajets/${prive.id}`, clients[0].token);
@@ -166,7 +166,7 @@ function depart(jours, heure) {
   ok(
     "Chauffeur automatique, refus des villes identiques et du chauffeur manquant/usurpé, invitation et confidentialité privées, publication sans consentement refusée",
   );
-  for (const matricule of ["G1003", "G1004"]) {
+  for (const matricule of ["V1003", "V1004"]) {
     await call(
       "POST",
       "/api/voyageurs",
@@ -346,7 +346,7 @@ function depart(jours, heure) {
     "/api/voyageurs",
     admin.token,
     {
-      matricule: "G1005",
+      matricule: "V1005",
       nom: "Test",
       prenom: "Chauffeur externe",
       typeVoyageur: "VIP",
@@ -381,7 +381,7 @@ function depart(jours, heure) {
 
   const {
     chromium,
-  } = require("../target/browser-validation/node_modules/playwright");
+  } = require(process.env.PLAYWRIGHT_MODULE || "../target/browser-validation/node_modules/playwright");
   const browser = await chromium.launch({
     executablePath:
       process.env.EDGE_PATH ||
@@ -428,7 +428,7 @@ function depart(jours, heure) {
       localStorage.setItem("gestiontransport_language", "fr"),
     );
     await page.goto(front + "/voyageur", { waitUntil: "networkidle" });
-    await page.locator("[formcontrolname=matricule]").fill("G1002");
+    await page.locator("[formcontrolname=matricule]").fill("V1002");
     await page.locator("[formcontrolname=password]").fill(password);
     await page.locator("button[type=submit]").click();
     await page.waitForURL("**/voyageur/profile");
@@ -504,7 +504,7 @@ function depart(jours, heure) {
       localStorage.removeItem("gestiontransport_voyageur_session"),
     );
     await page.goto(front + "/admin/login", { waitUntil: "networkidle" });
-    await page.locator("[formcontrolname=email]").fill("admin@example.test");
+    await page.locator("[formcontrolname=email]").fill("admin@transp.com");
     await page.locator("[formcontrolname=password]").fill(password);
     await page.locator("button[type=submit]").click();
     await page.waitForURL("**/admin");
@@ -512,7 +512,7 @@ function depart(jours, heure) {
     for (const width of [375, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page
-        .getByText("Administration GestionTransport", { exact: true })
+        .getByRole("heading", { name: "Administration globale", exact: true })
         .waitFor();
       assert.equal(
         await page.evaluate(() => document.documentElement.scrollWidth),
@@ -525,11 +525,26 @@ function depart(jours, heure) {
       });
     }
     ok("Administration et statistiques réelles chargées dans le navigateur");
+    await page.evaluate(() => localStorage.removeItem("gestiontransport_admin_session"));
+    await page.goto(front + "/admin/login", { waitUntil: "networkidle" });
+    await page.locator("[formcontrolname=email]").fill("admin.lyon@transp.com");
+    await page.locator("[formcontrolname=password]").fill(password);
+    await page.locator("button[type=submit]").click();
+    await page.waitForURL("**/admin");
+    await page.getByRole("heading", {name:"Administration de mon agence",exact:true}).waitFor();
+    for (const width of [375,768,1440]) {
+      await page.setViewportSize({width,height:900});
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth),width);
+      report.responsive.push({page:"administration agence authentifiée",width,debordement:false});
+    }
+    await page.goto(front + "/admin/vehicules", {waitUntil:"networkidle"});
+    assert.ok(!(await page.locator("main").innerText()).includes(voitureEtrangere.nom));
+    ok("Connexion navigateur AGENCE, dashboard local et véhicule hors périmètre absent");
     await page.evaluate(() =>
       localStorage.removeItem("gestiontransport_admin_session"),
     );
     await page.goto(front + "/voyageur", { waitUntil: "networkidle" });
-    await page.locator("[formcontrolname=matricule]").fill("G1001");
+    await page.locator("[formcontrolname=matricule]").fill("V1001");
     await page.locator("[formcontrolname=password]").fill(password);
     await page.locator("button[type=submit]").click();
     await page.waitForURL("**/voyageur/profile");
