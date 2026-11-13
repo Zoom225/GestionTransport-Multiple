@@ -49,6 +49,8 @@ import java.time.LocalTime;
 @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "app.demo-data.enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
+    // Modèles d'exemple pour la validation locale, sans immatriculation inventée.
+    private static final java.util.List<String> DEMO_VEHICLE_NAMES = java.util.List.of("Renault Clio", "Peugeot 308");
     private final AgenceRepository agenceRepository;
     private final VehiculeRepository vehiculeRepository;
     private final VoyageurRepository voyageurRepository;
@@ -99,8 +101,8 @@ public class DataInitializer implements CommandLineRunner {
         Agence agence = agenceRepository.save(Agence.builder().nom("Agence Bruxelles — DÉMONSTRATION")
                 .adresse("Bruxelles, Belgique").heureOuverture(LocalTime.of(6, 0)).heureFermeture(LocalTime.of(23, 0))
                 .dureeTrajetMinutes(90).dureeEntreTrajetMinutes(15).anneeCivile(LocalDate.now().getYear()).build());
-        Vehicule voiture = vehiculeRepository.save(Vehicule.builder().nom("Voiture DÉMONSTRATION 1").agence(agence).disponible(true).build());
-        vehiculeRepository.save(Vehicule.builder().nom("Voiture DÉMONSTRATION 2").agence(agence).disponible(true).build());
+        Vehicule voiture = vehiculeRepository.save(Vehicule.builder().nom(DEMO_VEHICLE_NAMES.get(0)).agence(agence).disponible(true).build());
+        vehiculeRepository.save(Vehicule.builder().nom(DEMO_VEHICLE_NAMES.get(1)).agence(agence).disponible(true).build());
         String hash = passwordEncoder.encode(voyageurPassword);
         String adminHash = passwordEncoder.encode(adminPassword);
         Voyageur chauffeur = voyageurRepository.save(Voyageur.builder().matricule("V1001").nom("Démo").prenom("Alice")
@@ -204,10 +206,17 @@ public class DataInitializer implements CommandLineRunner {
         requireLocalValidationDatabase();
         for (Agence agence : agenceRepository.findAll()) {
             var existants = vehiculeRepository.findByAgenceId(agence.getId());
-            for (int numero = 1; numero <= 2; numero++) {
-                String nom = "Voiture DÉMONSTRATION " + numero;
+            for (int numero = 0; numero < DEMO_VEHICLE_NAMES.size(); numero++) {
+                String nom = DEMO_VEHICLE_NAMES.get(numero);
                 if (existants.stream().noneMatch(v -> nom.equals(v.getNom()))) {
-                    vehiculeRepository.save(Vehicule.builder().nom(nom).agence(agence).disponible(true).build());
+                    String ancienNom = "Voiture DÉMONSTRATION " + (numero + 1);
+                    Vehicule voiture = existants.stream().filter(v -> ancienNom.equals(v.getNom())).findFirst().orElse(null);
+                    if (voiture == null) {
+                        voiture = Vehicule.builder().nom(nom).agence(agence).disponible(true).build();
+                    } else {
+                        voiture.setNom(nom);
+                    }
+                    vehiculeRepository.save(voiture);
                 }
             }
         }

@@ -130,6 +130,31 @@ class DataInitializerTest {
     }
 
     @Test
+    void renommeLesVoituresDeDemonstrationSansRecreationNiChangementDeDisponibilite() {
+        when(agenceRepository.count()).thenReturn(1L);
+        ReflectionTestUtils.setField(dataInitializer, "prepareVehicles", true);
+        ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://127.0.0.1:5541/transport_schema_copy_test");
+        Agence agence = Agence.builder().nom("Agence test").build();
+        agence.setId(1L);
+        Vehicule clio = Vehicule.builder().nom("Voiture DÉMONSTRATION 1").disponible(false).agence(agence).build();
+        clio.setId(10L);
+        Vehicule peugeot = Vehicule.builder().nom("Voiture DÉMONSTRATION 2").disponible(true).agence(agence).build();
+        peugeot.setId(11L);
+        when(agenceRepository.findAll()).thenReturn(java.util.List.of(agence));
+        when(vehiculeRepository.findByAgenceId(1L)).thenReturn(java.util.List.of(clio, peugeot));
+        dataInitializer.run();
+        dataInitializer.run();
+        verify(vehiculeRepository).save(clio);
+        verify(vehiculeRepository).save(peugeot);
+        assertThat(clio.getId()).isEqualTo(10L);
+        assertThat(clio.getNom()).isEqualTo("Renault Clio");
+        assertThat(clio.getDisponible()).isFalse();
+        assertThat(peugeot.getId()).isEqualTo(11L);
+        assertThat(peugeot.getNom()).isEqualTo("Peugeot 308");
+        assertThat(peugeot.getDisponible()).isTrue();
+    }
+
+    @Test
     void refuseLaPreparationDesVehiculesSurLaBaseMetier() {
         when(agenceRepository.count()).thenReturn(1L);
         ReflectionTestUtils.setField(dataInitializer, "prepareVehicles", true);

@@ -43,8 +43,9 @@ disponible ; un message et un nouvel essai sont proposés en cas d'erreur.
 Avec plusieurs véhicules, choisir explicitement dans la liste ; un véhicule
 unique est présélectionné. Un changement d'agence efface l'ancien choix.
 
-Sur la copie locale de validation, deux `Voiture DÉMONSTRATION` ont été ajoutées
-par agence pour permettre ces essais. Les cinq ressources historiques sont
+Sur la copie locale de validation, une **Renault Clio** et une **Peugeot 308**
+par agence permettent ces essais. Ces modèles sont des exemples de démonstration.
+Les cinq ressources historiques sont
 conservées et restent indisponibles. Cette préparation réutilise DataInitializer
 avec `DEMO_PREPARE_VEHICLES=true`, profil `dev` et démonstration activée ; elle
 est désactivée par défaut, idempotente et refuse la base métier.

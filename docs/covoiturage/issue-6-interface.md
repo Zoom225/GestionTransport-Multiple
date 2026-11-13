@@ -201,6 +201,16 @@ Captures : [accueil ordinateur](../images/ui/premium-accueil-1440.jpg), [accueil
 Int?gration r?elle compl?mentaire : scripts/validation-covoiturage.cjs ex?cut? sur transport_demo_premium_20261112234317, backend et PostgreSQL r?els, donn?es dev isol?es. Connexions GLOBAL/AGENCE, filtrage local et refus de cr?ation hors p?rim?tre, r?servation Angular et paiement 25 ?, quatre paiements/100 ?, concurrence derni?re place, annulation/remboursement, historique et statistiques r?ussis ; douze contr?les responsive r?els sans d?bordement et aucune erreur JavaScript. Le premier lancement de pr?paration a refus? un mot de passe de d?monstration trop long pour BCrypt ; le g?n?rateur local a ?t? corrig? ? 32 octets al?atoires avant cette ex?cution r?ussie. Aucun secret publi?.
 # Correction du choix des véhicules — issue #6
 
+Finition demandée : les deux modèles présentés sont désormais **Renault Clio**
+et **Peugeot 308**, centralisés dans DataInitializer. Sur la copie locale,
+les anciennes voitures de démonstration sont renommées en conservant leurs ID,
+relations et disponibilité ; aucun doublon n'est ajouté. Les ressources historiques
+restent inchangées. Il s'agit de modèles d'exemple, sans immatriculation ni affirmation
+qu'ils représentent une flotte réelle.
+Les dix tests ciblés DataInitializer et le packaging Maven réussissent après
+ce changement. Le renommage conserve bien les quatre ID des voitures de la
+copie, et les neuf connexions ont été revérifiées après préparation.
+
 Branche `fix/issue-6-choix-vehicules`, depuis la branche de validation des comptes
 #25. La copie locale contenait cinq ressources historiques indisponibles : le
 filtre existant ne proposait donc aucun véhicule. Elles sont conservées avec
