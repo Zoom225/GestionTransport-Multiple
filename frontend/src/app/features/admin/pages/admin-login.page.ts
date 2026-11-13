@@ -4,7 +4,6 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -13,17 +12,29 @@ import { LanguageService } from '../../../core/i18n/language.service';
 @Component({
   selector: 'app-admin-login-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterLink,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatProgressSpinnerModule,
+  ],
   template: `
     <div class="login-shell">
       <div class="login-hero">
         <div class="login-hero-content">
-          <div class="login-hero-icon">🏆</div>
+          <div class="login-hero-icon"></div>
           <h1 class="login-hero-title">{{ language.t('admin.login.heroTitle') }}</h1>
           <p class="login-hero-sub">{{ language.t('admin.login.heroSubtitle') }}</p>
           <div class="login-hero-badges">
-            <span class="login-badge login-badge-global">{{ language.t('admin.login.globalBadge') }}</span>
-            <span class="login-badge login-badge-agence">{{ language.t('admin.login.agenceBadge') }}</span>
+            <span class="login-badge login-badge-global">{{
+              language.t('admin.login.globalBadge')
+            }}</span>
+            <span class="login-badge login-badge-agence">{{
+              language.t('admin.login.agenceBadge')
+            }}</span>
           </div>
         </div>
       </div>
@@ -31,7 +42,9 @@ import { LanguageService } from '../../../core/i18n/language.service';
       <div class="login-form-panel">
         <div class="login-form-card">
           <div class="login-form-header">
-            <span class="login-form-icon">🔐</span>
+            <span class="login-form-icon" aria-hidden="true"
+              ><svg class="ui-icon"><use href="images/ui-icons.svg#lock" /></svg
+            ></span>
             <h2 class="login-form-title">{{ language.t('admin.login.formTitle') }}</h2>
             <p class="login-form-sub">{{ language.t('admin.login.formSubtitle') }}</p>
           </div>
@@ -54,21 +67,39 @@ import { LanguageService } from '../../../core/i18n/language.service';
                 matSuffix
                 type="button"
                 class="password-toggle-button"
-                [attr.aria-label]="showAdminPassword ? language.t('admin.login.hidePassword') : language.t('admin.login.showPassword')"
+                [attr.aria-label]="
+                  showAdminPassword
+                    ? language.t('admin.login.hidePassword')
+                    : language.t('admin.login.showPassword')
+                "
                 (click)="toggleAdminPassword()"
               >
-                <mat-icon>{{ showAdminPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                <svg class="ui-icon" aria-hidden="true" width="24" height="24">
+                  <use
+                    [attr.href]="
+                      showAdminPassword ? 'images/ui-icons.svg#eye-off' : 'images/ui-icons.svg#eye'
+                    "
+                  />
+                </svg>
               </button>
             </mat-form-field>
 
             @if (errorMessage()) {
-              <div class="login-error">❌ {{ errorMessage() }}</div>
+              <div role="alert" class="login-error">{{ errorMessage() }}</div>
             }
 
             <div class="login-actions">
-              <button class="login-btn-primary" type="submit" [disabled]="loading() || form.invalid">
+              <button
+                class="login-btn-primary"
+                type="submit"
+                [disabled]="loading() || form.invalid"
+              >
                 @if (loading()) {
-                  <mat-spinner diameter="20" style="display:inline-block;margin-right:8px;"></mat-spinner>
+                  <mat-spinner
+                    [attr.aria-label]="language.t('transport.searching')"
+                    diameter="20"
+                    style="display:inline-block;margin-right:8px;"
+                  ></mat-spinner>
                 }
                 {{ language.t('admin.login.submit') }}
               </button>
@@ -81,76 +112,183 @@ import { LanguageService } from '../../../core/i18n/language.service';
 
     <style>
       .login-shell {
-        display: flex; min-height: calc(100vh - 64px);
+        display: flex;
+        min-height: calc(100vh - 64px);
       }
       .login-hero {
-        flex: 1; display: none;
-        background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0ea5e9 100%);
-        align-items: center; justify-content: center; padding: 3rem 2rem;
-        position: relative; overflow: hidden;
+        flex: 1;
+        display: none;
+        background: linear-gradient(120deg, var(--ui-navy), var(--ui-primary-strong));
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 2rem;
+        position: relative;
+        overflow: hidden;
       }
-      @media (min-width: 768px) { .login-hero { display: flex; } }
+      @media (min-width: 768px) {
+        .login-hero {
+          display: flex;
+        }
+      }
       .login-hero::before {
-        content: ''; position: absolute; inset: 0;
-        background: repeating-linear-gradient(45deg, transparent, transparent 30px, rgba(255,255,255,0.03) 30px, rgba(255,255,255,0.03) 60px);
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 30px,
+          color-mix(in srgb, var(--ui-surface) 3%, transparent) 30px,
+          color-mix(in srgb, var(--ui-surface) 3%, transparent) 60px
+        );
       }
-      .login-hero-content { position: relative; z-index: 1; text-align: center; }
-      .login-hero-icon { font-size: 5rem; margin-bottom: 1rem; }
-      .login-hero-title { font-size: 2.2rem; font-weight: 800; color: #fff; margin: 0 0 0.75rem; }
-      .login-hero-sub { color: rgba(255,255,255,0.82); font-size: 1rem; line-height: 1.6; margin: 0 0 1.5rem; }
-      .login-hero-badges { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
+      .login-hero-content {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+      }
+      .login-hero-icon {
+        font-size: 5rem;
+        margin-bottom: 1rem;
+      }
+      .login-hero-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--ui-surface);
+        margin: 0 0 0.75rem;
+      }
+      .login-hero-sub {
+        color: color-mix(in srgb, var(--ui-surface) 82%, transparent);
+        font-size: 1rem;
+        line-height: 1.6;
+        margin: 0 0 1.5rem;
+      }
+      .login-hero-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: center;
+      }
       .login-badge {
-        padding: 0.4rem 1rem; border-radius: 9999px; font-weight: 700; font-size: 0.8rem;
-        border: 2px solid rgba(255,255,255,0.4);
+        padding: 0.4rem 1rem;
+        border-radius: 9999px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        border: 2px solid color-mix(in srgb, var(--ui-surface) 40%, transparent);
       }
-      .login-badge-global { background: rgba(255,255,255,0.15); color: #fff; }
-      .login-badge-agence   { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); }
+      .login-badge-global {
+        background: color-mix(in srgb, var(--ui-surface) 15%, transparent);
+        color: var(--ui-surface);
+      }
+      .login-badge-agence {
+        background: color-mix(in srgb, var(--ui-surface) 10%, transparent);
+        color: color-mix(in srgb, var(--ui-surface) 90%, transparent);
+      }
 
       .login-form-panel {
-        flex: 1; display: flex; align-items: center; justify-content: center;
-        padding: 2rem 1rem; background: #f8fafc;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        background: var(--ui-surface);
       }
       .login-form-card {
-        width: 100%; max-width: 400px;
-        background: #fff; border-radius: 1.5rem;
-        box-shadow: 0 20px 60px rgba(3,105,161,0.12), 0 4px 16px rgba(0,0,0,0.06);
-        padding: 2.5rem 2rem; border-top: 5px solid #0369a1;
+        width: 100%;
+        max-width: 400px;
+        background: var(--ui-surface);
+        border-radius: 1.5rem;
+        box-shadow: var(--ui-shadow);
+        padding: 2.5rem 2rem;
+        border-top: 5px solid var(--ui-primary-strong);
       }
-      .login-form-header { text-align: center; margin-bottom: 1.5rem; }
-      .login-form-icon { font-size: 2.5rem; }
-      .login-form-title { font-size: 1.5rem; font-weight: 800; color: #0c4a6e; margin: 0.5rem 0 0.25rem; }
-      .login-form-sub { color: #64748b; font-size: 0.88rem; margin: 0; }
+      .login-form-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+      }
+      .login-form-icon {
+        font-size: 2.5rem;
+      }
+      .login-form-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--ui-navy);
+        margin: 0.5rem 0 0.25rem;
+      }
+      .login-form-sub {
+        color: var(--ui-text-secondary);
+        font-size: 0.88rem;
+        margin: 0;
+      }
 
-      .login-form { display: flex; flex-direction: column; gap: 0.75rem; }
+      .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
       .login-error {
-        background: #fef2f2; border: 1px solid #fca5a5; border-radius: 0.75rem;
-        padding: 0.75rem 1rem; color: #991b1b; font-size: 0.875rem;
+        background: var(--ui-surface);
+        border: 1px solid var(--ui-danger);
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: var(--ui-danger);
+        font-size: 0.875rem;
       }
-      .login-actions { display: flex; gap: 0.75rem; align-items: center; padding-top: 0.5rem; }
+      .login-actions {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        padding-top: 0.5rem;
+      }
       .login-btn-primary {
-        flex: 1; background: linear-gradient(135deg, #0369a1, #0284c7); color: #fff;
-        border: none; border-radius: 0.75rem; padding: 0.8rem 1.5rem;
-        font-weight: 700; font-size: 1rem; cursor: pointer;
-        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-        box-shadow: 0 4px 14px rgba(3,105,161,0.3); transition: transform 0.15s;
+        flex: 1;
+        background: var(--ui-primary);
+        color: var(--ui-surface);
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.8rem 1.5rem;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: var(--ui-shadow);
+        transition: transform 0.15s;
       }
-      .login-btn-primary:hover:not(:disabled) { transform: translateY(-2px); }
-      .login-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+      .login-btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+      }
+      .login-btn-primary:disabled {
+        background: var(--ui-disabled);
+        color: var(--ui-text-secondary);
+        cursor: not-allowed;
+      }
       .login-btn-secondary {
-        padding: 0.8rem 1.25rem; border-radius: 0.75rem; border: 1.5px solid #e2e8f0;
-        color: #475569; font-weight: 600; font-size: 0.9rem; text-decoration: none;
-        background: #f8fafc; transition: background 0.15s; white-space: nowrap;
+        padding: 0.8rem 1.25rem;
+        border-radius: 0.75rem;
+        border: 1.5px solid var(--ui-surface-subtle);
+        color: var(--ui-text-secondary);
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: none;
+        background: var(--ui-surface);
+        transition: background 0.15s;
+        white-space: nowrap;
       }
-      .login-btn-secondary:hover { background: #f1f5f9; }
+      .login-btn-secondary:hover {
+        background: var(--ui-surface-subtle);
+      }
 
       .password-toggle-button {
         width: 40px;
         height: 40px;
         line-height: 40px;
-        color: #64748b;
+        color: var(--ui-text-secondary);
       }
     </style>
-  `
+  `,
 })
 export class AdminLoginPage {
   private readonly authService = inject(AuthService);
@@ -164,12 +302,12 @@ export class AdminLoginPage {
   readonly form = new FormGroup({
     email: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.email]
+      validators: [Validators.required, Validators.email],
     }),
     password: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required]
-    })
+      validators: [Validators.required],
+    }),
   });
 
   submit(): void {
@@ -188,7 +326,7 @@ export class AdminLoginPage {
       error: () => {
         this.loading.set(false);
         this.errorMessage.set(this.language.t('admin.login.error'));
-      }
+      },
     });
   }
 

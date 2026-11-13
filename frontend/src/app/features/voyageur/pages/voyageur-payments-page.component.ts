@@ -19,22 +19,31 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
     <div class="pay-hero">
       <div class="pay-hero-inner">
         <div class="pay-hero-left">
-          <span class="pay-hero-icon">💳</span>
+          <span class="pay-hero-icon" aria-hidden="true"
+            ><svg class="ui-icon"><use href="images/ui-icons.svg#payment" /></svg
+          ></span>
           <div>
             <h1 class="pay-hero-title">{{ language.t('voyageur.payments.title') }}</h1>
             <p class="pay-hero-sub">{{ language.t('voyageur.payments.subtitle') }}</p>
           </div>
         </div>
-        <a routerLink="/voyageur/reservations" class="pay-hero-link">📋 {{ language.t('voyageur.payments.reservations') }}</a>
+        <a routerLink="/voyageur/reservations" class="pay-hero-link">
+          {{ language.t('voyageur.payments.reservations') }}</a
+        >
       </div>
     </div>
 
     <section class="page-shell max-w-5xl">
       @if (loading()) {
-        <div class="flex justify-center py-8"><mat-spinner diameter="32"></mat-spinner></div>
+        <div class="flex justify-center py-8">
+          <mat-spinner
+            [attr.aria-label]="language.t('transport.searching')"
+            diameter="32"
+          ></mat-spinner>
+        </div>
       }
       @if (errorMessage()) {
-        <p class="status-error">{{ errorMessage() }}</p>
+        <p role="alert" class="status-error">{{ errorMessage() }}</p>
       }
 
       <div class="pay-kpi-card">
@@ -62,18 +71,24 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         @for (payment of payments(); track payment.id) {
           <div class="pay-card">
             <div class="pay-card-header">
-              <div class="pay-card-id">{{ language.t('voyageur.payments.payment') }} #{{ payment.id }}</div>
-              <div class="pay-card-date">{{ payment.datePaiement || language.t('voyageur.payments.notSet') }}</div>
+              <div class="pay-card-id">
+                {{ language.t('voyageur.payments.payment') }} #{{ payment.id }}
+              </div>
+              <div class="pay-card-date">
+                {{ payment.datePaiement || language.t('voyageur.payments.notSet') }}
+              </div>
             </div>
             <div class="pay-card-body">
               <span class="pay-amount">{{ payment.montant }} €</span>
-              <span class="pay-badge" [class]="payBadgeClass(payment.statut)">{{ paymentStatusLabel(payment.statut) }}</span>
+              <span class="pay-badge" [class]="payBadgeClass(payment.statut)">{{
+                paymentStatusLabel(payment.statut)
+              }}</span>
             </div>
           </div>
         } @empty {
           @if (!loading()) {
             <div class="pay-empty md:col-span-2">
-              <span>💳</span>
+              <span></span>
               <p>{{ language.t('voyageur.payments.none') }}</p>
             </div>
           }
@@ -83,63 +98,162 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
 
     <style>
       .pay-hero {
-        background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 50%, #7c3aed 100%);
+        background: linear-gradient(120deg, var(--ui-primary-soft), var(--ui-surface));
         padding: 1.5rem 2rem;
-        box-shadow: 0 4px 20px rgba(109,40,217,0.3);
+        box-shadow: var(--ui-shadow);
       }
       .pay-hero-inner {
-        display: flex; align-items: center; justify-content: space-between;
-        max-width: 1200px; margin: 0 auto; gap: 1rem; flex-wrap: wrap;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 1200px;
+        margin: 0 auto;
+        gap: 1rem;
+        flex-wrap: wrap;
       }
-      .pay-hero-left { display: flex; align-items: center; gap: 1rem; }
-      .pay-hero-icon { font-size: 2.5rem; }
-      .pay-hero-title { font-size: 1.6rem; font-weight: 800; color: #fff; margin: 0; }
-      .pay-hero-sub { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin: 0; }
+      .pay-hero-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .pay-hero-icon {
+        font-size: 2.5rem;
+      }
+      .pay-hero-title {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--ui-surface);
+        margin: 0;
+      }
+      .pay-hero-sub {
+        color: color-mix(in srgb, var(--ui-surface) 75%, transparent);
+        font-size: 0.85rem;
+        margin: 0;
+      }
       .pay-hero-link {
-        background: rgba(255,255,255,0.15); color: #fff; border: 2px solid rgba(255,255,255,0.35);
-        border-radius: 9999px; padding: 0.45rem 1.1rem; font-weight: 700;
-        font-size: 0.85rem; text-decoration: none; transition: background 0.15s; white-space: nowrap;
+        background: color-mix(in srgb, var(--ui-surface) 15%, transparent);
+        color: var(--ui-surface);
+        border: 2px solid color-mix(in srgb, var(--ui-surface) 35%, transparent);
+        border-radius: 9999px;
+        padding: 0.45rem 1.1rem;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-decoration: none;
+        transition: background 0.15s;
+        white-space: nowrap;
       }
-      .pay-hero-link:hover { background: rgba(255,255,255,0.25); }
+      .pay-hero-link:hover {
+        background: color-mix(in srgb, var(--ui-surface) 25%, transparent);
+      }
 
       .pay-kpi-card {
-        background: linear-gradient(135deg, #f5f3ff, #ede9fe);
-        border: 1.5px solid #c4b5fd; border-radius: 1.25rem;
-        padding: 1.25rem 1.5rem; box-shadow: 0 4px 12px rgba(109,40,217,0.1);
+        background: linear-gradient(120deg, var(--ui-primary-soft), var(--ui-surface));
+        border: 1.5px solid var(--ui-primary-strong);
+        border-radius: 1.25rem;
+        padding: 1.25rem 1.5rem;
+        box-shadow: var(--ui-shadow);
       }
-      .pay-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; }
-      .pay-kpi-item { text-align: center; }
-      .pay-kpi-label { font-size: 0.8rem; color: #6d28d9; font-weight: 600; margin: 0 0 0.25rem; }
-      .pay-kpi-value { font-size: 1.75rem; font-weight: 800; color: #4c1d95; margin: 0; }
+      .pay-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+      }
+      .pay-kpi-item {
+        text-align: center;
+      }
+      .pay-kpi-label {
+        font-size: 0.8rem;
+        color: var(--ui-primary-strong);
+        font-weight: 600;
+        margin: 0 0 0.25rem;
+      }
+      .pay-kpi-value {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--ui-primary-strong);
+        margin: 0;
+      }
 
       .pay-card {
-        background: #fff; border-radius: 1.25rem;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.07); overflow: hidden;
-        border-top: 4px solid #7c3aed; transition: transform 0.15s, box-shadow 0.15s;
+        background: var(--ui-surface);
+        border-radius: 1.25rem;
+        box-shadow: var(--ui-shadow);
+        overflow: hidden;
+        border-top: 4px solid var(--ui-primary-strong);
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s;
       }
-      .pay-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.12); }
-      .pay-card-header { padding: 1rem 1.25rem 0.25rem; }
-      .pay-card-id { font-weight: 800; font-size: 0.95rem; color: #4c1d95; }
-      .pay-card-date { font-size: 0.8rem; color: #94a3b8; }
-      .pay-card-body { padding: 0.5rem 1.25rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
-      .pay-amount { font-size: 1.35rem; font-weight: 800; color: #1e293b; }
+      .pay-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--ui-shadow);
+      }
+      .pay-card-header {
+        padding: 1rem 1.25rem 0.25rem;
+      }
+      .pay-card-id {
+        font-weight: 800;
+        font-size: 0.95rem;
+        color: var(--ui-primary-strong);
+      }
+      .pay-card-date {
+        font-size: 0.8rem;
+        color: var(--ui-text-secondary);
+      }
+      .pay-card-body {
+        padding: 0.5rem 1.25rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+      }
+      .pay-amount {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: var(--ui-navy);
+      }
       .pay-badge {
-        font-size: 0.72rem; font-weight: 800; padding: 0.25rem 0.75rem;
-        border-radius: 9999px; white-space: nowrap;
+        font-size: 0.72rem;
+        font-weight: 800;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        white-space: nowrap;
       }
-      .pay-badge-paye     { background: #dcfce7; color: #15803d; }
-      .pay-badge-attente  { background: #fef3c7; color: #b45309; }
-      .pay-badge-rembourse { background: #dbeafe; color: #1d4ed8; }
-      .pay-badge-default  { background: #f1f5f9; color: #475569; }
+      .pay-badge-paye {
+        background: var(--ui-teal-soft);
+        color: var(--ui-teal-strong);
+      }
+      .pay-badge-attente {
+        background: var(--ui-warning-soft);
+        color: var(--ui-warning);
+      }
+      .pay-badge-rembourse {
+        background: var(--ui-primary-soft);
+        color: var(--ui-primary-strong);
+      }
+      .pay-badge-default {
+        background: var(--ui-surface-subtle);
+        color: var(--ui-text-secondary);
+      }
 
       .pay-empty {
-        text-align: center; padding: 3rem; color: #94a3b8;
-        display: flex; flex-direction: column; align-items: center; gap: 0.5rem; font-size: 1.1rem;
-        background: #faf5ff; border-radius: 1.25rem; border: 2px dashed #c4b5fd;
+        text-align: center;
+        padding: 3rem;
+        color: var(--ui-text-secondary);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.1rem;
+        background: var(--ui-surface);
+        border-radius: 1.25rem;
+        border: 2px dashed var(--ui-primary-strong);
       }
-      .pay-empty span { font-size: 3rem; }
+      .pay-empty span {
+        font-size: 3rem;
+      }
     </style>
-  `
+  `,
 })
 export class VoyageurPaymentsPage {
   private readonly paiementsApi = inject(PaiementsApiService);
@@ -153,10 +267,14 @@ export class VoyageurPaymentsPage {
   readonly totalPaid = computed(() =>
     this.payments()
       .filter((payment) => payment.statut === 'PAYE')
-      .reduce((sum, payment) => sum + payment.montant, 0)
+      .reduce((sum, payment) => sum + payment.montant, 0),
   );
-  readonly pendingCount = computed(() => this.payments().filter((payment) => payment.statut === 'EN_ATTENTE').length);
-  readonly refundedCount = computed(() => this.payments().filter((payment) => payment.statut === 'REMBOURSE').length);
+  readonly pendingCount = computed(
+    () => this.payments().filter((payment) => payment.statut === 'EN_ATTENTE').length,
+  );
+  readonly refundedCount = computed(
+    () => this.payments().filter((payment) => payment.statut === 'REMBOURSE').length,
+  );
 
   constructor() {
     this.loadPayments();
@@ -177,17 +295,25 @@ export class VoyageurPaymentsPage {
       },
       error: (error) => {
         this.loading.set(false);
-        this.errorMessage.set(extractApiErrorMessage(error, this.language.t('voyageur.payments.error')));
-      }
+        this.errorMessage.set(
+          extractApiErrorMessage(error, this.language.t('voyageur.payments.error'), (key) =>
+            this.language.t(key),
+          ),
+        );
+      },
     });
   }
 
   payBadgeClass(statut: string): string {
     switch (statut) {
-      case 'PAYE': return 'pay-badge pay-badge-paye';
-      case 'EN_ATTENTE': return 'pay-badge pay-badge-attente';
-      case 'REMBOURSE': return 'pay-badge pay-badge-rembourse';
-      default: return 'pay-badge pay-badge-default';
+      case 'PAYE':
+        return 'pay-badge pay-badge-paye';
+      case 'EN_ATTENTE':
+        return 'pay-badge pay-badge-attente';
+      case 'REMBOURSE':
+        return 'pay-badge pay-badge-rembourse';
+      default:
+        return 'pay-badge pay-badge-default';
     }
   }
 

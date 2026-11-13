@@ -61,18 +61,16 @@ class PostgresBaselineTest {
 
     @org.junit.jupiter.api.BeforeAll
     void appliquerLesInvariantsSurLaBasePostgresIsolee() throws java.io.IOException {
-        jdbc.execute(java.nio.file.Files.readString(java.nio.file.Path.of("scripts/migrations/issue-4-reservation-expiration.sql")));
-        jdbc.execute(java.nio.file.Files.readString(java.nio.file.Path.of("scripts/migrations/issue-7-invariants-covoiturage.sql")));
-        jdbc.execute(java.nio.file.Files.readString(java.nio.file.Path.of("scripts/migrations/issue-4-restrictions-soutenance.sql")));
+        jdbc.execute(java.nio.file.Files.readString(java.nio.file.Path.of("scripts/migrations/issue-3-invariants-transport.sql")));
     }
 
     @Test
     void postgresRefuseUneCinquiemePlaceEtUneSecondeDemandeActiveMemeHorsService() {
         Trajet trajet = trajetVide();
         Reservation demande = demande(trajet);
-        assertThatThrownBy(() -> jdbc.update("UPDATE matches SET nb_joueurs_actuels = 5 WHERE id = ?", trajet.getId()))
+        assertThatThrownBy(() -> jdbc.update("UPDATE trajets SET nb_passagers_actuels = 5 WHERE id = ?", trajet.getId()))
                 .isInstanceOf(DataIntegrityViolationException.class);
-        assertThatThrownBy(() -> jdbc.update("INSERT INTO reservations(match_id,membre_id,statut) VALUES (?,?,'EN_ATTENTE')",
+        assertThatThrownBy(() -> jdbc.update("INSERT INTO reservations(trajet_id,voyageur_id,statut) VALUES (?,?,'EN_ATTENTE')",
                 trajet.getId(), demande.getVoyageur().getId())).isInstanceOf(DataIntegrityViolationException.class);
         assertThat(trajets.findById(trajet.getId()).orElseThrow().getNbPassagersActuels()).isZero();
     }
@@ -82,7 +80,7 @@ class PostgresBaselineTest {
         Voyageur voyageur = voyageur();
         voyageur.setTypeVoyageur(TypeVoyageur.LOCAL);
         voyageurs.saveAndFlush(voyageur);
-        assertThat(jdbc.queryForObject("SELECT type_membre FROM membres WHERE id = ?", String.class, voyageur.getId()))
+        assertThat(jdbc.queryForObject("SELECT type_voyageur FROM voyageurs WHERE id = ?", String.class, voyageur.getId()))
                 .isEqualTo("SITE");
         assertThat(voyageurs.findById(voyageur.getId()).orElseThrow().getTypeVoyageur()).isEqualTo(TypeVoyageur.LOCAL);
         Administrateur admin = administrateurs.saveAndFlush(Administrateur.builder()
@@ -130,7 +128,7 @@ class PostgresBaselineTest {
         voyageurService.addRestriction(voyageur.getId());
         voyageurService.addRestriction(voyageur.getId());
         assertThat(voyageurService.hasActiveRestriction(voyageur.getId())).isTrue();
-        assertThat(jdbc.queryForObject("SELECT count(*) FROM penalites WHERE membre_id = ?", Long.class, voyageur.getId())).isEqualTo(2L);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM restrictions WHERE voyageur_id = ?", Long.class, voyageur.getId())).isEqualTo(2L);
     }
 
     @Test
@@ -204,7 +202,7 @@ class PostgresBaselineTest {
                 .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(admin.getEmail()).roles("ADMIN"))
                 .contentType("application/json").content("{\"motif\":\"Absence vérifiée\"}"))
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isBadRequest());
-        jdbc.update("UPDATE matches SET date_debut = ?, date_fin = ? WHERE id = ?",
+        jdbc.update("UPDATE trajets SET date_debut = ?, date_fin = ? WHERE id = ?",
                 java.sql.Timestamp.valueOf(LocalDateTime.now().minusHours(2)), java.sql.Timestamp.valueOf(LocalDateTime.now().minusMinutes(30)), trajet.getId());
         for (int i = 0; i < 2; i++) {
             mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(endpoint)
@@ -233,7 +231,7 @@ class PostgresBaselineTest {
         Reservation demande = demande(trajet);
         Long clientId = demande.getVoyageur().getId();
         assertThat(voyageurService.hasOutstandingBalance(clientId)).isFalse();
-        jdbc.update("UPDATE membres SET solde = 25 WHERE id = ?", clientId);
+        jdbc.update("UPDATE voyageurs SET solde = 25 WHERE id = ?", clientId);
         assertThatThrownBy(() -> paiementService.pay(demande.getId(), clientId)).isInstanceOf(BusinessException.class).hasMessageContaining("impayé");
         assertThat(jdbc.queryForObject("SELECT statut FROM paiements WHERE reservation_id = ?", String.class, demande.getId())).isEqualTo("EN_ATTENTE");
         assertThat(voyageurService.getRestrictions(clientId)).isEmpty();
@@ -246,7 +244,7 @@ class PostgresBaselineTest {
         assertThat(trajets.findById(trajet.getId()).orElseThrow().getNbPassagersActuels()).isZero();
         for (int i = 0; i < 4; i++) paiementService.pay(demandes.get(i).getId(), demandes.get(i).getVoyageur().getId());
         assertThat(trajets.findById(trajet.getId()).orElseThrow().getNbPassagersActuels()).isEqualTo(4);
-        assertThat(jdbc.queryForObject("SELECT sum(p.montant) FROM paiements p JOIN reservations r ON r.id = p.reservation_id WHERE r.match_id = ? AND p.statut = 'PAYE'",
+        assertThat(jdbc.queryForObject("SELECT sum(p.montant) FROM paiements p JOIN reservations r ON r.id = p.reservation_id WHERE r.trajet_id = ? AND p.statut = 'PAYE'",
                 java.math.BigDecimal.class, trajet.getId())).isEqualByComparingTo("100.00");
         Reservation cinquieme = demandes.get(4);
         assertThatThrownBy(() -> paiementService.pay(cinquieme.getId(), cinquieme.getVoyageur().getId()))
@@ -326,9 +324,9 @@ class PostgresBaselineTest {
     @Test
     void uneRessourceHistoriqueNestPasMiseEnServiceAutomatiquement() {
         Trajet trajet = trajetVide();
-        Long id = jdbc.queryForObject("INSERT INTO terrains(nom, site_id) VALUES ('Ressource historique à qualifier', ?) RETURNING id",
+        Long id = jdbc.queryForObject("INSERT INTO vehicules(nom, agence_id) VALUES ('Ressource historique à qualifier', ?) RETURNING id",
                 Long.class, trajet.getVehicule().getAgence().getId());
-        assertThat(jdbc.queryForObject("SELECT disponible FROM terrains WHERE id = ?", Boolean.class, id)).isFalse();
+        assertThat(jdbc.queryForObject("SELECT disponible FROM vehicules WHERE id = ?", Boolean.class, id)).isFalse();
     }
 
     @Test

@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "membres")
+@Table(name = "voyageurs")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -31,7 +31,7 @@ public class Voyageur extends BaseEntity {
     private String passwordHash; // Added passwordHash field
 
     @Convert(converter = com.transport.gestiontransport.entity.converter.TypeVoyageurConverter.class)
-    @Column(name = "type_membre", nullable = false)
+    @Column(name = "type_voyageur", nullable = false)
     private TypeVoyageur typeVoyageur;
 
     @Builder.Default
@@ -42,7 +42,7 @@ public class Voyageur extends BaseEntity {
     private Double solde;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "site_id")
+    @JoinColumn(name = "agence_id")
     private Agence agence;
 
     @OneToMany(mappedBy = "chauffeur", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

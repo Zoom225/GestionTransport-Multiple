@@ -1,8 +1,9 @@
-# Modèle de covoiturage proposé — issue #2
+# Modèle de covoiturage — issues #2 et #3
 
-À valider avant les changements JPA de l'issue #3. Ce modèle réutilise les huit
-entités métier de la PR #9 ; aucun nouveau service d'utilisateurs ni table
-Conducteur, Zone, Route routière ou Billet n'est proposé.
+Le chantier `refactor/issue-3-schema-transport` réutilise les neuf entités métier
+existantes. Les mappings Transport et la migration sont vérifiés sur copie ;
+leur application à la base métier reste soumise à validation distincte.
+Aucun nouveau service d'utilisateurs ni table Conducteur, Zone, Route ou Billet.
 
 ## Classes et cardinalités
 
@@ -16,27 +17,23 @@ classDiagram
     }
     class Vehicule {
         Long id
-        String immatriculation
-        String marque
-        String modele
+        String nom
         boolean disponible
     }
     class Trajet {
         Long id
         VilleBelge depart
         VilleBelge destination
-        Instant departPrevu
-        Instant arriveeEstimee
+        LocalDateTime dateDebut
+        LocalDateTime dateFin
         int maximumClientsQuatre
-        Decimal prixParPassager
+        Double prixParPassager
         TypeTrajet type
         boolean publicationAutomatiqueAutorisee
     }
     class Reservation {
         Long id
-        Instant dateDemande
-        Instant expireLe
-        Decimal montant
+        LocalDateTime createdAt
         StatutReservation statut
     }
     class Paiement {
@@ -51,7 +48,7 @@ classDiagram
         String sourceEvenementUnique
     }
     Agence "0..1" <-- "0..*" Voyageur : rattachement
-    Agence "0..1" <-- "0..*" Vehicule : rattachement
+    Agence "1" <-- "0..*" Vehicule : rattachement
     Agence "0..1" <-- "0..*" Administrateur : perimetre
     Voyageur "1" <-- "0..*" Trajet : conducteur
     Vehicule "1" <-- "0..*" Trajet : utilise
@@ -79,23 +76,24 @@ Le paiement conserve son montant historique, sans recalcul rétroactif.
 
 ## Modèle relationnel et correspondance physique
 
-Les noms physiques historiques sont maintenus pendant la transition afin que
-le renommage Java ne recrée ni tables ni relations.
+Le renommage SQL conserve les objets, identifiants, lignes, contraintes et index.
+Un garde avant Hibernate refuse un schéma historique ou ambigu : `update` ne
+doit jamais créer de tables parallèles à la place d'une migration explicite.
 
-| Table physique existante | Entité réutilisée et évolution minimale |
+| Table cible après migration | Origine et entité réutilisée |
 | --- | --- |
-| sites | Agence : nom, localisation/adresse, horaires et intervalle entre utilisations |
-| membres | Voyageur : matricule unique, identité, mot de passe, catégorie, agence éventuelle ; ajout du droit de proposer |
+| agences | sites → Agence : nom, adresse, horaires et intervalles |
+| voyageurs | membres → Voyageur : matricule unique, identité, mot de passe, catégorie, agence éventuelle et droit de proposer |
 | administrateurs | Administrateur : comptes distincts déjà présents, type global/agence et agence éventuelle conservés |
-| terrains | Vehicule : immatriculation, marque, modèle, type et disponibilité ; pas de capacité variable ni de gestion de flotte complexe |
-| matches | Trajet : conserver terrain_id et organisateur_id comme FK du véhicule et du chauffeur ; ajouter villes et consentement de publication ; maximum clients centralisé à quatre |
-| reservations | Réutiliser match_id, membre_id et date de création ; une place par réservation, échéance calculée et statut explicites |
+| vehicules | terrains → Vehicule : nom et disponibilité ; aucune plaque, marque ou modèle inventés |
+| trajets | matches → Trajet : vehicule_id et chauffeur_id obligatoires, villes et consentement ; maximum clients centralisé à quatre |
+| reservations | Même table : trajet_id, voyageur_id et date de création ; échéance calculée, une place par réservation |
 | paiements | Paiement : réservation, montant, date et statut ; historique remboursé conservé |
-| penalites | Restriction : conserver membre_id, date_fin, motif ; compléter fait déclencheur, date d'application et traçabilité |
-| jours_fermeture | IndisponibiliteService : date, motif, périmètre global/agence conservés |
+| restrictions | penalites → Restriction : voyageur_id, date_debut, date_fin, motif, source_evenement |
+| indisponibilites_service | jours_fermeture → IndisponibiliteService : date, raison, périmètre global/agence |
 
 Les champs Java/JSON cibles utilisent VIP, LOCAL, LIBRE. Le convertisseur
-TypeVoyageur existant sera adapté ainsi : VIP ↔ GLOBAL, LOCAL ↔ SITE,
+TypeVoyageur existant conserve : VIP ↔ GLOBAL, LOCAL ↔ SITE,
 LIBRE ↔ LIBRE. Le type AGENCE des administrateurs reste inchangé dans le code
 et continue à correspondre à SITE en SQL. Une substitution globale serait erronée.
 
@@ -106,10 +104,82 @@ démonstration, pas une liste de couples interdits/autorisés codée en dur.
 
 ## Contraintes et index à vérifier sur PostgreSQL
 
+### Diagramme entité-association du schéma cible
+
+```mermaid
+erDiagram
+    agences ||--o{ vehicules : agence_id
+    agences o|--o{ voyageurs : agence_id
+    agences o|--o{ administrateurs : agence_id
+    agences o|--o{ indisponibilites_service : agence_id
+    voyageurs ||--o{ trajets : chauffeur_id
+    vehicules ||--o{ trajets : vehicule_id
+    trajets ||--o{ reservations : trajet_id
+    voyageurs ||--o{ reservations : voyageur_id
+    reservations ||--o| paiements : reservation_id_unique
+    voyageurs ||--o{ restrictions : voyageur_id
+    administrateurs o|--o{ reservations : absence_admin_id
+    agences {
+      bigint id PK
+    }
+    vehicules {
+      bigint id PK
+      bigint agence_id FK
+    }
+    voyageurs {
+      bigint id PK
+      varchar matricule UK
+      bigint agence_id FK
+      varchar type_voyageur
+    }
+    administrateurs {
+      bigint id PK
+      varchar matricule UK
+      varchar email UK
+      bigint agence_id FK
+    }
+    trajets {
+      bigint id PK
+      bigint chauffeur_id FK
+      bigint vehicule_id FK
+      timestamp date_debut
+      timestamp date_fin
+    }
+    reservations {
+      bigint id PK
+      bigint trajet_id FK
+      bigint voyageur_id FK
+      bigint absence_admin_id FK
+    }
+    paiements {
+      bigint id PK
+      bigint reservation_id FK,UK
+      float montant
+    }
+    restrictions {
+      bigint id PK
+      bigint voyageur_id FK
+      varchar source_evenement UK
+    }
+    indisponibilites_service {
+      bigint id PK
+      bigint agence_id FK
+    }
+```
+
+Les FK nullable sont indiquées par `o|`. L'unicité partielle des demandes actives
+porte sur `(trajet_id,voyageur_id)` pour EN_ATTENTE/CONFIRMEE ; plusieurs anciennes
+réservations annulées restent possibles. Les noms opaques des contraintes et
+des séquences historiques sont conservés : le renommage de leurs tables/colonnes
+préserve les dépendances PostgreSQL. La clé de chaque table reste `id`.
+Le montant SQL flottant historique n'est pas converti : les nouveaux calculs
+restent centralisés en BigDecimal dans les services, sans réécrire les encaissements.
+
 - FK conducteur et véhicule obligatoires pour tout nouveau trajet ; conducteur
   autorisé vérifié par le service, distinct des réservations passagers.
-- Immatriculation unique pour les véhicules qualifiés ; pas de plaque inventée
-  lors de la reprise d'une ancienne ressource sportive.
+- L'entité actuelle ne possède pas d'immatriculation : aucune contrainte fictive
+  n'est ajoutée. Sa qualification et une éventuelle unicité restent un chantier
+  métier distinct ; pas de plaque inventée pour une ressource sportive.
 - Quatre confirmations clients maximum sous transaction/verrou. Le chauffeur
   ne crée pas de réservation et ne peut pas acheter une place de son propre trajet.
 - Départ différent de destination ; arrivée strictement après départ ; prix
