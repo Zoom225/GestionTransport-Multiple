@@ -51,6 +51,10 @@ la copie restaurée utilise `ddl-auto=validate` sans génération de tables.
   deux erreurs de contexte ; corrigée avant la suite finale réussie. Aucun test supprimé.
 - CI étendue : copie PostgreSQL isolée, fixture historique dédiée, migration,
   empreintes, idempotence, refus d'un état ambigu, validation JPA.
+  Le premier run a réussi Maven et Angular mais a échoué à la restauration :
+  pg_dump de l'image GitHub était plus récent que PostgreSQL 15 et produisait
+  un SET transaction_timeout non reconnu. Les commandes utilisent désormais
+  exclusivement pg_dump/psql/createdb du conteneur PostgreSQL 15.
 - Build Angular et 63 tests du develop stable réussis sur cette branche, sans
   modification frontend. Le chantier premium séparé #22 conserve ses 72 tests.
   Compilation IntelliJ réussie après un premier délai d'attente dépassé.
@@ -60,6 +64,10 @@ la copie restaurée utilise `ddl-auto=validate` sans génération de tables.
   GLOBAL/AGENCE et refus hors périmètre, recherche, réservation, paiement25,
   confirmation/trois places, quatre paiements100€, concurrence, remboursement et
   historique ont été rejoués avec PostgreSQL et Spring Boot réels.
+- Lancement IntelliJ de GestionTransportApplication sur la copie migrée,
+  configuration temporaire DB_URL explicite et ddl-auto=validate : démarrage
+  en 17,894 secondes, Tomcat 18083, Swagger et OpenAPI HTTP200. Instance de contrôle
+  arrêtée après vérification. La classe principale et les dépendances fonctionnent.
 
 | Données de la sauvegarde | Lignes conservées |
 | --- | ---: |
