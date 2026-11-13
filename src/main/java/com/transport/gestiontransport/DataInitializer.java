@@ -40,6 +40,8 @@ import java.time.LocalTime;
  * peuvent les remplacer lors de la préparation d'une démonstration.
  * Initialisation désactivée par défaut, jamais sur la base métier réelle.
  * Mise à jour des comptes existants uniquement sur copie locale et demande explicite.
+ * DEMO_PREPARE_VEHICLES=true prépare deux voitures de démonstration par agence
+ * sur copie locale existante, sans réactiver ni renommer les ressources historiques.
  */
 @Slf4j
 @Component
@@ -63,6 +65,7 @@ public class DataInitializer implements CommandLineRunner {
     @Value("${DEMO_ADMIN_PASSWORD:Admin1234!}") private String demoAdminPassword = "Admin1234!";
     @Value("${DEMO_VOYAGEUR_PASSWORD:Voyage1234!}") private String demoVoyageurPassword = "Voyage1234!";
     @Value("${DEMO_UPDATE_CREDENTIALS:false}") private boolean updateCredentials;
+    @Value("${DEMO_PREPARE_VEHICLES:false}") private boolean prepareVehicles;
 
     @Override
     @Transactional
@@ -72,9 +75,11 @@ public class DataInitializer implements CommandLineRunner {
                 + paiementRepository.count() + restrictionRepository.count() + indisponibiliteServiceRepository.count() > 0) {
             if (updateCredentials) {
                 updateValidationCredentials();
-                return;
             }
-            log.info("Démonstration ignorée : la base contient déjà des données. Aucun compte ni paiement modifié.");
+            if (prepareVehicles) prepareValidationVehicles();
+            if (!updateCredentials && !prepareVehicles) {
+                log.info("Démonstration ignorée : la base contient déjà des données. Aucun compte ni paiement modifié.");
+            }
             return;
         }
         if (databaseUrl == null || !databaseUrl.matches("jdbc:postgresql://[^/]+/(issue1_validation_[a-z0-9_]+|transport_demo_[a-z0-9_]+)(\\?.*)?")) {
@@ -94,7 +99,8 @@ public class DataInitializer implements CommandLineRunner {
         Agence agence = agenceRepository.save(Agence.builder().nom("Agence Bruxelles — DÉMONSTRATION")
                 .adresse("Bruxelles, Belgique").heureOuverture(LocalTime.of(6, 0)).heureFermeture(LocalTime.of(23, 0))
                 .dureeTrajetMinutes(90).dureeEntreTrajetMinutes(15).anneeCivile(LocalDate.now().getYear()).build());
-        Vehicule voiture = vehiculeRepository.save(Vehicule.builder().nom("Voiture DÉMONSTRATION").agence(agence).disponible(true).build());
+        Vehicule voiture = vehiculeRepository.save(Vehicule.builder().nom("Voiture DÉMONSTRATION 1").agence(agence).disponible(true).build());
+        vehiculeRepository.save(Vehicule.builder().nom("Voiture DÉMONSTRATION 2").agence(agence).disponible(true).build());
         String hash = passwordEncoder.encode(voyageurPassword);
         String adminHash = passwordEncoder.encode(adminPassword);
         Voyageur chauffeur = voyageurRepository.save(Voyageur.builder().matricule("V1001").nom("Démo").prenom("Alice")
@@ -134,9 +140,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void updateValidationCredentials() {
-        if (databaseUrl == null || !databaseUrl.matches("jdbc:postgresql://(localhost|127\\.0\\.0\\.1):\\d+/(transport_schema_copy_[a-z0-9_]+|transport_demo_[a-z0-9_]+)")) {
-            throw new IllegalStateException("Mise à jour des comptes autorisée uniquement sur une copie locale de validation.");
-        }
+        requireLocalValidationDatabase();
         java.util.Map<String, String> emails = java.util.Map.of(
                 "admin@padel.com", "admin@transp.com", "admin@transp.com", "admin@transp.com",
                 "admin.lyon@padel.com", "admin.lyon@transp.com", "admin.lyon@transp.com", "admin.lyon@transp.com",
@@ -188,5 +192,25 @@ public class DataInitializer implements CommandLineRunner {
 
     private boolean passwordMatches(String password, String hash) {
         return hash != null && !hash.isBlank() && passwordEncoder.matches(password, hash);
+    }
+
+    private void requireLocalValidationDatabase() {
+        if (databaseUrl == null || !databaseUrl.matches("jdbc:postgresql://(localhost|127\\.0\\.0\\.1):\\d+/(transport_schema_copy_[a-z0-9_]+|transport_demo_[a-z0-9_]+)")) {
+            throw new IllegalStateException("Préparation autorisée uniquement sur une copie locale de validation.");
+        }
+    }
+
+    private void prepareValidationVehicles() {
+        requireLocalValidationDatabase();
+        for (Agence agence : agenceRepository.findAll()) {
+            var existants = vehiculeRepository.findByAgenceId(agence.getId());
+            for (int numero = 1; numero <= 2; numero++) {
+                String nom = "Voiture DÉMONSTRATION " + numero;
+                if (existants.stream().noneMatch(v -> nom.equals(v.getNom()))) {
+                    vehiculeRepository.save(Vehicule.builder().nom(nom).agence(agence).disponible(true).build());
+                }
+            }
+        }
+        log.info("Véhicules de démonstration préparés sur copie locale ; ressources historiques et comptes inchangés.");
     }
 }

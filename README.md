@@ -37,6 +37,18 @@ comptes de transportService n'est autorisée par ce mécanisme.
 
 ## Fonctionnement métier
 
+Le formulaire de création charge les véhicules disponibles de l'agence choisie.
+Le champ est désactivé pendant le chargement ou lorsqu'aucun véhicule n'est
+disponible ; un message et un nouvel essai sont proposés en cas d'erreur.
+Avec plusieurs véhicules, choisir explicitement dans la liste ; un véhicule
+unique est présélectionné. Un changement d'agence efface l'ancien choix.
+
+Sur la copie locale de validation, deux `Voiture DÉMONSTRATION` ont été ajoutées
+par agence pour permettre ces essais. Les cinq ressources historiques sont
+conservées et restent indisponibles. Cette préparation réutilise DataInitializer
+avec `DEMO_PREPARE_VEHICLES=true`, profil `dev` et démonstration activée ; elle
+est désactivée par défaut, idempotente et refuse la base métier.
+
 - Départ et destination sont deux villes belges distinctes, choisies dans la liste centrale
   du backend. Bruxelles, Mons, Charleroi, Namur, Liège, Anvers, Gand, Louvain, Nivelles et
   Wavre sont proposés. Les retours sont des trajets indépendants ; Bruxelles n'est pas obligatoire.

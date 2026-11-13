@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
 import { provideRouter, Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TrajetsApiService } from '../../../core/api/trajets-api.service';
 import { VoyageursApiService } from '../../../core/api/voyageurs-api.service';
@@ -50,7 +50,7 @@ describe('VoyageurCreateTrajetPage', () => {
   ];
 
   const vehicules: VehiculeResponse[] = [
-    { id: 10, nom: 'Vehicule A', agenceId: 1, agenceNom: 'Agence Lyon' }
+    { id: 10, nom: 'Vehicule A', agenceId: 1, agenceNom: 'Agence Lyon', disponible: true }
   ];
 
   const createdTrajet: TrajetResponse = {
@@ -146,6 +146,51 @@ describe('VoyageurCreateTrajetPage', () => {
     component.form.patchValue({villeDepart:'MONS',villeArrivee:'BRUXELLES'});
 
     expect(component.form.controls.typeTrajet.value).toBe('PRIVE');
+  });
+
+  it('demande un choix explicite parmi plusieurs véhicules disponibles de cette agence', () => {
+    vehiculesApiMock.getByAgence.mockReturnValue(of([
+      ...vehicules, {...vehicules[0], id:11}, {...vehicules[0], id:12, disponible:false},
+      {...vehicules[0], id:13, agenceId:2}
+    ]));
+    const component = TestBed.createComponent(VoyageurCreateTrajetPage).componentInstance;
+    expect(component.vehicules().map(v=>v.id)).toEqual([10,11]);
+    expect(component.form.controls.vehiculeId.enabled).toBe(true);
+    expect(component.form.controls.vehiculeId.value).toBeNull();
+  });
+
+  it('garde le choix désactivé lorsqu’aucun véhicule n’est disponible', () => {
+    vehiculesApiMock.getByAgence.mockReturnValue(of([{...vehicules[0], disponible:false}]));
+    const component = TestBed.createComponent(VoyageurCreateTrajetPage).componentInstance;
+    expect(component.vehicules()).toEqual([]);
+    expect(component.form.controls.vehiculeId.disabled).toBe(true);
+    expect(component.loadingVehicules()).toBe(false);
+  });
+
+  it('annule le chargement précédent quand cette agence change', () => {
+    const first = new Subject<VehiculeResponse[]>();
+    const second = new Subject<VehiculeResponse[]>();
+    vehiculesApiMock.getByAgence.mockReturnValueOnce(first).mockReturnValueOnce(second);
+    const component = TestBed.createComponent(VoyageurCreateTrajetPage).componentInstance;
+    expect(component.loadingVehicules()).toBe(true);
+    component.form.controls.agenceId.setValue(2);
+    component.onAgenceChange(2);
+    first.next(vehicules);
+    expect(component.vehicules()).toEqual([]);
+    expect(component.form.controls.vehiculeId.disabled).toBe(true);
+    second.next([{...vehicules[0], id:20, agenceId:2}]);
+    expect(component.form.controls.vehiculeId.value).toBe(20);
+    expect(component.loadingVehicules()).toBe(false);
+  });
+
+  it('permet de recharger les véhicules après une erreur réseau', () => {
+    vehiculesApiMock.getByAgence.mockReturnValueOnce(throwError(()=>({status:0}))).mockReturnValueOnce(of(vehicules));
+    const component = TestBed.createComponent(VoyageurCreateTrajetPage).componentInstance;
+    expect(component.vehicleError()).not.toBe('');
+    expect(component.form.controls.vehiculeId.disabled).toBe(true);
+    component.onAgenceChange(1);
+    expect(component.vehicleError()).toBe('');
+    expect(component.form.controls.vehiculeId.value).toBe(10);
   });
 
   it('refuse un départ et une destination identiques', () => {

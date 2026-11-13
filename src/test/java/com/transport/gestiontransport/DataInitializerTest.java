@@ -109,6 +109,36 @@ class DataInitializerTest {
     }
 
     @Test
+    void prepareDeuxVehiculesDeDemonstrationSansModifierLesRessourcesHistoriques() {
+        when(agenceRepository.count()).thenReturn(1L);
+        ReflectionTestUtils.setField(dataInitializer, "prepareVehicles", true);
+        ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://127.0.0.1:5541/transport_schema_copy_test");
+        Agence agence = Agence.builder().nom("Agence test").build();
+        agence.setId(1L);
+        Vehicule historique = Vehicule.builder().nom("Ressource historique").disponible(false).build();
+        var vehicules = new java.util.ArrayList<Vehicule>();
+        vehicules.add(historique);
+        when(agenceRepository.findAll()).thenReturn(java.util.List.of(agence));
+        when(vehiculeRepository.findByAgenceId(1L)).thenReturn(vehicules);
+        when(vehiculeRepository.save(any())).thenAnswer(i -> {Vehicule v=i.getArgument(0); vehicules.add(v); return v;});
+        dataInitializer.run();
+        dataInitializer.run();
+        verify(vehiculeRepository, times(2)).save(argThat(v -> v.getDisponible() && v.getAgence()==agence));
+        assertThat(historique.getDisponible()).isFalse();
+        verifyNoInteractions(passwordEncoder);
+        verify(administrateurRepository, never()).save(any());
+    }
+
+    @Test
+    void refuseLaPreparationDesVehiculesSurLaBaseMetier() {
+        when(agenceRepository.count()).thenReturn(1L);
+        ReflectionTestUtils.setField(dataInitializer, "prepareVehicles", true);
+        ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://localhost:5440/transportService");
+        assertThatThrownBy(() -> dataInitializer.run()).isInstanceOf(IllegalStateException.class);
+        verify(vehiculeRepository, never()).save(any());
+    }
+
+    @Test
     void refuseUnMotDePasseDepassantLaLimiteBcryptAvantTouteInsertion() {
         ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://localhost:5440/transport_demo_test");
         ReflectionTestUtils.setField(dataInitializer, "demoPassword", "a".repeat(73));

@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -116,14 +117,26 @@ const formatDateForInput = (date: Date): string => {
               </mat-select>
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
               <mat-label>{{ language.t('voyageur.create.vehicule') }}</mat-label>
-              <mat-select formControlName="vehiculeId" [disabled]="!vehicules().length">
+              <mat-select formControlName="vehiculeId" [placeholder]="language.t('vehicleChoice.placeholder')">
                 @for (vehicule of vehicules(); track vehicule.id) {
                   <mat-option [value]="vehicule.id">{{ vehicule.nom }}</mat-option>
                 }
               </mat-select>
+              <mat-hint>{{ language.t('vehicleChoice.hint') }}</mat-hint>
             </mat-form-field>
+
+            @if (loadingVehicules()) {
+              <p role="status" class="status-info md:col-span-2">{{ language.t('vehicleChoice.loading') }}</p>
+            } @else if (vehicleError()) {
+              <div role="alert" class="status-error md:col-span-2">
+                <p>{{ vehicleError() }}</p>
+                <button mat-stroked-button type="button" (click)="onAgenceChange(form.controls.agenceId.value)">{{ language.t('transport.retry') }}</button>
+              </div>
+            } @else if (!form.controls.agenceId.value) {
+              <p class="status-info md:col-span-2">{{ language.t('vehicleChoice.chooseAgence') }}</p>
+            }
 
             <mat-form-field appearance="outline">
               <mat-label>{{ language.t('voyageur.create.date') }}</mat-label>
@@ -164,9 +177,13 @@ const formatDateForInput = (date: Date): string => {
               <p class="status-info md:col-span-2">{{ language.t('voyageur.create.noAgence') }}</p>
             }
 
-            @if (form.controls.agenceId.value && !vehicules().length && !loading()) {
+            @if (form.controls.agenceId.value && !vehicules().length && !loading() && !loadingVehicules() && !vehicleError()) {
               <p class="status-info md:col-span-2">
                 {{ language.t('voyageur.create.noVehicule') }}
+                {{ language.t('vehicleChoice.empty') }}
+                @if (adminSession.isAuthenticated()) {
+                  <a routerLink="/admin/vehicules">{{ language.t('vehicleChoice.manage') }}</a>
+                }
               </p>
             }
 
@@ -211,7 +228,7 @@ const formatDateForInput = (date: Date): string => {
                 mat-flat-button
                 color="primary"
                 type="submit"
-                [disabled]="loading() || form.invalid || !vehicules().length"
+                [disabled]="loading() || loadingVehicules() || form.invalid || !vehicules().length"
               >
                 {{ language.t('voyageur.create.submit') }}
               </button>
@@ -246,12 +263,16 @@ export class VoyageurCreateTrajetPage {
   readonly villes = signal<VilleOption[]>([]);
   readonly chauffeurs = signal<VoyageurResponse[]>([]);
   readonly loading = signal(false);
+  readonly loadingVehicules = signal(false);
+  readonly vehicleError = signal('');
+  private vehiculesRequest?: Subscription;
+  private readonly destroyRef = inject(DestroyRef);
   readonly message = signal('');
   readonly errorMessage = signal('');
   readonly agences = signal<AgenceResponse[]>([]);
   readonly vehicules = signal<VehiculeResponse[]>([]);
   readonly voyageur = computed(() => this.voyageurSession.voyageur());
-  readonly isAgenceVoyageur = computed(() => this.voyageur()?.typeVoyageur === 'LOCAL');
+  readonly isAgenceVoyageur = computed(() => !this.adminSession.isAuthenticated() && this.voyageur()?.typeVoyageur === 'LOCAL');
   readonly todayDate = computed(() => {
     const today = new Date();
     today.setHours(12, 0, 0, 0);
@@ -263,7 +284,7 @@ export class VoyageurCreateTrajetPage {
     publicationAutomatiqueAutorisee: new FormControl(false, { nonNullable: true }),
     chauffeurId: new FormControl<number | null>(null),
     agenceId: new FormControl<number | null>(null, { validators: [Validators.required] }),
-    vehiculeId: new FormControl<number | null>(null, { validators: [Validators.required] }),
+    vehiculeId: new FormControl<number | null>({ value: null, disabled: true }, { validators: [Validators.required] }),
     date: new FormControl('', {
       nonNullable: true,
       validators: [Validators.required],
@@ -280,6 +301,7 @@ export class VoyageurCreateTrajetPage {
   });
 
   constructor() {
+    this.destroyRef.onDestroy(() => this.vehiculesRequest?.unsubscribe());
     if (!this.voyageurSession.isAuthenticated() && !this.adminSession.isAuthenticated()) {
       this.router.navigateByUrl('/voyageur');
       return;
@@ -325,7 +347,8 @@ export class VoyageurCreateTrajetPage {
           : agences;
         this.agences.set(agences);
         const voyageur = this.voyageur();
-        if (voyageur?.typeVoyageur === 'LOCAL' && voyageur.agenceId) {
+        this.loading.set(false);
+        if (this.isAgenceVoyageur() && voyageur?.agenceId) {
           this.form.controls.agenceId.setValue(voyageur.agenceId);
           this.onAgenceChange(voyageur.agenceId);
           return;
@@ -350,6 +373,10 @@ export class VoyageurCreateTrajetPage {
   }
 
   onAgenceChange(agenceId: number | null): void {
+    this.vehiculesRequest?.unsubscribe();
+    this.vehicleError.set('');
+    this.loadingVehicules.set(false);
+    this.form.controls.vehiculeId.disable();
     this.form.controls.vehiculeId.setValue(null);
     this.vehicules.set([]);
 
@@ -357,24 +384,25 @@ export class VoyageurCreateTrajetPage {
       return;
     }
 
-    this.loading.set(true);
-    this.vehiculesApi.getByAgence(agenceId).subscribe({
+    this.loadingVehicules.set(true);
+    this.vehiculesRequest = this.vehiculesApi.getByAgence(agenceId).subscribe({
       next: (vehicules) => {
-        vehicules = vehicules.filter((vehicule) => vehicule.disponible !== false);
+        vehicules = vehicules.filter((vehicule) => vehicule.disponible === true && vehicule.agenceId === agenceId);
         this.vehicules.set(vehicules);
-        if (vehicules.length) {
+        if (vehicules.length) this.form.controls.vehiculeId.enable();
+        if (vehicules.length === 1) {
           this.form.controls.vehiculeId.setValue(vehicules[0].id);
         }
-        this.loading.set(false);
+        this.loadingVehicules.set(false);
       },
       error: (error) => {
         const status = error?.status;
         if (status === 404) {
-          this.errorMessage.set(this.language.t('voyageur.create.noAgenceLoaded'));
+          this.vehicleError.set(this.language.t('voyageur.create.noAgenceLoaded'));
         } else if (status === 500) {
-          this.errorMessage.set(this.language.t('voyageur.create.noVehiculeLoaded'));
+          this.vehicleError.set(this.language.t('voyageur.create.noVehiculeLoaded'));
         } else {
-          this.errorMessage.set(
+          this.vehicleError.set(
             extractApiErrorMessage(
               error,
               this.language.t('voyageur.create.noVehiculeLoaded'),
@@ -383,7 +411,7 @@ export class VoyageurCreateTrajetPage {
           );
         }
         this.vehicules.set([]);
-        this.loading.set(false);
+        this.loadingVehicules.set(false);
       },
     });
   }
@@ -391,7 +419,7 @@ export class VoyageurCreateTrajetPage {
   submit(): void {
     this.form.markAllAsTouched();
 
-    if (this.form.invalid || this.loading()) {
+    if (this.form.invalid || this.loading() || this.loadingVehicules()) {
       return;
     }
 

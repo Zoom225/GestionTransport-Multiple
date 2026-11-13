@@ -199,3 +199,45 @@ Validations exécutées le 12 novembre 2026 :
 Captures : [accueil ordinateur](../images/ui/premium-accueil-1440.jpg), [accueil mobile](../images/ui/premium-accueil-375.jpg), [dashboard global](../images/ui/premium-dashboard-1440.jpg), [agence mobile](../images/ui/premium-agence-375.jpg). Les captures précédentes restent disponibles pour comparaison. Aucun changement backend ou PostgreSQL dans ce chantier frontend ; pom.xml et le lock non suivi à la racine restent hors commit.
 
 Int?gration r?elle compl?mentaire : scripts/validation-covoiturage.cjs ex?cut? sur transport_demo_premium_20261112234317, backend et PostgreSQL r?els, donn?es dev isol?es. Connexions GLOBAL/AGENCE, filtrage local et refus de cr?ation hors p?rim?tre, r?servation Angular et paiement 25 ?, quatre paiements/100 ?, concurrence derni?re place, annulation/remboursement, historique et statistiques r?ussis ; douze contr?les responsive r?els sans d?bordement et aucune erreur JavaScript. Le premier lancement de pr?paration a refus? un mot de passe de d?monstration trop long pour BCrypt ; le g?n?rateur local a ?t? corrig? ? 32 octets al?atoires avant cette ex?cution r?ussie. Aucun secret publi?.
+# Correction du choix des véhicules — issue #6
+
+Branche `fix/issue-6-choix-vehicules`, depuis la branche de validation des comptes
+#25. La copie locale contenait cinq ressources historiques indisponibles : le
+filtre existant ne proposait donc aucun véhicule. Elles sont conservées avec
+leur disponibilité désactivée ; aucune conversion automatique en voiture.
+
+Le formulaire existant utilise désormais l'état du FormControl pour désactiver
+le champ pendant le chargement. Les options doivent être disponibles et appartenir
+à l'agence sélectionnée. Un seul véhicule est présélectionné ; avec plusieurs
+véhicules, le choix est explicite et obligatoire. Les anciens chargements sont
+annulés au changement d'agence. Chargement, absence de véhicule et erreur sont
+distingués, avec nouvel essai et textes FR/EN ; un administrateur peut rejoindre
+la gestion des véhicules depuis l'état vide. Les contrôles backend sont inchangés.
+
+DataInitializer est réutilisé pour préparer deux voitures de démonstration par
+agence, explicitement et uniquement sur copie locale existante avec le profil
+dev, DEMO_DATA_ENABLED=true et DEMO_PREPARE_VEHICLES=true. L'opération est désactivée
+par défaut, idempotente, et refuse transportService. Aucun compte, paiement,
+trajet ou ressource historique n'est réécrit. Les bases dev vides reçoivent aussi
+deux voitures pour permettre un choix, sans nouvelle table ou dépendance.
+
+Après sauvegarde, la copie transport_schema_copy_20261113181001595 possède deux
+voitures de démonstration disponibles dans chacune des deux agences, en plus
+des cinq ressources historiques toujours indisponibles. Les neuf connexions
+administrateurs/voyageurs ont été revérifiées après cette préparation.
+
+Validations exécutées : build Java réussi, 165 tests recensés dont 148 exécutés
+sans échec et 17 tests PostgreSQL/JPA opt-in non activés lors de cette exécution.
+Les neuf tests DataInitializer incluent préparation idempotente et refus de la
+base métier. Build Angular final réussi et 76 tests réussis ; quatre nouveaux
+tests couvrent choix multiple, indisponibilité, réponses tardives et nouvel essai.
+Compilation IntelliJ réussie. Aucun test supprimé.
+
+Edge avec backend/PostgreSQL réels : ouverture du menu, deux options de démo,
+sélection de la seconde voiture, changement d'agence avec effacement du choix
+précédent et rechargement. Administrateurs GLOBAL/AGENCE à 375/768/1440 px : six
+contrôles sans débordement et aucune erreur JS. Le serveur Angular de développement
+a été relancé après un écran d'erreur résiduel de compilation intermédiaire des
+clés de traduction ; les builds finaux et le contrôle navigateur sont réussis.
+Le serveur du projet reste sur http://127.0.0.1:4202.
+

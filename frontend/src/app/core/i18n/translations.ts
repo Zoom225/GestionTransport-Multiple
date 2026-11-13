@@ -1,6 +1,12 @@
 ﻿export type Locale = 'fr' | 'en';
 
 export type TranslationKey =
+  | 'vehicleChoice.placeholder'
+  | 'vehicleChoice.hint'
+  | 'vehicleChoice.loading'
+  | 'vehicleChoice.chooseAgence'
+  | 'vehicleChoice.empty'
+  | 'vehicleChoice.manage'
   | 'premium.adminAccess'
   | 'premium.global'
   | 'premium.local'
@@ -486,6 +492,12 @@ export type TranslationParams = Record<string, string | number>;
 
 export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>>> = {
   fr: {
+    'vehicleChoice.placeholder': 'Sélectionner un véhicule',
+    'vehicleChoice.hint': 'Véhicules disponibles de cette agence · 4 places clients, chauffeur exclu.',
+    'vehicleChoice.loading': 'Chargement des véhicules de cette agence…',
+    'vehicleChoice.chooseAgence': 'Choisissez une agence pour consulter ses véhicules disponibles.',
+    'vehicleChoice.empty': 'Les ressources indisponibles restent exclues. Contactez votre agence pour disposer d’un véhicule.',
+    'vehicleChoice.manage': 'Gérer les véhicules',
     'premium.adminAccess': 'Accès administrateur',
     'premium.global': 'Administration globale',
     'premium.local': 'Administration de mon agence',
@@ -999,6 +1011,12 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.reservations.reservationCancelError': 'Annulation impossible.',
   },
   en: {
+    'vehicleChoice.placeholder': 'Select a vehicle',
+    'vehicleChoice.hint': 'Available vehicles from this agency · 4 passenger places, excluding the driver.',
+    'vehicleChoice.loading': 'Loading vehicles for this agency…',
+    'vehicleChoice.chooseAgence': 'Choose an agency to view its available vehicles.',
+    'vehicleChoice.empty': 'Unavailable resources remain excluded. Contact your agency to arrange a vehicle.',
+    'vehicleChoice.manage': 'Manage vehicles',
     'premium.adminAccess': 'Administrator access',
     'premium.global': 'Global administration',
     'premium.local': 'My agency administration',
