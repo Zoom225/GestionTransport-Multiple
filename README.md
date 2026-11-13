@@ -428,3 +428,46 @@ La CI contrôle désormais les PR vers `develop` **et `master`**. La livraison v
 - Création refusée : vérifier la permission chauffeur, le véhicule, l'agence, les horaires et chevauchements.
 - Paiement refusé : actualiser la disponibilité, vérifier le délai, la catégorie, la zone et les restrictions.
 - Ancien montant ou trajet non qualifié : régularisation métier explicite, sans réécriture automatique des paiements.
+
+## Harmonisation PostgreSQL Transport — issue #3
+
+Branche `refactor/issue-3-schema-transport`, distincte de l'interface premium
+`feature/issue-6-admin-ui-premium` ([PR #22](https://github.com/Zoom225/GestionTransport-Multiple/pull/22)).
+Les tables cibles sont agences, vehicules, voyageurs, trajets, reservations,
+paiements, restrictions, indisponibilites_service et administrateurs.
+Les renommages explicites préservent les données, identifiants, FK et montants.
+[Audit, résultats, incident et procédure](docs/covoiturage/issue-3-modele-simple.md) ;
+[diagrammes de classes et entité-association](docs/covoiturage/modele-donnees.md).
+
+**Ne pas lancer Hibernate update sur la base historique pendant un changement
+de mappings.** Arrêter Spring Boot/DevTools et la compilation automatique avant
+de changer de branche. Le nouveau garde bloque le démarrage avant Hibernate
+si les tables historiques sont présentes. La migration sur transportService
+exige une autorisation distincte, après revue et restauration testée.
+
+Un rechargement IntelliJ resté actif a créé des tables Transport vides sur la
+base métier pendant ce chantier. Cette instance a été arrêtée ; aucune table
+n'a été supprimée. Les empreintes des données historiques sont identiques à
+la sauvegarde initiale. L'état ambigu est sauvegardé et refusé par le migrateur ;
+sa régularisation n'est pas exécutée automatiquement.
+
+```powershell
+# Restaurer et migrer une copie depuis une sauvegarde connue, jamais la source :
+.\scripts\valider-schema-transport.ps1 -BackupFile C:\chemin\sauvegarde.dump -DatabaseUser transport
+# Vérifier les mappings sans génération implicite de tables :
+$env:TRANSPORT_SCHEMA_URL='jdbc:postgresql://127.0.0.1:5541/transport_schema_copy_<identifiant>'
+$env:DB_USER='transport'
+$env:DB_PASSWORD='<mot de passe de validation>'
+mvn -B -Dtest=TransportSchemaValidationTest test
+```
+
+Résultats du chantier SQL : `mvn -B verify` réussi, **160 tests backend sans
+échec, erreur ou ignoré**, dont 15 tests PostgreSQL et deux tests JPA de la copie
+restaurée en mode validate. Migration exécutée deux fois, empreintes des neuf
+tables identiques ; contraintes supplémentaires validées sans réécriture des
+données. Un vrai lancement du jar refuse le schéma historique avant Hibernate.
+Le nouveau backend et le frontend premium ont aussi réussi ensemble le parcours
+réel sur `transport_demo_premium_20261113181820` : GLOBAL/AGENCE, périmètre local,
+réservation Angular, paiement25, confirmation, historique, annulation/remboursement,
+quatre clients/100€, concurrence dernière place ; douze contrôles responsive réels
+sans débordement et aucune erreur JS. Les dumps confidentiels restent hors Git.

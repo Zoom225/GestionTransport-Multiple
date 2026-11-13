@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "penalites")
+@Table(name = "restrictions")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -15,7 +15,7 @@ import java.time.LocalDate;
 public class Restriction extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "membre_id", nullable = false)
+    @JoinColumn(name = "voyageur_id", nullable = false)
     private Voyageur voyageur;
 
     @Column(nullable = false)
