@@ -187,14 +187,18 @@ $generateurTransport = [System.Security.Cryptography.RandomNumberGenerator]::Cre
 try { $generateurTransport.GetBytes($octetsJwtTransport) }
 finally { $generateurTransport.Dispose() }
 $env:JWT_SECRET = [Convert]::ToBase64String($octetsJwtTransport)
-$env:DB_URL = 'jdbc:postgresql://localhost:5440/transportService'
+$env:DB_URL = 'jdbc:postgresql://127.0.0.1:5541/transport_schema_copy_<identifiant>'
 $env:DB_USER = 'transport'
 $env:DB_PASSWORD = 'transport'
 $env:DEMO_DATA_ENABLED = 'false'
-.\mvnw.cmd spring-boot:run
+$env:SPRING_JPA_HIBERNATE_DDL_AUTO = 'validate'
+.\mvnw.cmd '-Dspring-boot.run.jvmArguments=-Dspring.devtools.restart.enabled=false' spring-boot:run
 ```
 
 Conserver `DEMO_DATA_ENABLED=false` sur toute base métier.
+Remplacer `<identifiant>` par une copie restaurée/migrée existante. Ne pas
+substituer transportService tant que son schéma ambigu n'a pas été régularisé
+et migré après validation explicite ; le garde doit en refuser le démarrage.
 Pour une présentation, privilégier la base de démonstration isolée décrite ci-dessous.
 
 Dans IntelliJ, la configuration Spring Boot **GestionTransportApplication** doit
@@ -462,6 +466,20 @@ Le détail des vérifications, limites et commandes navigateur figure dans
 [le compte rendu UI](docs/covoiturage/issue-6-interface.md).
 
 ## Dépannage
+
+Pour le lancement IntelliJ actuel, utiliser **GestionTransportApplication** et
+configurer une copie restaurée/migrée, sans écrire dans la base métier :
+
+```powershell
+$env:DB_PASSWORD='<mot de passe de la copie de validation>'
+.\scripts\configure-intellij-validation.ps1 -Database transport_schema_copy_<identifiant>
+```
+
+Le script configure l'URL locale explicite, `ddl-auto=validate`, désactive la
+démo et le redémarrage DevTools, et réutilise la clé JWT personnelle. Il refuse
+la base métier. [Diagnostic détaillé](docs/covoiturage/issue-7-validation.md).
+La configuration Maven partagée ci-dessous exige ses propres variables
+d'environnement ; elle n'hérite pas de celles de la configuration Spring Boot.
 
 - IntelliJ : utiliser la configuration partagée **GestionTransport-Multiple**
   (`.run/GestionTransport-Multiple.run.xml`), qui exécute `spring-boot:run` via Maven

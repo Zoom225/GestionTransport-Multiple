@@ -1,5 +1,70 @@
 # Issue #7 — Intégration et validation
 
+## Correction du démarrage et intégration des chantiers ouverts — novembre 2026
+
+Branche `fix/issue-7-demarrage-validation` : intégration de #20 (lancement/JWT),
+#22 (UI premium) et #23 (schéma SQL), sans fusion de ces PR dans develop/master.
+Le conflit documentaire README a été résolu en conservant les deux rapports.
+Les modèles des branches sont compatibles ; aucun service métier recréé.
+
+Diagnostic des logs et configurations :
+
+- GestionTransportApplication est la bonne classe Spring Boot, Java21 et les
+  dépendances SpringBoot3.5.0 fonctionnent. Aucun besoin de modifier la méthode main.
+- L'ancienne erreur JWT_SECRET non résolue n'est plus présente dans le lancement
+  personnel : la clé locale existe et reste préservée. Elle n'est ni affichée
+  ni publiée, aucun secret de secours dans application.properties.
+- La configuration IntelliJ n'avait pas DB_URL : elle utilisait donc implicitement
+  transportService sur5440. Le schéma historique/ambigu ne correspond pas aux
+  mappings Transport. Le garde refuse ce démarrage avant Hibernate ; il ne doit
+  pas être retiré pour masquer le problème. L'incident des tables parallèles et
+  les neuf empreintes historiques identiques sont documentés dans
+  [l'audit SQL](issue-3-modele-simple.md).
+- La collision de nom entre la configuration TransportSchemaGuard et son bean
+  a été corrigée en nommant le bean transportSchemaPreflight. Les tests de
+  contexte et le lancement réel valident cette correction.
+- L'échec CI transaction_timeout provenait de pg_dump trop récent pour PostgreSQL15,
+  corrigé dans #23 en utilisant les outils du conteneur15. CI43473752400 réussie.
+
+`scripts/configure-intellij-validation.ps1` réutilise le mécanisme JWT de #20.
+Il configure uniquement le workspace IntelliJ personnel ignoré : URL explicite
+vers une copie `transport_schema_copy_...` sur5541, mot de passe fourni par
+DB_PASSWORD, ddl-auto=validate, DEMO_DATA_ENABLED=false, redémarrage DevTools
+désactivé dans les options JVM. Une sauvegarde privée est conservée hors Git.
+Il refuse transportService et tout nom hors copie ; l'absence de mot de passe
+est refusée avant écriture. Aucun secret n'est inscrit dans une configuration
+partagée. Tests exécutés : deux passages idempotents, JWT inchangé ; refus d'une
+base métier et d'un mot de passe absent sans modification de la configuration.
+
+```powershell
+$env:DB_PASSWORD='<mot de passe de la copie de validation>'
+.\scripts\configure-intellij-validation.ps1 -Database transport_schema_copy_<identifiant>
+# Dans IntelliJ, lancer la configuration Spring Boot : GestionTransportApplication.
+# La configuration Maven partagée exige séparément ses variables DB_URL/DB_*/JWT_SECRET.
+```
+
+La configuration personnelle pointe actuellement vers la copie restaurée/migrée
+transport_schema_copy_20261113181001595. La base métier n'est ni migrée ni
+régularisée automatiquement. Le premier lancement de diagnostic sur une autre
+copie migrée a démarré en17,894s, avec Swagger et OpenAPI HTTP200 sur18083 ;
+l'instance de contrôle a été arrêtée.
+
+Résultats rejoués sur la branche intégrée : `mvn -B verify` réussi, 160 tests
+sans échec/erreur/ignoré (15 PostgreSQL + deux validations de copie inclus),
+`npm run build` réussi, 72 tests Angular réussis, compilation IntelliJ réussie.
+L'installation `npm ci` avait réussi dans le même chantier et les lockfiles
+n'ont pas changé depuis. Les règles métier, controllers, services, repositories
+et DTO ne sont pas modifiés par le correctif de démarrage.
+
+Vérification finale de la configuration IntelliJ enregistrée, **sans surcharge** :
+démarrage en32,723s sur8080, thread main (restart DevTools désactivé), repositories
+et connexion PostgreSQL initialisés, aucune erreur de démarrage. Swagger UI et
+OpenAPI HTTP200 ; GET /api/voyageurs sans authentification HTTP403, guard conservé.
+Frontend de ce projet sur http://127.0.0.1:4202 : HTTP200, proxy existant vers8080.
+Les ports4200 d'une autre application n'ont pas été modifiés. Les deux processus
+de ce projet sont laissés actifs pour consultation, sur la copie isolée uniquement.
+Le warning open-in-view est conservé : ce n'est pas la cause du refus de démarrage.
+
 ## Correction des configurations IntelliJ — issue #7
 
 Branche : `fix/issue-7-intellij-transport`, depuis `develop` à `b818392`.
