@@ -38,11 +38,11 @@ import { RechercheTrajet, TrajetResponse } from '../../../shared/models/trajet.m
         </div>
         <aside class="hero-note" [attr.aria-label]="language.t('ui.illustration')">
           <img
-            [src]="photoFailed() ? 'images/covoiturage-belgique.svg' : 'images/route-partagee.jpg'"
+            [src]="photoFailed() ? 'images/covoiturage-belgique.svg' : 'images/mobilite-transport.svg'"
             (error)="photoFailed.set(true)"
             width="480"
             height="300"
-            [alt]="language.t('premium.photoAlt')"
+            [alt]="language.t('design.carAlt')"
             fetchpriority="high"
           />
           <p>
@@ -213,8 +213,8 @@ import { RechercheTrajet, TrajetResponse } from '../../../shared/models/trajet.m
       .hero-note img {
         display: block;
         width: 100%;
-        height: 330px;
-        object-fit: cover;
+        height: auto;
+        object-fit: contain;
         border-radius: 20px;
       }
       .hero-note p {

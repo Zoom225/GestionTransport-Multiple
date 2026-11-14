@@ -649,6 +649,26 @@ async function session(page, role) {
       });
       report.adminStates =
         "Formulaire absence avec motif et historique restrictions controles avec API simulees";
+      await page.setViewportSize({ width: 375, height: 900 });
+      await page.goto("http://127.0.0.1:4201/admin", { waitUntil: "networkidle" });
+      const adminMenu = page.locator(".admin-menu-toggle");
+      assert.equal(await adminMenu.isVisible(), true);
+      assert.equal(await adminMenu.getAttribute("aria-expanded"), "false");
+      await adminMenu.click();
+      await page.waitForFunction(() => document.querySelector('.admin-menu-toggle')?.getAttribute('aria-expanded') === 'true');
+      assert.equal(await adminMenu.getAttribute("aria-expanded"), "true");
+      await page.locator("#admin-navigation-links a").first().focus();
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(() => document.querySelector('.admin-menu-toggle')?.getAttribute('aria-expanded') === 'false');
+      assert.equal(await adminMenu.getAttribute("aria-expanded"), "false");
+      assert.equal(await adminMenu.evaluate((e) => e === document.activeElement), true);
+      await adminMenu.click();
+      await page.waitForFunction(() => document.querySelector('.admin-menu-toggle')?.getAttribute('aria-expanded') === 'true');
+      await page.locator('#admin-navigation-links a[href="/admin/agences"]').click();
+      await page.waitForURL("**/admin/agences");
+      await page.waitForFunction(() => document.querySelector('.admin-menu-toggle')?.getAttribute('aria-expanded') === 'false');
+      assert.equal(await adminMenu.getAttribute("aria-expanded"), "false");
+      report.adminNavigation = "Menu mobile : ouverture, Echap, focus et navigation controles";
       await session(page, "guest");
       await page.setViewportSize({ width: 375, height: 900 });
       await page.goto("http://127.0.0.1:4201/", { waitUntil: "networkidle" });

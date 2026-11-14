@@ -3,6 +3,40 @@ app-root {
   flex-direction: column;
   min-height: 100dvh;
 }
+.journey-banner {
+  width: min(1220px, calc(100% - 2rem));
+  margin: 1.5rem auto 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, .65fr);
+  align-items: center;
+  gap: 2rem;
+  padding: clamp(1.5rem, 3vw, 2.75rem);
+  border-radius: 24px;
+  background: linear-gradient(115deg, var(--ui-navy), var(--ui-primary-strong));
+  color: var(--ui-surface);
+  box-shadow: var(--ui-shadow-raised);
+  overflow: hidden;
+}
+.journey-banner-copy { min-width: 0; }
+.journey-banner-copy > p { color: var(--ui-surface); margin: 0 0 1rem; line-height: 1.65; max-width: 650px; }
+.journey-banner-copy > .journey-eyebrow { font-size: .72rem; text-transform: uppercase; letter-spacing: .14em; font-weight: 750; }
+.journey-banner-copy > .journey-banner-title { font-size: clamp(1.5rem, 3vw, 2.2rem); line-height: 1.2; font-weight: 800; letter-spacing: -.03em; }
+.journey-banner > img { display: block; width: 100%; height: auto; transform: rotate(-2deg); border-radius: 20px; }
+.journey-action { display: inline-flex; align-items: center; gap: .75rem; max-width: 100%; min-height: 44px; padding: .75rem 1.2rem; color: var(--ui-navy); background: var(--ui-surface); border-radius: 12px; font-weight: 750; text-decoration: none; }
+.journey-banner-compact { padding-block: 1.5rem; grid-template-columns: minmax(0,1fr) 240px; }
+.journey-banner-compact > img { max-height: 160px; object-fit: contain; }
+.journey-banner-copy > .journey-eyebrow { overflow-wrap: anywhere; }
+.journey-action:hover { background: var(--ui-primary-soft); }
+@media(max-width: 700px) {
+  .journey-banner { grid-template-columns: minmax(0, 1fr); gap: 1rem; padding: 1.5rem; }
+  .journey-banner > img { max-width: 320px; max-height: 160px; justify-self: center; object-fit: contain; transform: none; }
+  .journey-banner-compact { grid-template-columns: minmax(0,1fr) 95px; padding: 1.25rem; gap: .75rem; }
+  .journey-banner-compact > img { max-height: 90px; }
+  .journey-banner-compact .journey-banner-copy > p:not(.journey-eyebrow):not(.journey-banner-title) { display: none; }
+  .journey-banner-compact .journey-banner-title { font-size: 1.25rem; }
+  .journey-banner-compact .journey-action { font-size: .88rem; padding: .6rem .85rem; }
+}
+@media(prefers-reduced-motion: reduce) { .journey-banner > img { transform: none; } }
 .admin-navigation {
   margin: 1.25rem auto 0;
   width: min(1220px, calc(100% - 2rem));
@@ -13,6 +47,7 @@ app-root {
   box-shadow: var(--ui-shadow);
 }
 .admin-navigation strong { display: block; margin-bottom: .75rem; font-size: 1.15rem; }
+.admin-menu-toggle { display: none; }
 .admin-navigation nav { display: flex; gap: .5rem; flex-wrap: wrap; }
 .admin-navigation a {
   display: flex; align-items: center; min-height: 44px; padding: .65rem 1rem;
@@ -27,7 +62,11 @@ app-root {
   .app-main-shell:has(.admin-navigation) > router-outlet { display: none; }
   .app-main-shell:has(.admin-navigation) > :last-child { min-width: 0; }
 }
-@media(max-width: 600px) { .admin-navigation nav { display: grid; grid-template-columns: 1fr; } }
+@media(max-width: 600px) {
+  .admin-menu-toggle { display: flex; width: 100%; justify-content: center; min-height: 44px; align-items: center; border-radius: 8px; border: 1px solid var(--ui-border); background: var(--ui-surface); color: var(--ui-navy); font-weight: 700; }
+  .admin-navigation nav { display: none; }
+  .admin-navigation nav.open { display: grid; grid-template-columns: 1fr; margin-top: .75rem; }
+}
 .skip-link {
   position: fixed;
   inset: 0.5rem auto auto 0.5rem;

@@ -12,6 +12,7 @@ import { TrajetResponse } from '../models/trajet.model';
   imports: [CommonModule, MatButtonModule, MatDialogModule],
   template: `
     <article class="trip-card" [attr.data-trajet-id]="trajet.id">
+      <div class="trip-visual" aria-hidden="true"><img src="images/mobilite-transport.svg" width="1000" height="600" alt="" loading="lazy" decoding="async" /></div>
       <div class="trip-top">
         <span class="type">{{ trajet.typeTrajet }}</span><span
           >{{ trajet.date | date: 'dd/MM/yyyy' }} · {{ trajet.heureDebut.slice(0, 5) }}</span
@@ -76,6 +77,8 @@ import { TrajetResponse } from '../models/trajet.model';
         box-shadow: var(--ui-shadow-raised);
         border-color: var(--ui-primary);
       }
+      .trip-visual { height: 120px; margin: -0.5rem -0.5rem 1.25rem; overflow: hidden; border-radius: 12px; background: var(--ui-primary-soft); }
+      .trip-visual img { width: 100%; height: 100%; object-fit: contain; }
       .trip-top,
       .trip-bottom,
       .actions {

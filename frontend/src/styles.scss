@@ -31,6 +31,19 @@
   --ui-shadow-raised: 0 14px 36px rgb(16 42 67 / 9%);
   --ui-font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
+app-root .app-main-shell .card-soft {
+  box-shadow: var(--ui-shadow);
+  border-color: var(--ui-border);
+}
+app-root .app-main-shell .page-shell > .flex:first-child {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--ui-border);
+}
+app-root .app-main-shell app-landing-page .driver-call {
+  background-image: linear-gradient(105deg, var(--ui-navy) 45%, color-mix(in srgb, var(--ui-navy) 75%, transparent)), url('/images/route-partagee.jpg');
+  background-size: cover;
+  background-position: center;
+}
 html {
   min-height: 100%;
   scroll-padding-top: 120px;

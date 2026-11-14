@@ -1,6 +1,12 @@
 ﻿export type Locale = 'fr' | 'en';
 
 export type TranslationKey =
+  | 'design.bannerLabel'
+  | 'design.bannerTitle'
+  | 'design.bannerSubtitle'
+  | 'design.adminSubtitle'
+  | 'design.carAlt'
+  | 'design.adminMenu'
   | 'transport.differentCities'
   | 'vehicleChoice.placeholder'
   | 'vehicleChoice.hint'
@@ -493,6 +499,12 @@ export type TranslationParams = Record<string, string | number>;
 
 export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>>> = {
   fr: {
+    'design.bannerLabel': 'Votre espace Transport',
+    'design.bannerTitle': 'Votre prochain départ commence ici.',
+    'design.bannerSubtitle': 'Des villes qui se rapprochent, des voyages qui se partagent. Trouvez votre place et voyagez ensemble.',
+    'design.adminSubtitle': 'Pilotez votre activité de transport et vos trajets, dans le périmètre de vos autorisations.',
+    'design.carAlt': 'Illustration originale d’une voiture de covoiturage sur une route entre villes',
+    'design.adminMenu': 'Menu d’administration',
     'transport.differentCities': 'Choisissez deux villes différentes : la ville de départ et la destination ne peuvent pas être identiques.',
     'vehicleChoice.placeholder': 'Sélectionner un véhicule',
     'vehicleChoice.hint': 'Véhicules disponibles de cette agence · 4 places clients, chauffeur exclu.',
@@ -1013,6 +1025,12 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.reservations.reservationCancelError': 'Annulation impossible.',
   },
   en: {
+    'design.bannerLabel': 'Your Transport space',
+    'design.bannerTitle': 'Your next journey starts here.',
+    'design.bannerSubtitle': 'Connecting cities, sharing journeys. Find your seat and travel together.',
+    'design.adminSubtitle': 'Manage your agencies, vehicles and trips in one place, within your permissions.',
+    'design.carAlt': 'Original illustration of a shared car on a road between cities',
+    'design.adminMenu': 'Administration menu',
     'transport.differentCities': 'Choose two different cities: departure and destination cannot be the same.',
     'vehicleChoice.placeholder': 'Select a vehicle',
     'vehicleChoice.hint': 'Available vehicles from this agency · 4 passenger places, excluding the driver.',

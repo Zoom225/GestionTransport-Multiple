@@ -699,6 +699,16 @@ quatre clients/100€, concurrence dernière place ; douze contrôles responsive
 sans débordement et aucune erreur JS. Les dumps confidentiels restent hors Git.
 ## Finition premium et accès administrateur
 
+**Finition Transport — issue #6**, branche `feature/issue-6-bannieres-agences-transport` :
+illustration automobile originale, accueil et cartes de trajets illustrés,
+bannière commune aux pages internes et menu d’administration compact sur mobile.
+Les filtres affichent les noms fournis par l’API, sans remplacement fictif dans Angular.
+Sur la copie locale de validation, les deux anciens noms sont devenus
+**Agence Transport Lyon** et **Agence Transport Paris**, avec les mêmes identifiants,
+adresses et rattachements. Les villes historiques ne sont pas transformées en villes belges.
+La base métier n’est pas renommée automatiquement.
+Voir les [résultats et captures du chantier](docs/covoiturage/issue-6-interface.md#bannières-automobiles-et-noms-des-agences--14-novembre-2026).
+
 Le header propose **Accès administrateur** avant connexion. Après connexion, le rôle affiche **Administration globale** ou **Administration de mon agence**, avec navigation dédiée responsive vers les pages existantes. Les recettes sont consultables au dashboard ; restrictions et absences dans la gestion des voyageurs.
 
 Chantier issue #6, branche `feature/issue-6-admin-ui-premium`, complément de #21 non fusionnée. [Rapport et captures](docs/covoiturage/issue-6-interface.md). Build et 72 tests Angular réussis ; 15 tests PostgreSQL isolés réussis ; parcours réel GLOBAL/AGENCE et réservation/paiement Angular réussi sur `transport_demo_premium_20261112234317`. Les 57 contrôles visuels avec API simulées sont distincts de cette intégration réelle. Aucune migration sur la base métier.

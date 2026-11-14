@@ -42,6 +42,8 @@ import java.time.LocalTime;
  * Mise à jour des comptes existants uniquement sur copie locale et demande explicite.
  * DEMO_PREPARE_VEHICLES=true prépare deux voitures de démonstration par agence
  * sur copie locale existante, sans réactiver ni renommer les ressources historiques.
+ * DEMO_PREPARE_AGENCIES=true remplace les anciens noms Padel par Transport
+ * uniquement sur copie locale, sans changer les villes, adresses ou rattachements.
  */
 @Slf4j
 @Component
@@ -68,6 +70,7 @@ public class DataInitializer implements CommandLineRunner {
     @Value("${DEMO_VOYAGEUR_PASSWORD:Voyage1234!}") private String demoVoyageurPassword = "Voyage1234!";
     @Value("${DEMO_UPDATE_CREDENTIALS:false}") private boolean updateCredentials;
     @Value("${DEMO_PREPARE_VEHICLES:false}") private boolean prepareVehicles;
+    @Value("${DEMO_PREPARE_AGENCIES:false}") private boolean prepareAgencies;
 
     @Override
     @Transactional
@@ -79,7 +82,8 @@ public class DataInitializer implements CommandLineRunner {
                 updateValidationCredentials();
             }
             if (prepareVehicles) prepareValidationVehicles();
-            if (!updateCredentials && !prepareVehicles) {
+            if (prepareAgencies) prepareValidationAgencies();
+            if (!updateCredentials && !prepareVehicles && !prepareAgencies) {
                 log.info("Démonstration ignorée : la base contient déjà des données. Aucun compte ni paiement modifié.");
             }
             return;
@@ -98,7 +102,7 @@ public class DataInitializer implements CommandLineRunner {
                 throw new IllegalStateException("Les mots de passe de démonstration exigent au moins 10 caractères et au maximum 72 octets UTF-8.");
             }
         }
-        Agence agence = agenceRepository.save(Agence.builder().nom("Agence Bruxelles — DÉMONSTRATION")
+        Agence agence = agenceRepository.save(Agence.builder().nom("Agence Transport Bruxelles — DÉMONSTRATION")
                 .adresse("Bruxelles, Belgique").heureOuverture(LocalTime.of(6, 0)).heureFermeture(LocalTime.of(23, 0))
                 .dureeTrajetMinutes(90).dureeEntreTrajetMinutes(15).anneeCivile(LocalDate.now().getYear()).build());
         Vehicule voiture = vehiculeRepository.save(Vehicule.builder().nom(DEMO_VEHICLE_NAMES.get(0)).agence(agence).disponible(true).build());
@@ -221,5 +225,19 @@ public class DataInitializer implements CommandLineRunner {
             }
         }
         log.info("Véhicules de démonstration préparés sur copie locale ; ressources historiques et comptes inchangés.");
+    }
+
+    private void prepareValidationAgencies() {
+        requireLocalValidationDatabase();
+        for (Agence agence : agenceRepository.findAll()) {
+            String nom = agence.getNom();
+            if (nom != null && nom.toLowerCase(java.util.Locale.ROOT).contains("padel")) {
+                String nouveauNom = nom.replaceAll("(?i)padel\\s+club", "Agence Transport")
+                        .replaceAll("(?i)padel", "Transport").trim();
+                agence.setNom(nouveauNom);
+                agenceRepository.save(agence);
+            }
+        }
+        log.info("Noms des agences Transport préparés sur copie locale ; identifiants et rattachements inchangés.");
     }
 }

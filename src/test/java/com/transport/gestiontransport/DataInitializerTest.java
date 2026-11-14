@@ -164,6 +164,38 @@ class DataInitializerTest {
     }
 
     @Test
+    void renommeLesAgencesTransportSansChangerLeursRattachements() {
+        when(agenceRepository.count()).thenReturn(2L);
+        ReflectionTestUtils.setField(dataInitializer, "prepareAgencies", true);
+        ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://127.0.0.1:5541/transport_schema_copy_test");
+        Agence lyon = Agence.builder().nom("Padel Club Lyon").adresse("Adresse conservée").build();
+        lyon.setId(1L);
+        Agence paris = Agence.builder().nom("Padel Club Paris").build();
+        paris.setId(2L);
+        when(agenceRepository.findAll()).thenReturn(java.util.List.of(lyon, paris));
+        dataInitializer.run();
+        dataInitializer.run();
+        verify(agenceRepository).save(lyon);
+        verify(agenceRepository).save(paris);
+        assertThat(lyon.getNom()).isEqualTo("Agence Transport Lyon");
+        assertThat(paris.getNom()).isEqualTo("Agence Transport Paris");
+        assertThat(lyon.getId()).isEqualTo(1L);
+        assertThat(paris.getId()).isEqualTo(2L);
+        assertThat(lyon.getAdresse()).isEqualTo("Adresse conservée");
+        verify(vehiculeRepository, never()).save(any());
+        verifyNoInteractions(passwordEncoder);
+    }
+
+    @Test
+    void refuseLeRenommageDesAgencesSurLaBaseMetier() {
+        when(agenceRepository.count()).thenReturn(1L);
+        ReflectionTestUtils.setField(dataInitializer, "prepareAgencies", true);
+        ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://localhost:5440/transportService");
+        assertThatThrownBy(() -> dataInitializer.run()).isInstanceOf(IllegalStateException.class);
+        verify(agenceRepository, never()).save(any());
+    }
+
+    @Test
     void refuseUnMotDePasseDepassantLaLimiteBcryptAvantTouteInsertion() {
         ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://localhost:5440/transport_demo_test");
         ReflectionTestUtils.setField(dataInitializer, "demoPassword", "a".repeat(73));

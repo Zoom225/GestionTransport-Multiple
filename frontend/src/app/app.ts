@@ -162,11 +162,25 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
       </div>
     </header>
 
+    @if (showJourneyBanner) {
+      <section class="journey-banner" [class.journey-banner-compact]="adminSession.isAuthenticated() || router.url.startsWith('/admin/login') || router.url === '/voyageur'" [attr.aria-label]="language.t('design.bannerLabel')">
+        <div class="journey-banner-copy">
+          <p class="journey-eyebrow">GestionTransport-Multiple</p>
+          <p class="journey-banner-title">{{ adminSession.isAuthenticated() ? language.t(adminSession.isGlobalAdmin() ? 'premium.global' : 'premium.local') : language.t('design.bannerTitle') }}</p>
+          <p>{{ language.t(adminSession.isAuthenticated() ? 'design.adminSubtitle' : 'design.bannerSubtitle') }}</p>
+          <a [routerLink]="adminSession.isAuthenticated() ? '/admin/trajets' : voyageurSession.isAuthenticated() ? '/voyageur/trajets' : '/'"
+             [fragment]="!adminSession.isAuthenticated() && !voyageurSession.isAuthenticated() ? 'trajets' : undefined"
+             class="journey-action">{{ language.t(adminSession.isAuthenticated() ? 'nav.trajets' : 'transport.search') }} <span aria-hidden="true">→</span></a>
+        </div>
+        <img src="images/mobilite-transport.svg" width="1000" height="600" alt="" aria-hidden="true" />
+      </section>
+    }
     <main id="main-content" tabindex="-1" class="app-main-shell">
       @if (adminSession.isAuthenticated() && router.url.startsWith('/admin') && !router.url.startsWith('/admin/login')) {
         <aside class="admin-navigation" [attr.aria-label]="language.t('premium.adminAccess')">
           <strong>{{ language.t(adminSession.isGlobalAdmin() ? 'premium.global' : 'premium.local') }}</strong>
-          <nav>
+          <button #adminMenuButton class="admin-menu-toggle" type="button" (click)="adminMenuOpen.set(!adminMenuOpen())" [attr.aria-expanded]="adminMenuOpen()" aria-controls="admin-navigation-links">{{ language.t('design.adminMenu') }}</button>
+          <nav id="admin-navigation-links" [class.open]="adminMenuOpen()" (click)="adminMenuOpen.set(false)" (keydown.escape)="adminMenuOpen.set(false); adminMenuButton.offsetParent ? adminMenuButton.focus() : null">
             <a routerLink="/admin" routerLinkActive="selected" [routerLinkActiveOptions]="{exact:true}" ariaCurrentWhenActive="page">{{ navText().dashboard }}</a>
             <a routerLink="/admin/agences" routerLinkActive="selected" ariaCurrentWhenActive="page">{{ navText().agences }}</a>
             <a routerLink="/admin/vehicules" routerLinkActive="selected" ariaCurrentWhenActive="page">{{ navText().vehicules }}</a>
@@ -195,6 +209,8 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
   `,
 })
 export class App {
+  readonly adminMenuOpen = signal(false);
+  get showJourneyBanner(): boolean { return this.router.url.split(/[?#]/)[0] !== '/'; }
   readonly menuOuvert = signal(false);
   readonly adminSession = inject(AdminSessionService);
   readonly voyageurSession = inject(VoyageurSessionService);

@@ -250,3 +250,71 @@ contrôles sans débordement et aucune erreur JS. Le serveur Angular de dévelop
 a été relancé après un écran d'erreur résiduel de compilation intermédiaire des
 clés de traduction ; les builds finaux et le contrôle navigateur sont réussis.
 Le serveur du projet reste sur http://127.0.0.1:4202.
+
+## Bannières automobiles et noms des agences — 14 novembre 2026
+
+Issue #6, branche `feature/issue-6-bannieres-agences-transport`, basée sur le
+correctif des villes distinctes de la PR #27. Les PR précédentes restent à revoir
+et ne sont pas fusionnées automatiquement. `pom.xml` conserve son diff local
+`artifactId=industri`, hors commit ; le package-lock non suivi à la racine est conservé.
+
+Les noms Padel dans les filtres provenaient des données des agences renvoyées
+par `/api/agences`, pas du libellé du filtre. DataInitializer dispose maintenant
+d’une préparation explicite des noms sur copie locale uniquement : profil dev,
+`DEMO_DATA_ENABLED=true`, `DEMO_PREPARE_AGENCIES=true`. Ce dernier flag est faux par
+défaut. L’opération refuse `transportService`, conserve les ID, adresses et relations,
+et une seconde exécution ne réenregistre pas les agences déjà renommées.
+Après sauvegarde de la copie `transport_schema_copy_20261113181001595`, les agences
+1 et 2 portent les noms **Agence Transport Lyon** et **Agence Transport Paris**.
+Les neuf connexions ont été revérifiées après cette préparation. Aucun compte,
+mot de passe, paiement ou trajet n’est réécrit par cette opération.
+
+Une nouvelle base de démonstration reçoit directement « Agence Transport Bruxelles —
+DÉMONSTRATION ». Les villes et adresses des agences historiques sont préservées.
+Il n’y a aucune migration SQL ni modification de la base métier dans ce chantier.
+
+Le même thème est réutilisé : illustration SVG automobile originale et légère,
+accueil illustré, bandeau automobile sur les cartes de trajets, bannière contextuelle
+sur les pages internes, cartes et séparateurs harmonisés. Les écrans de connexion
+et d’administration utilisent une bannière compacte. Le menu d’administration mobile
+conserve les liens et permissions existants ; ouverture, fermeture, Échap et retour
+du focus sont contrôlés. Les nouveaux textes passent par les traductions FR/EN.
+L’illustration est décorative sur les cartes et bannières ; sa provenance est dans
+`frontend/public/images/LICENCES.md`. Aucun ajout de bibliothèque ni contrat API modifié.
+
+Validations exécutées :
+
+- `mvn -B verify` : build réussi, 171 tests recensés, 154 réussis, 17 tests PostgreSQL
+  opt-in non activés lors de cette première exécution. Les 12 tests DataInitializer
+  incluent deux nouveaux cas : renommage idempotent et refus de la base métier.
+- Build Angular de production réussi ; compilation IntelliJ réussie après une
+  première demande ayant dépassé son délai, sans erreur de compilation signalée.
+- Exécution finale Angular : **78 tests réussis**, 14 fichiers de tests.
+- Tests PostgreSQL ciblés exécutés ensuite : **17 réussis, aucun ignoré**
+  (`PostgresBaselineTest` et `TransportSchemaValidationTest`) sur une nouvelle base
+  isolée pour les écritures et sur la copie restaurée en lecture/validate.
+  Les erreurs SQL d’unicité et de clé étrangère attendues par les tests négatifs
+  ne sont pas des échecs. Aucun test n’a été supprimé.
+- Navigateur Edge, API simulées : 57 affichages aux largeurs 375, 768 et 1440 px,
+  sans débordement ni erreur JavaScript ; 20 analyses axe-core sans violation détectée.
+  Le passage final inclut le nouveau menu mobile, sa navigation et le retour du focus.
+  Cela ne constitue pas une certification d’accessibilité de toutes les interactions.
+- Navigateur Edge, API/PostgreSQL réels sur `transport_demo_premium_20261114031416` :
+  11 contrôles fonctionnels et 12 contrôles responsive réussis. Réservation Angular,
+  paiement de 25 €, confirmation, quatre clients/100 €, concurrence dernière place,
+  annulation/remboursement, historique, GLOBAL/AGENCE et refus hors périmètre vérifiés.
+  Le premier essai avait dépassé le délai de démarrage du backend ; la relance réussit.
+- Sur la copie locale active, six contrôles GLOBAL/AGENCE à 375/768/1440 px : noms
+  Transport dans les choix d’agences et le formulaire de création, menu mobile/Échap/focus,
+  aucun débordement et aucune erreur JavaScript. Une assertion initiale a été corrigée
+  pour attendre la mise à jour du DOM Angular, sans délai fixe ni changement métier.
+
+Captures après modification, avec des données de démonstration et API simulées,
+inspectées visuellement ; les captures avant des précédents chantiers sont conservées :
+
+- [Accueil ordinateur](../images/ui/mobilite-accueil-1440.jpg)
+- [Accueil mobile](../images/ui/mobilite-accueil-375.jpg)
+- [Administration mobile](../images/ui/mobilite-dashboard-375.jpg)
+
+Le serveur de développement du projet a été relancé sur http://127.0.0.1:4202.
+Les dumps, secrets, rapports détaillés et captures supplémentaires restent hors Git.
