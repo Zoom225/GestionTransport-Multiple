@@ -1,6 +1,7 @@
 ﻿export type Locale = 'fr' | 'en';
 
 export type TranslationKey =
+  | 'transport.differentCities'
   | 'vehicleChoice.placeholder'
   | 'vehicleChoice.hint'
   | 'vehicleChoice.loading'
@@ -492,6 +493,7 @@ export type TranslationParams = Record<string, string | number>;
 
 export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>>> = {
   fr: {
+    'transport.differentCities': 'Choisissez deux villes différentes : la ville de départ et la destination ne peuvent pas être identiques.',
     'vehicleChoice.placeholder': 'Sélectionner un véhicule',
     'vehicleChoice.hint': 'Véhicules disponibles de cette agence · 4 places clients, chauffeur exclu.',
     'vehicleChoice.loading': 'Chargement des véhicules de cette agence…',
@@ -1011,6 +1013,7 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.reservations.reservationCancelError': 'Annulation impossible.',
   },
   en: {
+    'transport.differentCities': 'Choose two different cities: departure and destination cannot be the same.',
     'vehicleChoice.placeholder': 'Select a vehicle',
     'vehicleChoice.hint': 'Available vehicles from this agency · 4 passenger places, excluding the driver.',
     'vehicleChoice.loading': 'Loading vehicles for this agency…',

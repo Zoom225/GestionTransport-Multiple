@@ -63,6 +63,27 @@ it('envoie les codes des villes et la date du formulaire de recherche', async ()
   });
 });
 
+it('bloque une recherche sur la même ville et accepte sa correction ou les filtres vides', async () => {
+  await TestBed.configureTestingModule({
+    imports:[TrajetSearchComponent],
+    providers:[provideNoopAnimations(), {provide:TrajetsApiService,useValue:{getVilles:()=>of([
+      {code:'MONS',libelle:'Mons'}, {code:'BRUXELLES',libelle:'Bruxelles'}
+    ])}}],
+  }).compileComponents();
+  const fixture=TestBed.createComponent(TrajetSearchComponent);
+  const component=fixture.componentInstance;
+  const emitted=vi.fn();component.recherche.subscribe(emitted);
+  component.form.patchValue({depart:'MONS',arrivee:'MONS'});
+  fixture.detectChanges();component.search();
+  expect(component.form.hasError('sameCity')).toBe(true);
+  expect(emitted).not.toHaveBeenCalled();
+  expect(fixture.nativeElement.querySelector('[role=alert]')?.textContent).toContain('deux villes différentes');
+  component.form.controls.arrivee.setValue('BRUXELLES');component.search();
+  expect(emitted).toHaveBeenCalledWith({depart:'MONS',arrivee:'BRUXELLES',date:''});
+  component.form.patchValue({depart:'',arrivee:''});component.search();
+  expect(emitted).toHaveBeenLastCalledWith({depart:'',arrivee:'',date:''});
+});
+
 const trajet: TrajetResponse = {
   id: 1,
   vehiculeId: 1,

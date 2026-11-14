@@ -7,6 +7,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { TrajetsApiService } from '../../core/api/trajets-api.service';
 import { RechercheTrajet, VilleOption } from '../models/trajet.model';
+import { differentCitiesValidator } from '../validators/different-cities.validator';
 
 @Component({
   selector: 'app-trajet-search',
@@ -21,7 +22,7 @@ import { RechercheTrajet, VilleOption } from '../models/trajet.model';
   template: `
     <form
       [formGroup]="form"
-      (ngSubmit)="recherche.emit(form.getRawValue())"
+      (ngSubmit)="search()"
       class="search-form"
       [attr.aria-busy]="chargementVilles()"
       aria-label="{{ language.t('transport.search') }}"
@@ -31,7 +32,7 @@ import { RechercheTrajet, VilleOption } from '../models/trajet.model';
         <mat-select formControlName="depart"
           ><mat-option value="">{{ language.t('transport.allCities') }}</mat-option>
           @for (ville of villes(); track ville.code) {
-            <mat-option [value]="ville.code">{{ ville.libelle }}</mat-option>
+            <mat-option [value]="ville.code" [disabled]="ville.code === form.controls.arrivee.value">{{ ville.libelle }}</mat-option>
           }
         </mat-select>
       </mat-form-field>
@@ -40,7 +41,7 @@ import { RechercheTrajet, VilleOption } from '../models/trajet.model';
         <mat-select formControlName="arrivee"
           ><mat-option value="">{{ language.t('transport.allCities') }}</mat-option>
           @for (ville of villes(); track ville.code) {
-            <mat-option [value]="ville.code">{{ ville.libelle }}</mat-option>
+            <mat-option [value]="ville.code" [disabled]="ville.code === form.controls.depart.value">{{ ville.libelle }}</mat-option>
           }
         </mat-select>
       </mat-form-field>
@@ -48,10 +49,13 @@ import { RechercheTrajet, VilleOption } from '../models/trajet.model';
         ><mat-label>{{ language.t('transport.travelDate') }}</mat-label
         ><input matInput type="date" formControlName="date"
       /></mat-form-field>
-      <button mat-flat-button type="submit" [disabled]="chargementVilles()">
+      <button mat-flat-button type="submit" [disabled]="chargementVilles() || form.invalid">
         {{ language.t('transport.search') }}
       </button>
     </form>
+    @if (form.hasError('sameCity')) {
+      <p role="alert" class="status-error">{{ language.t('transport.differentCities') }}</p>
+    }
     @if (erreur()) {
       <p role="alert" class="status-error">{{ erreur() }}</p>
     }
@@ -100,7 +104,12 @@ export class TrajetSearchComponent {
     depart: new FormControl('', { nonNullable: true }),
     arrivee: new FormControl('', { nonNullable: true }),
     date: new FormControl('', { nonNullable: true }),
-  });
+  }, { validators: differentCitiesValidator('depart', 'arrivee') });
+  search(): void {
+    this.form.markAllAsTouched();
+    if (this.form.invalid || this.chargementVilles()) return;
+    this.recherche.emit(this.form.getRawValue());
+  }
   constructor() {
     inject(TrajetsApiService)
       .getVilles()

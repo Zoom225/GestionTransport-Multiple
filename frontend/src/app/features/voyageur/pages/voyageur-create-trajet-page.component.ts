@@ -23,6 +23,7 @@ import { VilleOption } from '../../../shared/models/trajet.model';
 import { TrajetResponse } from '../../../shared/models/trajet.model';
 import { AgenceResponse, VehiculeResponse } from '../../../shared/models/agence-vehicule.model';
 import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
+import { differentCitiesValidator } from '../../../shared/validators/different-cities.validator';
 
 const formatDateForInput = (date: Date): string => {
   const year = date.getFullYear();
@@ -75,7 +76,7 @@ const formatDateForInput = (date: Date): string => {
               ><mat-label>{{ language.t('transport.departure') }}</mat-label
               ><mat-select formControlName="villeDepart">
                 @for (ville of villes(); track ville.code) {
-                  <mat-option [value]="ville.code">{{ ville.libelle }}</mat-option>
+                  <mat-option [value]="ville.code" [disabled]="ville.code === form.controls.villeArrivee.value">{{ ville.libelle }}</mat-option>
                 }
               </mat-select></mat-form-field
             >
@@ -83,10 +84,13 @@ const formatDateForInput = (date: Date): string => {
               ><mat-label>{{ language.t('transport.destination') }}</mat-label
               ><mat-select formControlName="villeArrivee">
                 @for (ville of villes(); track ville.code) {
-                  <mat-option [value]="ville.code">{{ ville.libelle }}</mat-option>
+                  <mat-option [value]="ville.code" [disabled]="ville.code === form.controls.villeDepart.value">{{ ville.libelle }}</mat-option>
                 }
               </mat-select></mat-form-field
             >
+            @if (form.hasError('sameCity')) {
+              <p role="alert" class="status-error md:col-span-2">{{ language.t('transport.differentCities') }}</p>
+            }
             @if (adminSession.isAuthenticated()) {
               <mat-form-field appearance="outline"
                 ><mat-label>{{ language.t('ui.driverAuthorized') }}</mat-label
@@ -298,7 +302,7 @@ export class VoyageurCreateTrajetPage {
     passager2: new FormControl('', { nonNullable: true }),
     passager3: new FormControl('', { nonNullable: true }),
     passager4: new FormControl('', { nonNullable: true }),
-  });
+  }, { validators: differentCitiesValidator('villeDepart', 'villeArrivee') });
 
   constructor() {
     this.destroyRef.onDestroy(() => this.vehiculesRequest?.unsubscribe());
@@ -433,10 +437,6 @@ export class VoyageurCreateTrajetPage {
       publicationAutomatiqueAutorisee,
       chauffeurId,
     } = this.form.getRawValue();
-    if (villeDepart === villeArrivee) {
-      this.errorMessage.set('Choisissez deux villes différentes.');
-      return;
-    }
     if (!this.adminSession.isAuthenticated() && !this.voyageur()?.peutProposerTrajet) {
       this.errorMessage.set("Votre compte n'est pas autorisé à proposer des trajets.");
       return;

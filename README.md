@@ -53,6 +53,13 @@ est désactivée par défaut, idempotente et refuse la base métier.
 - Départ et destination sont deux villes belges distinctes, choisies dans la liste centrale
   du backend. Bruxelles, Mons, Charleroi, Namur, Liège, Anvers, Gand, Louvain, Nivelles et
   Wavre sont proposés. Les retours sont des trajets indépendants ; Bruxelles n'est pas obligatoire.
+  **Règle C01 : une ville ne peut pas être à la fois le départ et la destination.**
+  La ville déjà choisie est désactivée dans l'autre liste. Un choix identique
+  invalide immédiatement le formulaire de création ou de recherche et bloque
+  l'envoi. Le backend refuse également les appels directs avec HTTP 400 :
+  « Choisissez deux villes différentes : la ville de départ et la destination
+  ne peuvent pas être identiques. » Les recherches sans ville ou avec une seule
+  ville restent possibles ; aucune donnée historique n'est réécrite.
 - Un Voyageur autorisé à proposer un trajet devient automatiquement son chauffeur depuis
   son authentification. Un administrateur sélectionne un chauffeur existant dans son périmètre.
   Aucun chauffeur librement substituable depuis le navigateur.

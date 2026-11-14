@@ -199,7 +199,21 @@ describe('VoyageurCreateTrajetPage', () => {
     component.form.patchValue({villeDepart:'MONS',villeArrivee:'MONS',date:component.todayDate(),heureDebut:'10:00'});
     component.submit();
     expect(trajetsApiMock.create).not.toHaveBeenCalled();
-    expect(component.errorMessage()).toContain('deux villes différentes');
+    expect(component.form.hasError('sameCity')).toBe(true);
+  });
+
+  it('affiche immédiatement la règle et revalide le formulaire après correction', () => {
+    const fixture = TestBed.createComponent(VoyageurCreateTrajetPage);
+    const component = fixture.componentInstance;
+    component.form.patchValue({villeDepart:'MONS',villeArrivee:'MONS'});
+    fixture.detectChanges();
+    expect(component.form.hasError('sameCity')).toBe(true);
+    expect(fixture.nativeElement.querySelector('[role=alert]')?.textContent).toContain('ne peuvent pas être identiques');
+    expect(fixture.nativeElement.querySelector('button[type=submit]').disabled).toBe(true);
+    component.form.controls.villeArrivee.setValue('BRUXELLES');
+    fixture.detectChanges();
+    expect(component.form.hasError('sameCity')).toBe(false);
+    expect(fixture.nativeElement.querySelector('[role=alert]')).toBeNull();
   });
 
   it('crée un trajet privé et ajoute les passagers invités', () => {
