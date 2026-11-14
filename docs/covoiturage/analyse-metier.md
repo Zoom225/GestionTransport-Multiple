@@ -67,7 +67,7 @@ ne décrivent donc pas encore le contenu de develop. Aucun travail n'est refait 
 
 | ID | Règle cible | Source / contrôle |
 | --- | --- | --- |
-| C01 | Départ et destination doivent différer ; villes issues de la liste centrale | Demandeur ; tests service/REST |
+| C01 | Départ et destination doivent différer ; villes issues de la liste centrale. Même règle lors d'une recherche renseignant les deux villes | Demandeur ; validation réactive Angular, service et REST |
 | C02 | Toute paire de villes belges autorisées est possible, sans obligation de passer par Bruxelles | Demandeur ; recherche et création |
 | C03 | Conducteur obligatoire et unique ; pour un voyageur, identité issue de l'authentification | PDF p.2 ; tests anti-usurpation |
 | C04 | Un administrateur choisit un conducteur existant, autorisé et dans son périmètre | Demandeur ; tests administrateur local/global |

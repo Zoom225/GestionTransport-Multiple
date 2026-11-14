@@ -1,18 +1,22 @@
 import { LanguageService } from '../../core/i18n/language.service';
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { TrajetDetailComponent } from './trajet-detail.component';
 import { MatButtonModule } from '@angular/material/button';
 import { TrajetResponse } from '../models/trajet.model';
 
 @Component({
   selector: 'app-trajet-card',
   standalone: true,
-  imports: [CommonModule, MatButtonModule],
+  imports: [CommonModule, MatButtonModule, MatDialogModule],
   template: `
     <article class="trip-card" [attr.data-trajet-id]="trajet.id">
+      <div class="trip-visual" aria-hidden="true"><img src="images/mobilite-transport.svg" width="1000" height="600" alt="" loading="lazy" decoding="async" /></div>
       <div class="trip-top">
-        <span class="type">{{ trajet.typeTrajet }}</span
-        ><span>{{ trajet.date | date: 'dd/MM/yyyy' }} · {{ trajet.heureDebut.slice(0, 5) }}</span>
+        <span class="type">{{ trajet.typeTrajet }}</span><span
+          >{{ trajet.date | date: 'dd/MM/yyyy' }} · {{ trajet.heureDebut.slice(0, 5) }}</span
+        >
       </div>
       <h3>
         {{ nomVille(trajet.villeDepart) }} <span aria-label="vers">→</span>
@@ -25,8 +29,7 @@ import { TrajetResponse } from '../models/trajet.model';
       <p>{{ trajet.vehiculeNom }} · {{ trajet.agenceNom }}</p>
       <div class="trip-bottom">
         <span
-          >{{ restantes() }} {{ language.t('transport.remaining') }}
-          {{ trajet.placesMaximum ?? 4 }}</span
+          >{{ language.t('transport.remaining', { count: restantes(), maximum: trajet.placesMaximum ?? 4 }) }}</span
         ><strong
           >{{ trajet.prixParPassager | currency: 'EUR' : 'symbol' : '1.0-2' }}
           <small>{{ language.t('transport.perPerson') }}</small></strong
@@ -43,7 +46,8 @@ import { TrajetResponse } from '../models/trajet.model';
             restantes() === 0
               ? language.t('transport.full')
               : labelAction || language.t('transport.reserve')
-          }}</button
+          }}</button><button mat-stroked-button type="button" (click)="openDetails()">
+          {{ language.t('ui.details') }}</button
         ><ng-content />
       </div>
     </article>
@@ -53,82 +57,115 @@ import { TrajetResponse } from '../models/trajet.model';
       :host {
         display: block;
         min-width: 0;
+        height: 100%;
       }
       .trip-card {
+        display: flex;
+        flex-direction: column;
         height: 100%;
         padding: 1.5rem;
-        background: white;
-        border: 1px solid #dce7e6;
-        border-radius: 20px;
-        box-shadow: 0 8px 28px #0f4e3e08;
-        transition: transform 0.2s;
+        background: var(--ui-surface);
+        border: 1px solid var(--ui-border);
+        border-radius: var(--ui-radius);
+        box-shadow: var(--ui-shadow);
+        transition:
+          box-shadow 0.2s,
+          border-color 0.2s;
       }
       .trip-card:hover {
-        transform: translateY(-3px);
+        box-shadow: var(--ui-shadow-raised);
+        border-color: var(--ui-primary);
       }
+      .trip-visual { height: 120px; margin: -0.5rem -0.5rem 1.25rem; overflow: hidden; border-radius: 12px; background: var(--ui-primary-soft); }
+      .trip-visual img { width: 100%; height: 100%; object-fit: contain; }
       .trip-top,
       .trip-bottom,
       .actions {
         display: flex;
-        align-items: center;
         justify-content: space-between;
+        align-items: center;
         gap: 0.75rem;
         flex-wrap: wrap;
       }
       .trip-top {
-        font-size: 0.8rem;
-        color: #526662;
+        font-size: 0.78rem;
+        color: var(--ui-text-secondary);
       }
       .type {
-        background: #e0f4eb;
-        color: #145a42;
         padding: 0.25rem 0.6rem;
-        border-radius: 30px;
-        font-weight: 700;
+        font-size: 0.7rem;
+        font-weight: 750;
+        border-radius: 7px;
+        background: var(--ui-primary-soft);
+        color: var(--ui-primary-strong);
       }
       h3 {
-        font-size: 1.45rem;
-        color: #173f36;
+        font-size: 1.4rem;
+        color: var(--ui-navy);
+        margin: 1.5rem 0 1.25rem;
         line-height: 1.4;
-        margin: 1.3rem 0;
+      }
+      h3 span {
+        color: var(--ui-teal-strong);
+        padding-inline: 0.2rem;
       }
       p {
-        font-size: 0.9rem;
-        color: #526662;
-        margin: 0.5rem 0;
+        font-size: 0.85rem;
+        color: var(--ui-text-secondary);
+        margin: 0.25rem 0;
+      }
+      .driver strong {
+        color: var(--ui-navy);
+        font-weight: 650;
       }
       .trip-bottom {
-        border-top: 1px solid #e6eeeb;
-        margin-top: 1.25rem;
-        padding-top: 1rem;
-        font-size: 0.85rem;
+        border-top: 1px solid var(--ui-border);
+        margin-top: 1.5rem;
+        padding-top: 1.25rem;
+        font-size: 0.8rem;
       }
       .trip-bottom strong {
-        font-size: 1.5rem;
-        color: #173f36;
+        color: var(--ui-navy);
+        font-size: 1.65rem;
+        font-weight: 750;
       }
       .trip-bottom small {
-        font-weight: 400;
-        font-size: 0.75rem;
+        display: block;
+        text-align: right;
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: var(--ui-text-secondary);
       }
       .actions {
+        margin-top: auto;
+        padding-top: 1.25rem;
         justify-content: flex-start;
-        margin-top: 1.2rem;
       }
-      button {
-        min-height: 44px;
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .trip-card {
-          transition: none;
-          transform: none;
-        }
+      .actions button {
+        flex: 1 1 auto;
       }
     `,
   ],
 })
 export class TrajetCardComponent {
   readonly language = inject(LanguageService);
+  private readonly dialog = inject(MatDialog);
+  openDetails(): void {
+    this.dialog
+      .open(TrajetDetailComponent, {
+        width: '680px',
+        maxWidth: 'calc(100vw - 32px)',
+        autoFocus: 'first-heading',
+        data: {
+          trajet: this.trajet,
+          disabled: this.disabled || this.restantes() === 0 || this.trajet.statut !== 'PLANIFIE',
+        },
+      })
+      .afterClosed()
+      .subscribe((reserver) => {
+        if (reserver === true) this.reservationDemandee.emit(this.trajet);
+      });
+  }
   @Input({ required: true }) trajet!: TrajetResponse;
   @Input() disabled = false;
   @Input() labelAction = '';
@@ -139,6 +176,6 @@ export class TrajetCardComponent {
   nomVille(code?: string | null): string {
     return code
       ? (code.charAt(0) + code.slice(1).toLowerCase()).replace('Liege', 'Liège')
-      : 'Ville à préciser';
+      : this.language.t('ui.cityMissing');
   }
 }

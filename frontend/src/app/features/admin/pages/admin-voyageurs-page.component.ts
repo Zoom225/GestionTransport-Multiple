@@ -39,7 +39,9 @@ import { LanguageService } from '../../../core/i18n/language.service';
     <div class="adm-header">
       <div class="adm-header-content">
         <div class="adm-header-left">
-          <span class="adm-icon">🚗</span>
+          <span class="adm-icon" aria-hidden="true"
+            ><svg class="ui-icon"><use href="images/ui-icons.svg#car" /></svg
+          ></span>
           <div>
             <h1 class="adm-title ds-section-title">{{ language.t('admin.voyageurs.title') }}</h1>
             <p class="adm-sub ds-subtitle">{{ language.t('admin.voyageurs.subtitle') }}</p>
@@ -88,7 +90,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
               matInput
               formControlName="matricule"
               [readonly]="editingId() !== null"
-              [placeholder]="editingId() ? '' : 'G1234 / S12345 / L12345'"
+              [placeholder]="editingId() ? '' : 'V1234 / L12345 / F12345'"
               class="uppercase font-semibold tracking-wider"
             />
             @if (!editingId()) {
@@ -130,16 +132,16 @@ import { LanguageService } from '../../../core/i18n/language.service';
             <mat-select formControlName="agenceId">
               <mat-option [value]="null">{{ language.t('admin.voyageurs.agenceNone') }}</mat-option>
               @for (agence of agences(); track agence.id) {
-                <mat-option [value]="agence.id">🏢 {{ agence.nom }}</mat-option>
+                <mat-option [value]="agence.id"> {{ agence.nom }}</mat-option>
               }
             </mat-select>
           </mat-form-field>
 
           @if (message()) {
-            <div class="status-success md:col-span-2">✅ {{ message() }}</div>
+            <div class="status-success md:col-span-2">{{ message() }}</div>
           }
           @if (errorMessage()) {
-            <div class="status-error md:col-span-2">❌ {{ errorMessage() }}</div>
+            <div class="status-error md:col-span-2">{{ errorMessage() }}</div>
           }
 
           <div class="flex items-center gap-3 md:col-span-2">
@@ -150,7 +152,10 @@ import { LanguageService } from '../../../core/i18n/language.service';
               {{ language.t('common.reset') }}
             </button>
             @if (loading()) {
-              <mat-spinner diameter="24"></mat-spinner>
+              <mat-spinner
+                [attr.aria-label]="language.t('transport.searching')"
+                diameter="24"
+              ></mat-spinner>
             }
           </div>
         </form>
@@ -158,9 +163,10 @@ import { LanguageService } from '../../../core/i18n/language.service';
 
       <!-- Recherche par matricule -->
       <div class="adm-search-bar">
-        <span class="adm-search-icon">🔍</span>
+        <span class="adm-search-icon"></span>
         <input
           class="adm-search-input"
+          [attr.aria-label]="language.t('admin.voyageurs.searchPlaceholder')"
           type="text"
           [placeholder]="language.t('admin.voyageurs.searchPlaceholder')"
           [value]="searchQuery()"
@@ -188,28 +194,30 @@ import { LanguageService } from '../../../core/i18n/language.service';
           [class.active]="typeFilter() === 'VIP'"
           (click)="typeFilter.set('VIP')"
         >
-          🌍 {{ language.t('admin.voyageurs.filterGlobal') }} ({{ countByType('VIP') }})
+          {{ language.t('admin.voyageurs.filterGlobal') }} ({{ countByType('VIP') }})
         </button>
         <button
           class="adm-filter-btn adm-filter-agence"
           [class.active]="typeFilter() === 'LOCAL'"
           (click)="typeFilter.set('LOCAL')"
         >
-          🏢 {{ language.t('admin.voyageurs.filterAgence') }} ({{ countByType('LOCAL') }})
+          {{ language.t('admin.voyageurs.filterAgence') }} ({{ countByType('LOCAL') }})
         </button>
         <button
           class="adm-filter-btn adm-filter-libre"
           [class.active]="typeFilter() === 'LIBRE'"
           (click)="typeFilter.set('LIBRE')"
         >
-          ⚡ {{ language.t('admin.voyageurs.filterLibre') }} ({{ countByType('LIBRE') }})
+          {{ language.t('admin.voyageurs.filterLibre') }} ({{ countByType('LIBRE') }})
         </button>
       </div>
 
       <!-- Liste des voyageurs -->
       @if (displayedVoyageurs().length === 0) {
         <div class="adm-empty">
-          <span class="adm-empty-icon">🚗</span>
+          <span class="adm-empty-icon" aria-hidden="true"
+            ><svg class="ui-icon"><use href="images/ui-icons.svg#car" /></svg
+          ></span>
           <p class="adm-empty-title">{{ language.t('admin.voyageurs.empty') }}</p>
           <p class="adm-empty-sub">
             {{
@@ -229,13 +237,15 @@ import { LanguageService } from '../../../core/i18n/language.service';
           >
             <div class="adm-voyageur-top">
               <div class="adm-voyageur-avatar">
-                {{
-                  voyageur.typeVoyageur === 'VIP'
-                    ? '🌍'
-                    : voyageur.typeVoyageur === 'LOCAL'
-                      ? '🏢'
-                      : '⚡'
-                }}
+                <svg class="ui-icon" aria-hidden="true">
+                  <use
+                    [attr.href]="
+                      voyageur.typeVoyageur === 'LOCAL'
+                        ? 'images/ui-icons.svg#agency'
+                        : 'images/ui-icons.svg#user'
+                    "
+                  />
+                </svg>
               </div>
               <div class="adm-voyageur-info">
                 <div class="adm-voyageur-name">{{ voyageur.prenom }} {{ voyageur.nom }}</div>
@@ -271,19 +281,32 @@ import { LanguageService } from '../../../core/i18n/language.service';
             </div>
 
             <div class="adm-voyageur-actions">
-              <button mat-button type="button" (click)="voirRestrictions(voyageur.id)">Historique des restrictions</button>
+              <button mat-button type="button" (click)="voirRestrictions(voyageur.id)">
+                {{ language.t('ui.restrictionHistory') }}
+              </button>
               <button class="adm-action-edit" (click)="edit(voyageur)">
-                ✏️ {{ language.t('admin.voyageurs.edit') }}
+                {{ language.t('admin.voyageurs.edit') }}
               </button>
               <button class="adm-action-delete" (click)="remove(voyageur.id)">
-                🗑️ {{ language.t('admin.voyageurs.delete') }}
+                {{ language.t('admin.voyageurs.delete') }}
               </button>
             </div>
             @if (historiqueVoyageurId() === voyageur.id) {
               <div class="p-4" aria-live="polite">
                 @for (restriction of historiqueRestrictions(); track restriction.id) {
-                  <p class="break-words">{{ restriction.motif }} — {{ restriction.dateDebut ? (restriction.dateDebut | date:'dd/MM/yyyy') : 'Début historique non renseigné' }} → {{ restriction.dateFin | date:'dd/MM/yyyy' }} : {{ restriction.active ? 'Active' : 'Inactive' }}</p>
-                } @empty { <p>Aucune restriction enregistrée.</p> }
+                  <p class="break-words">
+                    {{ restriction.motif }} —
+                    {{
+                      restriction.dateDebut
+                        ? (restriction.dateDebut | date: 'dd/MM/yyyy')
+                        : language.t('ui.unknownStart')
+                    }}
+                    → {{ restriction.dateFin | date: 'dd/MM/yyyy' }} :
+                    {{ restriction.active ? language.t('ui.active') : language.t('ui.inactive') }}
+                  </p>
+                } @empty {
+                  <p>{{ language.t('ui.noRestrictions') }}</p>
+                }
               </div>
             }
           </div>
@@ -293,7 +316,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
 
     <style>
       .adm-header {
-        background: linear-gradient(135deg, #14532d 0%, #15803d 50%, #166534 100%);
+        background: linear-gradient(120deg, var(--ui-navy), var(--ui-primary-strong));
         padding: 1.5rem 2rem;
       }
       .adm-header-content {
@@ -314,25 +337,25 @@ import { LanguageService } from '../../../core/i18n/language.service';
       .adm-title {
         font-size: 1.6rem;
         font-weight: 800;
-        color: #fff;
+        color: var(--ui-surface);
         margin: 0;
       }
       .adm-sub {
-        color: rgba(255, 255, 255, 0.75);
+        color: color-mix(in srgb, var(--ui-surface) 75%, transparent);
         font-size: 0.85rem;
         margin: 0;
       }
       .adm-back-btn {
-        color: #fff !important;
-        border-color: rgba(255, 255, 255, 0.4) !important;
+        color: var(--ui-surface) !important;
+        border-color: color-mix(in srgb, var(--ui-surface) 40%, transparent) !important;
       }
 
       .adm-form-card {
-        background: #fff;
+        background: var(--ui-surface);
         border-radius: 1.25rem;
-        box-shadow: 0 4px 20px rgba(21, 128, 61, 0.1);
+        box-shadow: var(--ui-shadow);
         padding: 1.5rem;
-        border-left: 5px solid #16a34a;
+        border-left: 5px solid var(--ui-teal-strong);
       }
       .adm-form-header {
         display: flex;
@@ -346,36 +369,36 @@ import { LanguageService } from '../../../core/i18n/language.service';
       .adm-form-title {
         font-size: 1.2rem;
         font-weight: 700;
-        color: #14532d;
+        color: var(--ui-navy);
         margin: 0;
       }
 
       .adm-success {
-        background: #f0fdf4;
-        border: 1px solid #86efac;
+        background: var(--ui-surface-subtle);
+        border: 1px solid var(--ui-teal-strong);
         border-radius: 0.75rem;
         padding: 0.75rem 1rem;
-        color: #14532d;
+        color: var(--ui-navy);
         font-size: 0.9rem;
       }
       .adm-error {
-        background: #fef2f2;
-        border: 1px solid #fca5a5;
+        background: var(--ui-surface);
+        border: 1px solid var(--ui-danger);
         border-radius: 0.75rem;
         padding: 0.75rem 1rem;
-        color: #991b1b;
+        color: var(--ui-danger);
         font-size: 0.9rem;
       }
 
       .adm-btn-primary {
-        background: linear-gradient(135deg, #15803d, #16a34a);
-        color: #fff;
+        background: var(--ui-primary);
+        color: var(--ui-surface);
         border: none;
         border-radius: 0.6rem;
         padding: 0.65rem 1.5rem;
         font-weight: 700;
         cursor: pointer;
-        box-shadow: 0 3px 10px rgba(21, 128, 61, 0.3);
+        box-shadow: var(--ui-shadow);
         transition: transform 0.15s;
       }
       .adm-btn-primary:hover:not(:disabled) {
@@ -386,9 +409,9 @@ import { LanguageService } from '../../../core/i18n/language.service';
         cursor: not-allowed;
       }
       .adm-btn-secondary {
-        background: #f8fafc;
-        color: #475569;
-        border: 1px solid #cbd5e1;
+        background: var(--ui-surface);
+        color: var(--ui-text-secondary);
+        border: 1px solid var(--ui-border);
         border-radius: 0.6rem;
         padding: 0.65rem 1.25rem;
         font-weight: 600;
@@ -396,18 +419,18 @@ import { LanguageService } from '../../../core/i18n/language.service';
         transition: background 0.15s;
       }
       .adm-btn-secondary:hover {
-        background: #f1f5f9;
+        background: var(--ui-surface-subtle);
       }
 
       .adm-search-bar {
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        background: #fff;
-        border: 2px solid #86efac;
+        background: var(--ui-surface);
+        border: 2px solid var(--ui-teal-strong);
         border-radius: 1rem;
         padding: 0.6rem 1rem;
-        box-shadow: 0 2px 8px rgba(21, 128, 61, 0.1);
+        box-shadow: var(--ui-shadow);
       }
       .adm-search-icon {
         font-size: 1.1rem;
@@ -418,10 +441,10 @@ import { LanguageService } from '../../../core/i18n/language.service';
         outline: none;
         font-size: 0.95rem;
         background: transparent;
-        color: #1e293b;
+        color: var(--ui-navy);
       }
       .adm-search-clear {
-        background: #fee2e2;
+        background: var(--ui-surface-subtle);
         border: none;
         border-radius: 50%;
         width: 1.5rem;
@@ -434,9 +457,9 @@ import { LanguageService } from '../../../core/i18n/language.service';
       }
       .adm-search-count {
         font-size: 0.8rem;
-        color: #64748b;
+        color: var(--ui-text-secondary);
         white-space: nowrap;
-        background: #f0fdf4;
+        background: var(--ui-surface-subtle);
         padding: 0.2rem 0.6rem;
         border-radius: 9999px;
       }
@@ -449,34 +472,34 @@ import { LanguageService } from '../../../core/i18n/language.service';
       .adm-filter-btn {
         padding: 0.4rem 1rem;
         border-radius: 9999px;
-        border: 2px solid #e2e8f0;
-        background: #fff;
+        border: 2px solid var(--ui-surface-subtle);
+        background: var(--ui-surface);
         font-size: 0.82rem;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.15s;
-        color: #475569;
+        color: var(--ui-text-secondary);
       }
       .adm-filter-btn.active,
       .adm-filter-btn:hover {
-        border-color: #16a34a;
-        background: #f0fdf4;
-        color: #14532d;
+        border-color: var(--ui-teal-strong);
+        background: var(--ui-surface-subtle);
+        color: var(--ui-navy);
       }
       .adm-filter-global.active {
-        border-color: #3b82f6;
-        background: #eff6ff;
-        color: #1d4ed8;
+        border-color: var(--ui-primary-strong);
+        background: var(--ui-surface-subtle);
+        color: var(--ui-primary-strong);
       }
       .adm-filter-agence.active {
-        border-color: #16a34a;
-        background: #f0fdf4;
-        color: #14532d;
+        border-color: var(--ui-teal-strong);
+        background: var(--ui-surface-subtle);
+        color: var(--ui-navy);
       }
       .adm-filter-libre.active {
-        border-color: #eab308;
-        background: #fefce8;
-        color: #a16207;
+        border-color: var(--ui-warning);
+        background: var(--ui-surface-subtle);
+        color: var(--ui-warning);
       }
 
       .adm-empty {
@@ -491,37 +514,37 @@ import { LanguageService } from '../../../core/i18n/language.service';
       .adm-empty-title {
         font-size: 1.1rem;
         font-weight: 700;
-        color: #374151;
+        color: var(--ui-text-secondary);
         margin: 0 0 0.35rem;
       }
       .adm-empty-sub {
-        color: #9ca3af;
+        color: var(--ui-text-secondary);
         font-size: 0.9rem;
         margin: 0;
       }
 
       .adm-voyageur-card {
-        background: #fff;
+        background: var(--ui-surface);
         border-radius: 1.25rem;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+        box-shadow: var(--ui-shadow);
         overflow: hidden;
         transition:
           transform 0.15s,
           box-shadow 0.15s;
-        border-top: 4px solid #e2e8f0;
+        border-top: 4px solid var(--ui-surface-subtle);
       }
       .adm-voyageur-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+        box-shadow: var(--ui-shadow);
       }
       .adm-voyageur-global {
-        border-top-color: #3b82f6;
+        border-top-color: var(--ui-primary-strong);
       }
       .adm-voyageur-agence {
-        border-top-color: #16a34a;
+        border-top-color: var(--ui-teal-strong);
       }
       .adm-voyageur-libre {
-        border-top-color: #eab308;
+        border-top-color: var(--ui-warning);
       }
 
       .adm-voyageur-top {
@@ -539,11 +562,11 @@ import { LanguageService } from '../../../core/i18n/language.service';
       .adm-voyageur-name {
         font-size: 1rem;
         font-weight: 700;
-        color: #1e293b;
+        color: var(--ui-navy);
       }
       .adm-voyageur-matricule {
         font-size: 0.85rem;
-        color: #64748b;
+        color: var(--ui-text-secondary);
         font-family: monospace;
         letter-spacing: 0.05em;
       }
@@ -557,24 +580,24 @@ import { LanguageService } from '../../../core/i18n/language.service';
         letter-spacing: 0.06em;
       }
       .adm-badge-global {
-        background: #dbeafe;
-        color: #1d4ed8;
+        background: var(--ui-primary-soft);
+        color: var(--ui-primary-strong);
       }
       .adm-badge-agence {
-        background: #dcfce7;
-        color: #15803d;
+        background: var(--ui-teal-soft);
+        color: var(--ui-teal-strong);
       }
       .adm-badge-libre {
-        background: #fef9c3;
-        color: #a16207;
+        background: var(--ui-warning-soft);
+        color: var(--ui-warning);
       }
       .adm-restriction-badge {
         display: inline-flex;
         align-items: center;
         gap: 0.25rem;
-        background: #fee2e2;
-        color: #991b1b;
-        border: 1px solid #fecaca;
+        background: var(--ui-surface-subtle);
+        color: var(--ui-danger);
+        border: 1px solid var(--ui-danger-soft);
         padding: 0.2rem 0.65rem;
         border-radius: 9999px;
         font-size: 0.72rem;
@@ -593,20 +616,20 @@ import { LanguageService } from '../../../core/i18n/language.service';
         align-items: center;
         gap: 0.5rem;
         font-size: 0.85rem;
-        color: #475569;
+        color: var(--ui-text-secondary);
       }
 
       .adm-voyageur-actions {
         display: flex;
         gap: 0.5rem;
         padding: 0.75rem 1.25rem;
-        border-top: 1px solid #f1f5f9;
+        border-top: 1px solid var(--ui-surface-subtle);
       }
       .adm-action-edit {
         flex: 1;
-        background: #eff6ff;
-        color: #1d4ed8;
-        border: 1px solid #bfdbfe;
+        background: var(--ui-surface-subtle);
+        color: var(--ui-primary-strong);
+        border: 1px solid var(--ui-primary-soft);
         border-radius: 0.5rem;
         padding: 0.4rem;
         font-size: 0.82rem;
@@ -615,13 +638,13 @@ import { LanguageService } from '../../../core/i18n/language.service';
         transition: background 0.15s;
       }
       .adm-action-edit:hover {
-        background: #dbeafe;
+        background: var(--ui-primary-soft);
       }
       .adm-action-delete {
         flex: 1;
-        background: #fef2f2;
-        color: #dc2626;
-        border: 1px solid #fecaca;
+        background: var(--ui-surface);
+        color: var(--ui-danger);
+        border: 1px solid var(--ui-danger-soft);
         border-radius: 0.5rem;
         padding: 0.4rem;
         font-size: 0.82rem;
@@ -630,20 +653,30 @@ import { LanguageService } from '../../../core/i18n/language.service';
         transition: background 0.15s;
       }
       .adm-action-delete:hover {
-        background: #fee2e2;
+        background: var(--ui-surface-subtle);
       }
     </style>
   `,
 })
 export class AdminVoyageursPage {
   readonly historiqueVoyageurId = signal<number | null>(null);
-  readonly historiqueRestrictions = signal<import('../../../shared/models/voyageur.model').RestrictionResponse[]>([]);
+  readonly historiqueRestrictions = signal<
+    import('../../../shared/models/voyageur.model').RestrictionResponse[]
+  >([]);
 
   voirRestrictions(id: number): void {
     this.historiqueVoyageurId.set(null);
     this.voyageursApi.getRestrictions(id).subscribe({
-      next: rows => { this.historiqueRestrictions.set(rows); this.historiqueVoyageurId.set(id); },
-      error: error => this.errorMessage.set(extractApiErrorMessage(error, "L'historique est indisponible."))
+      next: (rows) => {
+        this.historiqueRestrictions.set(rows);
+        this.historiqueVoyageurId.set(id);
+      },
+      error: (error) =>
+        this.errorMessage.set(
+          extractApiErrorMessage(error, "L'historique est indisponible.", (key) =>
+            this.language.t(key),
+          ),
+        ),
     });
   }
   private readonly voyageursApi = inject(VoyageursApiService);
@@ -747,7 +780,9 @@ export class AdminVoyageursPage {
         this.loading.set(false);
         this.restrictedVoyageurIds.set(new Set());
         this.errorMessage.set(
-          extractApiErrorMessage(error, this.language.t('admin.voyageurs.loadError')),
+          extractApiErrorMessage(error, this.language.t('admin.voyageurs.loadError'), (key) =>
+            this.language.t(key),
+          ),
         );
       },
     });
@@ -841,7 +876,9 @@ export class AdminVoyageursPage {
       error: (error) => {
         this.loading.set(false);
         this.errorMessage.set(
-          extractApiErrorMessage(error, this.language.t('admin.voyageurs.saveError')),
+          extractApiErrorMessage(error, this.language.t('admin.voyageurs.saveError'), (key) =>
+            this.language.t(key),
+          ),
         );
       },
     });
@@ -862,7 +899,9 @@ export class AdminVoyageursPage {
       error: (error) => {
         this.loading.set(false);
         this.errorMessage.set(
-          extractApiErrorMessage(error, this.language.t('admin.voyageurs.deleteError')),
+          extractApiErrorMessage(error, this.language.t('admin.voyageurs.deleteError'), (key) =>
+            this.language.t(key),
+          ),
         );
       },
     });

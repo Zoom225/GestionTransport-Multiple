@@ -1,5 +1,159 @@
 # Issue #7 — Intégration et validation
 
+## Connexions de validation demandées — branche feature/issue-7-comptes-validation
+
+Depuis #24, les comptes de la copie locale ont été adaptés à la demande explicite
+de l'utilisateur : administrateurs admin@transp.com, admin.lyon@transp.com et
+admin.paris@transp.com ; voyageurs V1001/V1002, L10001/L10002, F10001/F10002.
+La table des mots de passe de validation figure au début du README et les
+informations complètes sont visibles dans DataInitializer. Les suffixes numériques,
+PK, catégories, agences et relations restent inchangés.
+
+L'initialiseur existant est réutilisé, sans second service de comptes. Il reste
+désactivé par défaut et préserve les bases non vides, sauf activation explicite
+de DEMO_UPDATE_CREDENTIALS sur copie locale avec profil dev et démo activée.
+Le contrôle des trois adresses administrateur et des doublons de matricules
+précède les écritures. Le passage temporaire des matricules libère les anciens L
+avant leur affectation aux locaux ; la transaction couvre les deux étapes.
+Les mots de passe sont hachés BCrypt, jamais stockés en clair dans PostgreSQL.
+Un second passage ne réencode pas un mot de passe déjà conforme.
+
+La sauvegarde préalable de la copie est conservée hors Git. Mise à jour réelle
+sur transport_schema_copy_20261113181001595 uniquement ; aucune écriture sur
+transportService. La copie conserve six voyageurs distincts, trois administrateurs
+et huit paiements. Deux exécutions : empreintes complètes des comptes identiques
+au second passage, aucune nouvelle ligne ni nouveau hachage.
+
+Vérifications exécutées :
+
+- mvn -B verify : 162 tests réussis, dont les tests PostgreSQL isolés et JPA validate.
+- Après ajout du contrôle de doublon : sept tests DataInitializer réussis, dont
+  refus d'une base métier, refus du doublon avant écriture, mots de passe par rôle,
+  absence de réservation du chauffeur et préservation des bases non vides.
+- Build Angular réussi et 72 tests réussis ; compilation IntelliJ réussie après
+  expiration d'un premier appel pendant les autres vérifications.
+- Neuf connexions REST réussies avec les nouveaux identifiants/mots de passe.
+- Connexions Angular réelles réussies : les trois administrateurs et V1001,
+  L10001, F10001. Chaque connexion aboutit à son espace autorisé.
+- Backend habituel relancé sur8080, frontend4202 conservé. L'initialiseur de mise
+  à jour n'est pas activé dans ce lancement habituel. Après changement d'identifiant,
+  se déconnecter puis se reconnecter.
+
+Les anciens formats G/S/L restent acceptés pour compatibilité avec des données
+historiques non migrées ; les exemples et comptes de validation utilisent V/L/F.
+Les valeurs SQL des catégories, rôles, tarifs et règles de réservation ne changent pas.
+
+## Correction du démarrage et intégration des chantiers ouverts — novembre 2026
+
+Branche `fix/issue-7-demarrage-validation` : intégration de #20 (lancement/JWT),
+#22 (UI premium) et #23 (schéma SQL), sans fusion de ces PR dans develop/master.
+Le conflit documentaire README a été résolu en conservant les deux rapports.
+Les modèles des branches sont compatibles ; aucun service métier recréé.
+
+Diagnostic des logs et configurations :
+
+- GestionTransportApplication est la bonne classe Spring Boot, Java21 et les
+  dépendances SpringBoot3.5.0 fonctionnent. Aucun besoin de modifier la méthode main.
+- L'ancienne erreur JWT_SECRET non résolue n'est plus présente dans le lancement
+  personnel : la clé locale existe et reste préservée. Elle n'est ni affichée
+  ni publiée, aucun secret de secours dans application.properties.
+- La configuration IntelliJ n'avait pas DB_URL : elle utilisait donc implicitement
+  transportService sur5440. Le schéma historique/ambigu ne correspond pas aux
+  mappings Transport. Le garde refuse ce démarrage avant Hibernate ; il ne doit
+  pas être retiré pour masquer le problème. L'incident des tables parallèles et
+  les neuf empreintes historiques identiques sont documentés dans
+  [l'audit SQL](issue-3-modele-simple.md).
+- La collision de nom entre la configuration TransportSchemaGuard et son bean
+  a été corrigée en nommant le bean transportSchemaPreflight. Les tests de
+  contexte et le lancement réel valident cette correction.
+- L'échec CI transaction_timeout provenait de pg_dump trop récent pour PostgreSQL15,
+  corrigé dans #23 en utilisant les outils du conteneur15. CI43473752400 réussie.
+
+`scripts/configure-intellij-validation.ps1` réutilise le mécanisme JWT de #20.
+Il configure uniquement le workspace IntelliJ personnel ignoré : URL explicite
+vers une copie `transport_schema_copy_...` sur5541, mot de passe fourni par
+DB_PASSWORD, ddl-auto=validate, DEMO_DATA_ENABLED=false, redémarrage DevTools
+désactivé dans les options JVM. Une sauvegarde privée est conservée hors Git.
+Il refuse transportService et tout nom hors copie ; l'absence de mot de passe
+est refusée avant écriture. Aucun secret n'est inscrit dans une configuration
+partagée. Tests exécutés : deux passages idempotents, JWT inchangé ; refus d'une
+base métier et d'un mot de passe absent sans modification de la configuration.
+
+```powershell
+$env:DB_PASSWORD='<mot de passe de la copie de validation>'
+.\scripts\configure-intellij-validation.ps1 -Database transport_schema_copy_<identifiant>
+# Dans IntelliJ, lancer la configuration Spring Boot : GestionTransportApplication.
+# La configuration Maven partagée exige séparément ses variables DB_URL/DB_*/JWT_SECRET.
+```
+
+La configuration personnelle pointe actuellement vers la copie restaurée/migrée
+transport_schema_copy_20261113181001595. La base métier n'est ni migrée ni
+régularisée automatiquement. Le premier lancement de diagnostic sur une autre
+copie migrée a démarré en17,894s, avec Swagger et OpenAPI HTTP200 sur18083 ;
+l'instance de contrôle a été arrêtée.
+
+Résultats rejoués sur la branche intégrée : `mvn -B verify` réussi, 160 tests
+sans échec/erreur/ignoré (15 PostgreSQL + deux validations de copie inclus),
+`npm run build` réussi, 72 tests Angular réussis, compilation IntelliJ réussie.
+L'installation `npm ci` avait réussi dans le même chantier et les lockfiles
+n'ont pas changé depuis. Les règles métier, controllers, services, repositories
+et DTO ne sont pas modifiés par le correctif de démarrage.
+
+Vérification finale de la configuration IntelliJ enregistrée, **sans surcharge** :
+démarrage en32,723s sur8080, thread main (restart DevTools désactivé), repositories
+et connexion PostgreSQL initialisés, aucune erreur de démarrage. Swagger UI et
+OpenAPI HTTP200 ; GET /api/voyageurs sans authentification HTTP403, guard conservé.
+Frontend de ce projet sur http://127.0.0.1:4202 : HTTP200, proxy existant vers8080.
+Les ports4200 d'une autre application n'ont pas été modifiés. Les deux processus
+de ce projet sont laissés actifs pour consultation, sur la copie isolée uniquement.
+Le warning open-in-view est conservé : ce n'est pas la cause du refus de démarrage.
+
+## Correction des configurations IntelliJ — issue #7
+
+Branche : `fix/issue-7-intellij-transport`, depuis `develop` à `b818392`.
+Le signalement sur DataInitializer a conduit à vérifier aussi les configurations
+locales ignorées par Git : le lancement Spring Boot visait encore l'ancienne
+classe principale et une configuration JUnit ciblait l'ancien package.
+
+- Classe principale locale corrigée : `com.transport.gestiontransport.GestionTransportApplication`.
+- Configuration JUnit locale corrigée : package `com.transport.gestiontransport`,
+  filtre et références de configuration cohérents. Module local `industri` conservé.
+- Les deux dossiers historiques vides sous `src/main/java/com` et `src/test/java/com`
+  sont supprimés après contrôle de leur contenu ; aucune classe ni aucun test supprimé.
+- `.run/Unnamed.run.xml`, lié au nom de module `padelmultiple`, est remplacé par
+  `.run/GestionTransport-Multiple.run.xml` : lancement Maven `spring-boot:run`,
+  indépendant de l'artifactId local. Aucun secret ajouté à cette configuration.
+- README : classe de lancement, package des tests et utilisation de la configuration partagée.
+
+Les réglages personnels de `.idea/workspace.xml` ne sont pas publiés ; leur sauvegarde
+locale reste dans `.local-validation/intellij-refactoring`. Le diff de `pom.xml`
+(`industri`) est conservé hors commit. Aucune donnée PostgreSQL ni règle métier modifiée.
+
+Validation exécutée : reconstruction IntelliJ réussie ; puis
+`mvn -B -Dtest=DataInitializerTest clean test` réussi, **91 sources Java et 21 sources
+de tests recompilées**, **4 tests réussis**, zéro échec/erreur/ignoré. Aucun build IDE
+simultané à Maven. Les avertissements MockBean préexistants restent non bloquants.
+Recherche finale : aucune référence à l'ancien package dans `src`, `.idea` et `.run`.
+
+### Complément : variable JWT absente dans le lancement IntelliJ
+
+Le journal transmis ensuite montre `Could not resolve placeholder 'JWT_SECRET'` :
+le lancement utilise bien la classe Transport mais la configuration Spring Boot
+personnelle n'a aucune variable JWT. Le script `scripts/configure-intellij-jwt.ps1`
+ajoute une clé aléatoire uniquement si elle manque dans cette configuration locale,
+après vérification que le fichier et sa sauvegarde sont ignorés par Git. Une clé
+existante est préservée et une clé trop courte est signalée. Aucune valeur n'est affichée,
+aucun secret n'est ajouté au dépôt ou à `application.properties`.
+
+Vérifications exécutées : deux exécutions du script, clé inchangée au second passage ;
+compilation IntelliJ réussie ; lancement réel de **GestionTransportApplication** via
+l'IDE, avec les seules variables de base/port remplacées temporairement pour le test.
+Base isolée `transport_demo_jwt_20261112213009`, serveur PostgreSQL de validation
+sur 5541, `DEMO_DATA_ENABLED=false`, port HTTP 18081 : démarrage Spring Boot réussi
+en 18 secondes, **OpenAPI et Swagger UI HTTP 200**. La clé JWT utilisée vient bien
+de la configuration IntelliJ corrigée. Instance de vérification arrêtée après contrôle ;
+aucune modification de la base métier.
+
 ## Finalisation soutenance du 12 novembre 2026 — PR #18
 
 Branche : `feature/issue-4-soutenance-finalisation`, depuis `develop` après fusion

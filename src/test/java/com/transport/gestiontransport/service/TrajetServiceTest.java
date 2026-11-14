@@ -117,6 +117,31 @@ class TrajetServiceTest {
     }
 
     @Test
+    void refuseDeuxVillesIdentiquesAvantVerrouillageOuEnregistrement() {
+        var ville = com.transport.gestiontransport.entity.enums.VilleBelge.MONS;
+        var request = new CreateTrajetRequest(1L, LocalDateTime.now().plusDays(2), "PUBLIC", ville, ville, false, null);
+        when(voyageurRepository.findByMatriculeIgnoreCase("V1001")).thenReturn(Optional.of(organisateur));
+        BusinessException error = assertThrows(BusinessException.class, () -> trajetService.createTrajet(request, "V1001"));
+        assertTrue(error.getMessage().contains("la ville de départ et la destination ne peuvent pas être identiques"));
+        verifyNoInteractions(entityManager, vehiculeService);
+        verify(trajetRepository, never()).save(any());
+    }
+
+    @Test
+    void refuseUneRechercheAvecDeuxVillesIdentiques() {
+        var ville = com.transport.gestiontransport.entity.enums.VilleBelge.BRUXELLES;
+        assertThrows(BusinessException.class, () -> trajetService.searchPublicTrajets(ville, ville, null));
+        verifyNoInteractions(trajetRepository);
+    }
+
+    @Test
+    void conserveLaRechercheSansDestinationImposee() {
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        when(trajetRepository.findByTypeTrajetAndStatut(TypeTrajet.PUBLIC, StatutTrajet.PLANIFIE)).thenReturn(java.util.List.of());
+        assertTrue(trajetService.searchPublicTrajets(com.transport.gestiontransport.entity.enums.VilleBelge.MONS, null, null).isEmpty());
+    }
+
+    @Test
     void nePublieJamaisUnTrajetPriveSansConsentement() {
         Trajet prive = Trajet.builder().typeTrajet(TypeTrajet.PRIVE).statut(StatutTrajet.PLANIFIE)
                 .dateDebut(LocalDateTime.now().plusHours(12)).publicationAutomatiqueAutorisee(false).build();
@@ -160,7 +185,6 @@ class TrajetServiceTest {
     @Test
     void refuseDeuxVillesIdentiques() {
         when(voyageurRepository.findByMatriculeIgnoreCase("user123")).thenReturn(Optional.of(organisateur));
-        when(vehiculeService.getById(1L)).thenReturn(vehicule);
         var request = new CreateTrajetRequest(1L, createTrajetRequest.trajetDate(), "PUBLIC",
                 com.transport.gestiontransport.entity.enums.VilleBelge.MONS,
                 com.transport.gestiontransport.entity.enums.VilleBelge.MONS, false, null);

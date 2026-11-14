@@ -42,6 +42,31 @@ jobs:
           java-version: "21"
           cache: maven
       - run: bash ./mvnw -B verify
+      - name: Vérifier migration et mappings sur copie PostgreSQL
+        env:
+          PGPASSWORD: transport_ci_only
+          TRANSPORT_SCHEMA_URL: jdbc:postgresql://localhost:5432/transport_schema_copy_ci
+        run: |
+          # M?me version majeure que le serveur : ?viter les SET non pris en charge.
+          pg15() { docker exec -i "${{ job.services.postgres.id }}" "$@"; }
+          pg15 createdb -U transport transport_schema_copy_ci
+          pg15 pg_dump -U transport --no-owner issue1_validation_ci | pg15 psql -U transport -v ON_ERROR_STOP=1 transport_schema_copy_ci
+          pg15 psql -U transport -d transport_schema_copy_ci < src/test/resources/schema-historique-fixture.sql
+          pg15 psql -U transport -d transport_schema_copy_ci -At < scripts/migrations/issue-3-empreintes.sql > /tmp/schema-before.txt
+          pg15 psql -U transport -d transport_schema_copy_ci < scripts/migrations/issue-3-schema-transport.sql
+          pg15 psql -U transport -d transport_schema_copy_ci -At < scripts/migrations/issue-3-empreintes.sql > /tmp/schema-after.txt
+          cmp /tmp/schema-before.txt /tmp/schema-after.txt
+          pg15 psql -U transport -d transport_schema_copy_ci < scripts/migrations/issue-3-schema-transport.sql
+          pg15 psql -U transport -d transport_schema_copy_ci -At < scripts/migrations/issue-3-empreintes.sql > /tmp/schema-second.txt
+          cmp /tmp/schema-after.txt /tmp/schema-second.txt
+          pg15 psql -U transport -d transport_schema_copy_ci -v ON_ERROR_STOP=1 -c 'CREATE TABLE sites(id bigint)'
+          if pg15 psql -U transport -d transport_schema_copy_ci < scripts/migrations/issue-3-schema-transport.sql; then
+            echo 'La migration aurait d? refuser les tables parall?les'; exit 1
+          fi
+          pg15 psql -U transport -d transport_schema_copy_ci -v ON_ERROR_STOP=1 -c 'DROP TABLE sites'
+          pg15 psql -U transport -d transport_schema_copy_ci -At < scripts/migrations/issue-3-empreintes.sql > /tmp/schema-refusal.txt
+          cmp /tmp/schema-after.txt /tmp/schema-refusal.txt
+          bash ./mvnw -B -Dtest=TransportSchemaValidationTest test
 
   frontend:
     runs-on: ubuntu-latest
