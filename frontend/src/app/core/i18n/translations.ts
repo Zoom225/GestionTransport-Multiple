@@ -25,7 +25,7 @@ export type TranslationKey =
   | 'ui.accessDenied'
   | 'ui.expired'
   | 'ui.driverAuthorized'
-  | 'ui.driverExcluded'
+  | 'voyageur.create.driverNotice'
   | 'ui.restrictionHistory'
   | 'ui.noRestrictions'
   | 'ui.active'
@@ -523,7 +523,7 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'ui.accessDenied': 'Cette action n’est pas autorisée pour votre compte.',
     'ui.expired': 'Expirée',
     'ui.driverAuthorized': 'Chauffeur autorisé',
-    'ui.driverExcluded': 'Le chauffeur ne réserve aucune des quatre places clients.',
+    'voyageur.create.driverNotice': 'Vous êtes le chauffeur de ce trajet : {name}. Proposez jusqu’à 4 places passagers à 25 € par personne.',
     'ui.restrictionHistory': 'Historique des restrictions',
     'ui.noRestrictions': 'Aucune restriction enregistrée.',
     'ui.active': 'Active',
@@ -596,8 +596,8 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'transport.allCities': 'Toutes les villes',
     'transport.travelDate': 'Date de voyage',
     'transport.search': 'Rechercher un trajet',
-    'transport.driver': 'Chauffeur',
-    'transport.remaining': 'place(s) restante(s) sur',
+    'transport.driver': 'Votre chauffeur',
+    'transport.remaining': 'Places passagers disponibles : {count} sur {maximum}',
     'transport.perPerson': '/ personne',
     'transport.full': 'Complet',
     'nav.home': 'Accueil',
@@ -774,7 +774,7 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.create.noAgenceLoaded': 'Aucune agence charge.',
     'voyageur.create.noVehiculeLoaded': 'Aucun vehicule charge.',
     'voyageur.create.success':
-      'Trajet créé avec quatre places clients. Le chauffeur ne réserve aucune place.',
+      'Trajet créé : le chauffeur est associé et quatre places passagers sont proposées.',
     'voyageur.create.successPrivate':
       'Trajet privé créé. Les invitations sont en attente de paiement des passagers.',
     'voyageur.create.partialSuccess':
@@ -1049,7 +1049,7 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'ui.accessDenied': 'This action is not allowed for your account.',
     'ui.expired': 'Expired',
     'ui.driverAuthorized': 'Authorized driver',
-    'ui.driverExcluded': 'The driver does not book any of the four passenger places.',
+    'voyageur.create.driverNotice': 'You are the driver for this ride: {name}. Offer up to 4 passenger seats at €25 per person.',
     'ui.restrictionHistory': 'Restriction history',
     'ui.noRestrictions': 'No restrictions recorded.',
     'ui.active': 'Active',
@@ -1119,8 +1119,8 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'transport.allCities': 'All cities',
     'transport.travelDate': 'Travel date',
     'transport.search': 'Search for a ride',
-    'transport.driver': 'Driver',
-    'transport.remaining': 'place(s) remaining out of',
+    'transport.driver': 'Your driver',
+    'transport.remaining': 'Passenger seats available: {count} of {maximum}',
     'transport.perPerson': '/ person',
     'transport.full': 'Full',
     'common.back': 'Back',
@@ -1295,7 +1295,7 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.create.noAgenceLoaded': 'No agency loaded.',
     'voyageur.create.noVehiculeLoaded': 'No vehicle loaded.',
     'voyageur.create.success':
-      'Trip created with four client places. The driver does not reserve a place.',
+      'Trip created: the driver is assigned and four passenger seats are offered.',
     'voyageur.create.successPrivate':
       'Private trip created. Invitations are pending passenger payments.',
     'voyageur.create.partialSuccess': 'Trip created, but some passengers could not be added.',

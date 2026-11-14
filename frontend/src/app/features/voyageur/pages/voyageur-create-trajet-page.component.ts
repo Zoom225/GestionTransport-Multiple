@@ -104,8 +104,9 @@ const formatDateForInput = (date: Date): string => {
               >
             } @else {
               <p class="md:col-span-2">
-                {{ language.t('transport.driver') }} : {{ voyageur()?.prenom }}
-                {{ voyageur()?.nom }}. {{ language.t('ui.driverExcluded') }}
+                {{ language.t('voyageur.create.driverNotice', {
+                  name: ((voyageur()?.prenom || '') + ' ' + (voyageur()?.nom || '')).trim()
+                }) }}
               </p>
             }
             <mat-form-field appearance="outline">

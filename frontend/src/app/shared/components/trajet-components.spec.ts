@@ -114,7 +114,7 @@ it('affiche les quatre places clients sans compter le chauffeur', async () => {
   const fixture = TestBed.createComponent(TrajetCardComponent);
   fixture.componentRef.setInput('trajet', trajet);
   fixture.detectChanges();
-  expect(fixture.nativeElement.textContent).toContain('4 place(s) restante(s) sur 4');
+  expect(fixture.nativeElement.textContent).toContain('Places passagers disponibles : 4 sur 4');
   expect(fixture.nativeElement.textContent).toContain('Alice Test');
   expect(fixture.nativeElement.querySelector('button').disabled).toBe(false);
 });

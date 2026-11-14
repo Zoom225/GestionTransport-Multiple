@@ -29,8 +29,7 @@ import { TrajetResponse } from '../models/trajet.model';
       <p>{{ trajet.vehiculeNom }} · {{ trajet.agenceNom }}</p>
       <div class="trip-bottom">
         <span
-          >{{ restantes() }} {{ language.t('transport.remaining') }}
-          {{ trajet.placesMaximum ?? 4 }}</span
+          >{{ language.t('transport.remaining', { count: restantes(), maximum: trajet.placesMaximum ?? 4 }) }}</span
         ><strong
           >{{ trajet.prixParPassager | currency: 'EUR' : 'symbol' : '1.0-2' }}
           <small>{{ language.t('transport.perPerson') }}</small></strong

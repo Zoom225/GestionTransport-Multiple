@@ -329,3 +329,29 @@ neuf connexions revérifiées et affichage GLOBAL/AGENCE contrôlé dans Edge à
 (deux contrôles, aucune erreur JavaScript). Les adresses et rattachements sont conservés.
 Le frontend est inchangé dans ce complément ; les résultats Angular ci-dessus
 correspondent au chantier visuel précédent. Traçabilité : issue #6, même branche et PR #28.
+
+### Clarification chauffeur et passagers
+
+Le type de compte Voyageur est distinct du rôle dans un trajet. Un voyageur autorisé
+qui propose un trajet en devient le chauffeur, identifié depuis sa session ;
+un administrateur sélectionne un chauffeur existant. Les quatre places concernent
+les autres passagers. Le même utilisateur peut réserver sur les trajets d’autres
+chauffeurs. Ces contrôles existent déjà dans TrajetServiceImpl et ReservationServiceImpl ;
+ils sont réutilisés sans seconde implémentation ni changement des permissions.
+
+Le formulaire affiche maintenant « Vous êtes le chauffeur de ce trajet : Tom Bernard.
+Proposez jusqu’à 4 places passagers à 25 € par personne. » avec le vrai nom de la session.
+Les cartes et fiches indiquent « Votre chauffeur » ; les cartes distinguent
+« Places passagers disponibles : 4 sur 4 ». La confirmation de création est également
+clarifiée. Les variantes anglaises utilisent le même mécanisme de traduction.
+README et assertion existante d’affichage des quatre places actualisés.
+Build Angular et **78 tests réussis** ; compilation IntelliJ réussie après une première
+demande ayant dépassé son délai. Aucun changement backend, DTO, API, schéma ou donnée.
+
+Contrôle Edge avec le backend local : connexion de Tom Bernard, notice française
+à 375 et 1440 px sans débordement, traduction anglaise, puis connexion GLOBAL et
+sélection du chauffeur toujours présente sans notice attribuant ce rôle à l’administrateur.
+Quatre contrôles réussis, aucune erreur JavaScript. Le premier essai rencontrait
+une superposition Vite conservée lors de l’édition des traductions ; le serveur du
+projet a été relancé sur 4202 et la vérification finale réussit. Aucun trajet n’est
+créé ni aucune réservation effectuée par ce contrôle de présentation.

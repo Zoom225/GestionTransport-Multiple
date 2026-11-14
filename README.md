@@ -3,8 +3,10 @@
 Plateforme académique de covoiturage entre villes belges, construite sur l'application existante
 avec **Java 21, Spring Boot, Angular et PostgreSQL 15**.
 
-**Un trajet = un chauffeur déjà associé + quatre clients maximum.**
-Le chauffeur ne réserve aucune place. Chaque client paie **25 €** ; quatre clients payants
+**Un trajet = un chauffeur déjà associé + quatre passagers maximum.**
+Un voyageur autorisé qui propose un trajet en devient le chauffeur. Les quatre places
+sont destinées aux autres passagers. Le même compte peut réserver une place sur le
+trajet d’un autre chauffeur. Chaque passager paie **25 €** ; quatre passagers payants
 représentent **100 €**. Les places inoccupées ne sont facturées à personne.
 Les paiements et remboursements sont **simulés**, sans prestataire bancaire.
 
