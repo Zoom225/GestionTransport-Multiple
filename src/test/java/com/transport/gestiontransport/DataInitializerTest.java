@@ -177,12 +177,32 @@ class DataInitializerTest {
         dataInitializer.run();
         verify(agenceRepository).save(lyon);
         verify(agenceRepository).save(paris);
-        assertThat(lyon.getNom()).isEqualTo("Agence Transport Lyon");
-        assertThat(paris.getNom()).isEqualTo("Agence Transport Paris");
+        assertThat(lyon.getNom()).isEqualTo("Agence Transport Élégant");
+        assertThat(paris.getNom()).isEqualTo("Agence Transport Design");
         assertThat(lyon.getId()).isEqualTo(1L);
         assertThat(paris.getId()).isEqualTo(2L);
         assertThat(lyon.getAdresse()).isEqualTo("Adresse conservée");
         verify(vehiculeRepository, never()).save(any());
+        verifyNoInteractions(passwordEncoder);
+    }
+
+    @Test
+    void renommeAussiLesAgencesDejaNommeesTransportSansToucherAuxAutres() {
+        when(agenceRepository.count()).thenReturn(3L);
+        ReflectionTestUtils.setField(dataInitializer, "prepareAgencies", true);
+        ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://127.0.0.1:5541/transport_schema_copy_test");
+        Agence elegant = Agence.builder().nom("Agence Transport Lyon").build();
+        Agence design = Agence.builder().nom("Agence Transport Paris").build();
+        Agence autre = Agence.builder().nom("Agence indépendante").build();
+        when(agenceRepository.findAll()).thenReturn(java.util.List.of(elegant, design, autre));
+        dataInitializer.run();
+        dataInitializer.run();
+        assertThat(elegant.getNom()).isEqualTo("Agence Transport Élégant");
+        assertThat(design.getNom()).isEqualTo("Agence Transport Design");
+        assertThat(autre.getNom()).isEqualTo("Agence indépendante");
+        verify(agenceRepository).save(elegant);
+        verify(agenceRepository).save(design);
+        verify(agenceRepository, never()).save(autre);
         verifyNoInteractions(passwordEncoder);
     }
 

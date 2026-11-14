@@ -42,7 +42,7 @@ import java.time.LocalTime;
  * Mise à jour des comptes existants uniquement sur copie locale et demande explicite.
  * DEMO_PREPARE_VEHICLES=true prépare deux voitures de démonstration par agence
  * sur copie locale existante, sans réactiver ni renommer les ressources historiques.
- * DEMO_PREPARE_AGENCIES=true remplace les anciens noms Padel par Transport
+ * DEMO_PREPARE_AGENCIES=true prépare Agence Transport Élégant et Agence Transport Design
  * uniquement sur copie locale, sans changer les villes, adresses ou rattachements.
  */
 @Slf4j
@@ -51,6 +51,8 @@ import java.time.LocalTime;
 @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "app.demo-data.enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
+    private static final String AGENCE_ELEGANT = "Agence Transport Élégant";
+    private static final String AGENCE_DESIGN = "Agence Transport Design";
     // Modèles d'exemple pour la validation locale, sans immatriculation inventée.
     private static final java.util.List<String> DEMO_VEHICLE_NAMES = java.util.List.of("Renault Clio", "Peugeot 308");
     private final AgenceRepository agenceRepository;
@@ -102,7 +104,7 @@ public class DataInitializer implements CommandLineRunner {
                 throw new IllegalStateException("Les mots de passe de démonstration exigent au moins 10 caractères et au maximum 72 octets UTF-8.");
             }
         }
-        Agence agence = agenceRepository.save(Agence.builder().nom("Agence Transport Bruxelles — DÉMONSTRATION")
+        Agence agence = agenceRepository.save(Agence.builder().nom(AGENCE_ELEGANT + " — DÉMONSTRATION")
                 .adresse("Bruxelles, Belgique").heureOuverture(LocalTime.of(6, 0)).heureFermeture(LocalTime.of(23, 0))
                 .dureeTrajetMinutes(90).dureeEntreTrajetMinutes(15).anneeCivile(LocalDate.now().getYear()).build());
         Vehicule voiture = vehiculeRepository.save(Vehicule.builder().nom(DEMO_VEHICLE_NAMES.get(0)).agence(agence).disponible(true).build());
@@ -231,9 +233,14 @@ public class DataInitializer implements CommandLineRunner {
         requireLocalValidationDatabase();
         for (Agence agence : agenceRepository.findAll()) {
             String nom = agence.getNom();
-            if (nom != null && nom.toLowerCase(java.util.Locale.ROOT).contains("padel")) {
-                String nouveauNom = nom.replaceAll("(?i)padel\\s+club", "Agence Transport")
+            if (nom == null) continue;
+            String nouveauNom = switch (nom) {
+                case "Padel Club Lyon", "Agence Transport Lyon" -> AGENCE_ELEGANT;
+                case "Padel Club Paris", "Agence Transport Paris" -> AGENCE_DESIGN;
+                default -> nom.replaceAll("(?i)padel\\s+club", "Agence Transport")
                         .replaceAll("(?i)padel", "Transport").trim();
+            };
+            if (!nom.equals(nouveauNom)) {
                 agence.setNom(nouveauNom);
                 agenceRepository.save(agence);
             }

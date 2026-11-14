@@ -704,7 +704,7 @@ illustration automobile originale, accueil et cartes de trajets illustrés,
 bannière commune aux pages internes et menu d’administration compact sur mobile.
 Les filtres affichent les noms fournis par l’API, sans remplacement fictif dans Angular.
 Sur la copie locale de validation, les deux anciens noms sont devenus
-**Agence Transport Lyon** et **Agence Transport Paris**, avec les mêmes identifiants,
+**Agence Transport Élégant** et **Agence Transport Design**, avec les mêmes identifiants,
 adresses et rattachements. Les villes historiques ne sont pas transformées en villes belges.
 La base métier n’est pas renommée automatiquement.
 Voir les [résultats et captures du chantier](docs/covoiturage/issue-6-interface.md#bannières-automobiles-et-noms-des-agences--14-novembre-2026).

@@ -265,11 +265,11 @@ d’une préparation explicite des noms sur copie locale uniquement : profil dev
 défaut. L’opération refuse `transportService`, conserve les ID, adresses et relations,
 et une seconde exécution ne réenregistre pas les agences déjà renommées.
 Après sauvegarde de la copie `transport_schema_copy_20261113181001595`, les agences
-1 et 2 portent les noms **Agence Transport Lyon** et **Agence Transport Paris**.
+1 et 2 portent les noms **Agence Transport Élégant** et **Agence Transport Design**.
 Les neuf connexions ont été revérifiées après cette préparation. Aucun compte,
 mot de passe, paiement ou trajet n’est réécrit par cette opération.
 
-Une nouvelle base de démonstration reçoit directement « Agence Transport Bruxelles —
+Une nouvelle base de démonstration reçoit directement « Agence Transport Élégant —
 DÉMONSTRATION ». Les villes et adresses des agences historiques sont préservées.
 Il n’y a aucune migration SQL ni modification de la base métier dans ce chantier.
 
@@ -318,3 +318,14 @@ inspectées visuellement ; les captures avant des précédents chantiers sont co
 
 Le serveur de développement du projet a été relancé sur http://127.0.0.1:4202.
 Les dumps, secrets, rapports détaillés et captures supplémentaires restent hors Git.
+
+Complément demandé : les noms finaux sont **Agence Transport Élégant** (ID 1)
+et **Agence Transport Design** (ID 2). La préparation reconnaît aussi bien les
+anciens noms Padel que les noms intermédiaires « Agence Transport Lyon/Paris ».
+Les noms cibles sont centralisés dans DataInitializer, sans création d’agence supplémentaire.
+Après une nouvelle sauvegarde, le renommage est appliqué à la copie locale active.
+Packaging Maven et **13 tests DataInitializer réussis**, compilation IntelliJ réussie,
+neuf connexions revérifiées et affichage GLOBAL/AGENCE contrôlé dans Edge à 1440 px
+(deux contrôles, aucune erreur JavaScript). Les adresses et rattachements sont conservés.
+Le frontend est inchangé dans ce complément ; les résultats Angular ci-dessus
+correspondent au chantier visuel précédent. Traçabilité : issue #6, même branche et PR #28.
