@@ -7,6 +7,8 @@ import { TrajetCardComponent } from './trajet-card.component';
 import { TrajetsApiService } from '../../core/api/trajets-api.service';
 import { TrajetResponse } from '../models/trajet.model';
 import { LanguageService } from '../../core/i18n/language.service';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { TrajetDetailComponent } from './trajet-detail.component';
 
 afterEach(() => TestBed.resetTestingModule());
 beforeEach(() => localStorage.setItem('gestiontransport_language', 'fr'));
@@ -61,6 +63,27 @@ it('envoie les codes des villes et la date du formulaire de recherche', async ()
   });
 });
 
+it('bloque une recherche sur la même ville et accepte sa correction ou les filtres vides', async () => {
+  await TestBed.configureTestingModule({
+    imports:[TrajetSearchComponent],
+    providers:[provideNoopAnimations(), {provide:TrajetsApiService,useValue:{getVilles:()=>of([
+      {code:'MONS',libelle:'Mons'}, {code:'BRUXELLES',libelle:'Bruxelles'}
+    ])}}],
+  }).compileComponents();
+  const fixture=TestBed.createComponent(TrajetSearchComponent);
+  const component=fixture.componentInstance;
+  const emitted=vi.fn();component.recherche.subscribe(emitted);
+  component.form.patchValue({depart:'MONS',arrivee:'MONS'});
+  fixture.detectChanges();component.search();
+  expect(component.form.hasError('sameCity')).toBe(true);
+  expect(emitted).not.toHaveBeenCalled();
+  expect(fixture.nativeElement.querySelector('[role=alert]')?.textContent).toContain('deux villes différentes');
+  component.form.controls.arrivee.setValue('BRUXELLES');component.search();
+  expect(emitted).toHaveBeenCalledWith({depart:'MONS',arrivee:'BRUXELLES',date:''});
+  component.form.patchValue({depart:'',arrivee:''});component.search();
+  expect(emitted).toHaveBeenLastCalledWith({depart:'',arrivee:'',date:''});
+});
+
 const trajet: TrajetResponse = {
   id: 1,
   vehiculeId: 1,
@@ -111,4 +134,48 @@ it('désactive la réservation et indique complet à zéro place restante', asyn
   fixture.detectChanges();
   expect(fixture.nativeElement.querySelector('button').disabled).toBe(true);
   expect(fixture.nativeElement.querySelector('button').textContent).toContain('Complet');
+});
+
+it('ouvre une fiche avec les données existantes et transmet la réservation après validation', async () => {
+  await TestBed.configureTestingModule({
+    imports: [TrajetCardComponent],
+    providers: [provideNoopAnimations()],
+  }).compileComponents();
+  const fixture = TestBed.createComponent(TrajetCardComponent);
+  const dialog = fixture.debugElement.injector.get(MatDialog);
+  vi.spyOn(dialog, 'open').mockReturnValue({ afterClosed: () => of(true) } as MatDialogRef<
+    TrajetDetailComponent,
+    boolean
+  >);
+  fixture.componentRef.setInput('trajet', trajet);
+  const reservation = vi.fn();
+  fixture.componentInstance.reservationDemandee.subscribe(reservation);
+  fixture.componentInstance.openDetails();
+  expect(dialog.open).toHaveBeenCalledWith(
+    TrajetDetailComponent,
+    expect.objectContaining({ data: { trajet, disabled: false } }),
+  );
+  expect(reservation).toHaveBeenCalledWith(trajet);
+});
+
+it('conserve le blocage de réservation dans la fiche et ne réserve pas à sa fermeture', async () => {
+  await TestBed.configureTestingModule({
+    imports: [TrajetCardComponent],
+    providers: [provideNoopAnimations()],
+  }).compileComponents();
+  const fixture = TestBed.createComponent(TrajetCardComponent);
+  const dialog = fixture.debugElement.injector.get(MatDialog);
+  vi.spyOn(dialog, 'open').mockReturnValue({ afterClosed: () => of(undefined) } as MatDialogRef<
+    TrajetDetailComponent,
+    boolean
+  >);
+  fixture.componentRef.setInput('trajet', { ...trajet, statut: 'COMPLET', placesRestantes: 0 });
+  const reservation = vi.fn();
+  fixture.componentInstance.reservationDemandee.subscribe(reservation);
+  fixture.componentInstance.openDetails();
+  expect(dialog.open).toHaveBeenCalledWith(
+    TrajetDetailComponent,
+    expect.objectContaining({ data: expect.objectContaining({ disabled: true }) }),
+  );
+  expect(reservation).not.toHaveBeenCalled();
 });

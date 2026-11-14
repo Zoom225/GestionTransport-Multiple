@@ -84,3 +84,41 @@ Issue #5 : exposer les villes et la recherche, compléter les DTO et sécuriser 
 accès privés et modifications par l'identité authentifiée.
 Issue #6 : adapter les formulaires Angular et les cartes de trajets à ces contrats.
 Ces services seuls ne constituent pas encore la livraison complète de l'interface.
+# Renforcement de C01 — villes de départ et d'arrivée distinctes
+
+Branche `fix/issue-4-villes-distinctes`, depuis #26. La règle C01 existait déjà
+dans le service de création, mais les sélecteurs autorisaient un choix identique
+et le message n'apparaissait qu'à la soumission. Aucun changement du modèle SQL,
+des DTO, de la tarification ou des données de démonstration n'est nécessaire.
+
+Un validateur réactif partagé contrôle maintenant les formulaires de création
+et de recherche. La ville choisie est désactivée dans l'autre liste. Si une valeur
+identique est imposée au formulaire, un message traduit FR/EN apparaît immédiatement,
+le formulaire est invalide et aucun envoi n'est effectué. Corriger la destination
+efface l'erreur. Les filtres vides ou partiels restent autorisés en recherche.
+
+Le service vérifie la différence des villes avant de charger et verrouiller le
+véhicule. Une création ou recherche directe avec deux villes identiques retourne
+HTTP400 : « Choisissez deux villes différentes : la ville de départ et la
+destination ne peuvent pas être identiques. » Les villes manquantes restent
+contrôlées par les validations existantes de création. Les autorisations sont
+conservées et les anciens trajets ne sont pas modifiés.
+
+Résultats exécutés le 14 novembre 2026 :
+
+- `mvn -B verify` final : 169 tests réussis, sans échec, erreur ou ignoré,
+  PostgreSQL isolé et validation JPA sur copie inclus.
+- Build Angular final et 78 tests réussis. Tests ajoutés : réaction immédiate du
+  formulaire de création, refus d'émission de recherche invalide, correction et
+  filtres facultatifs ; service sans verrouillage/écriture sur villes identiques.
+- Le premier passage backend a signalé un mock de véhicule devenu inutile dans
+  l'ancien test de rejet des villes identiques ; retrait de ce seul mock, aucune
+  suppression de test ni assouplissement de Mockito.
+- Compilation IntelliJ réussie, relance sur copie migrée en17,748s ; le serveur
+  Angular du projet a été relancé après les compilations pour les contrôles finaux.
+- REST réel sur copie locale : création/recherche MONS→MONS HTTP400 avec message
+  clair, aucun trajet ajouté ; MONS→BRUXELLES et recherche MONS seul HTTP200.
+- Navigateur Edge : recherche et création à375/768/1440, même ville désactivée
+  dans les listes ; valeur identique forcée sur le formulaire de création en
+  mode développement : message immédiat, bouton désactivé, erreur effacée après
+  correction. Aucun débordement horizontal ni erreur JavaScript.

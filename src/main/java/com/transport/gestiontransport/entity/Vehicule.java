@@ -8,7 +8,7 @@ import lombok.*;
 import java.util.List;
 
 @Entity
-@Table(name = "terrains")
+@Table(name = "vehicules")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,7 +27,7 @@ public class Vehicule extends BaseEntity {
     private Double prix;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "site_id", nullable = false)
+    @JoinColumn(name = "agence_id", nullable = false)
     @JsonBackReference("agence-vehicules")
     private Agence agence;
 

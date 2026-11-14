@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TrajetServiceImpl implements TrajetService {
+    private static final String VILLES_DISTINCTES_MESSAGE = "Choisissez deux villes différentes : la ville de départ et la destination ne peuvent pas être identiques.";
 
     private final TrajetRepository trajetRepository;
     private final VoyageurRepository voyageurRepository;
@@ -65,6 +66,10 @@ public class TrajetServiceImpl implements TrajetService {
     }
 
     private TrajetDto creerPourChauffeur(CreateTrajetRequest request, Voyageur chauffeur) {
+        if (request.villeDepart() == null || request.villeArrivee() == null) {
+            throw new BusinessException("La ville de départ et la destination sont obligatoires.");
+        }
+        verifierVillesDistinctes(request.villeDepart(), request.villeArrivee());
         Vehicule vehicule = vehiculeService.getById(request.vehiculeId());
         entityManager.lock(chauffeur, LockModeType.PESSIMISTIC_WRITE);
         entityManager.refresh(chauffeur);
@@ -79,10 +84,6 @@ public class TrajetServiceImpl implements TrajetService {
         }
         if (voyageurService.hasActiveRestriction(chauffeur.getId())) {
             throw new BusinessException("Vous avez une restriction active et ne pouvez pas créer de trajet.");
-        }
-        if (request.villeDepart() == null || request.villeArrivee() == null
-                || request.villeDepart() == request.villeArrivee()) {
-            throw new BusinessException("Deux villes belges différentes sont obligatoires.");
         }
         LocalDateTime debut = request.trajetDate();
         if (debut == null || !debut.isAfter(LocalDateTime.now())) {
@@ -123,6 +124,7 @@ public class TrajetServiceImpl implements TrajetService {
 
     @Override
     public List<TrajetDto> searchPublicTrajets(VilleBelge depart, VilleBelge arrivee, LocalDate date) {
+        verifierVillesDistinctes(depart, arrivee);
         var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
         Voyageur voyageur = authentication != null && authentication.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_VOYAGEUR".equals(a.getAuthority())) ? voyageurCourantService.currentVoyageur() : null;
@@ -135,6 +137,10 @@ public class TrajetServiceImpl implements TrajetService {
                 .filter(t -> voyageur == null || voyageur.getTypeVoyageur() != TypeVoyageur.LOCAL
                         || (voyageur.getAgence() != null && voyageur.getAgence().getId().equals(t.getVehicule().getAgence().getId())))
                 .map(trajetMapper::toTrajetDto).toList();
+    }
+
+    private void verifierVillesDistinctes(VilleBelge depart, VilleBelge arrivee) {
+        if (depart != null && depart == arrivee) throw new BusinessException(VILLES_DISTINCTES_MESSAGE);
     }
 
     @Override

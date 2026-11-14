@@ -8,11 +8,58 @@ Le chauffeur ne réserve aucune place. Chaque client paie **25 €** ; quatre cl
 représentent **100 €**. Les places inoccupées ne sont facturées à personne.
 Les paiements et remboursements sont **simulés**, sans prestataire bancaire.
 
+## Connexions de validation
+
+Administrateurs : [connexion](http://127.0.0.1:4202/admin/login).
+Voyageurs : [connexion](http://127.0.0.1:4202/voyageur).
+
+| Compte | Identifiant | Mot de passe de validation |
+| --- | --- | --- |
+| Administrateur global | `admin@transp.com` | `Admin1234!` |
+| Administrateur local Lyon | `admin.lyon@transp.com` | `Admin1234!` |
+| Administrateur local Paris | `admin.paris@transp.com` | `Admin1234!` |
+| Voyageurs VIP | `V1001`, `V1002` | `Voyage1234!` |
+| Voyageurs locaux | `L10001`, `L10002` | `Voyage1234!` |
+| Voyageurs libres | `F10001`, `F10002` | `Voyage1234!` |
+
+Ces identifiants concernent la copie locale de validation. Les suffixes numériques,
+identifiants internes, catégories, agences et historiques sont conservés.
+Les mots de passe sont enregistrés sous forme de hachages BCrypt. Après leur
+modification, se déconnecter puis se reconnecter avec les nouveaux identifiants.
+Les informations sont également visibles au début de `DataInitializer.java`.
+
+L'initialiseur reste désactivé par défaut. Une mise à jour de comptes existants
+exige explicitement le profil `dev`, `DEMO_DATA_ENABLED=true` et
+`DEMO_UPDATE_CREDENTIALS=true`, exclusivement sur une copie locale nommée
+`transport_schema_copy_...` ou `transport_demo_...`. Les doublons sont contrôlés
+avant écriture et les changements sont transactionnels. Aucune mise à jour des
+comptes de transportService n'est autorisée par ce mécanisme.
+
 ## Fonctionnement métier
+
+Le formulaire de création charge les véhicules disponibles de l'agence choisie.
+Le champ est désactivé pendant le chargement ou lorsqu'aucun véhicule n'est
+disponible ; un message et un nouvel essai sont proposés en cas d'erreur.
+Avec plusieurs véhicules, choisir explicitement dans la liste ; un véhicule
+unique est présélectionné. Un changement d'agence efface l'ancien choix.
+
+Sur la copie locale de validation, une **Renault Clio** et une **Peugeot 308**
+par agence permettent ces essais. Ces modèles sont des exemples de démonstration.
+Les cinq ressources historiques sont
+conservées et restent indisponibles. Cette préparation réutilise DataInitializer
+avec `DEMO_PREPARE_VEHICLES=true`, profil `dev` et démonstration activée ; elle
+est désactivée par défaut, idempotente et refuse la base métier.
 
 - Départ et destination sont deux villes belges distinctes, choisies dans la liste centrale
   du backend. Bruxelles, Mons, Charleroi, Namur, Liège, Anvers, Gand, Louvain, Nivelles et
   Wavre sont proposés. Les retours sont des trajets indépendants ; Bruxelles n'est pas obligatoire.
+  **Règle C01 : une ville ne peut pas être à la fois le départ et la destination.**
+  La ville déjà choisie est désactivée dans l'autre liste. Un choix identique
+  invalide immédiatement le formulaire de création ou de recherche et bloque
+  l'envoi. Le backend refuse également les appels directs avec HTTP 400 :
+  « Choisissez deux villes différentes : la ville de départ et la destination
+  ne peuvent pas être identiques. » Les recherches sans ville ou avec une seule
+  ville restent possibles ; aucune donnée historique n'est réécrite.
 - Un Voyageur autorisé à proposer un trajet devient automatiquement son chauffeur depuis
   son authentification. Un administrateur sélectionne un chauffeur existant dans son périmètre.
   Aucun chauffeur librement substituable depuis le navigateur.
@@ -39,9 +86,9 @@ Les paiements et remboursements sont **simulés**, sans prestataire bancaire.
 
 | Catégorie | Matricule      | Fenêtre de réservation | Zone                          |
 | --------- | -------------- | ---------------------- | ----------------------------- |
-| VIP       | G + 4 chiffres | Jusqu'à J-21           | Toutes les agences autorisées |
-| Local     | S + 5 chiffres | Jusqu'à J-14           | Agence autorisée              |
-| Libre     | L + 5 chiffres | Jusqu'à J-5            | Trajets publics autorisés     |
+| VIP       | V + 4 chiffres | Jusqu'à J-21           | Toutes les agences autorisées |
+| Local     | L + 5 chiffres | Jusqu'à J-14           | Agence autorisée              |
+| Libre     | F + 5 chiffres | Jusqu'à J-5            | Trajets publics autorisés     |
 
 Les fenêtres concernent les clients qui réservent, pas la date de création d'un trajet par son chauffeur.
 
@@ -87,14 +134,42 @@ docker info
 git status
 ```
 
+## Repères pour compiler et démarrer sous Windows
+
+Ouvrir trois terminaux PowerShell dans le dossier contenant `pom.xml` et
+`docker-compose.yml`. Adapter ce chemin à l'emplacement du dépôt :
+
+```powershell
+Set-Location 'C:\chemin\vers\GestionTransport-Multiple'
+```
+
+| Terminal | Dossier de travail | Commandes détaillées |
+| --- | --- | --- |
+| 1 — Docker / PostgreSQL | Racine du dépôt | [Démarrer et vérifier PostgreSQL](#1-postgresql-et-docker) |
+| 2 — Backend Java 21 | Racine du dépôt | [Compiler, tester et démarrer Spring Boot](#3-compiler-et-démarrer-le-backend) |
+| 3 — Frontend Angular | `frontend` | [Installer, compiler, tester et démarrer Angular](#4-installer-tester-et-lancer-angular) |
+
+Arrêter une instance backend avant une reconstruction Maven et éviter une
+compilation IntelliJ simultanée. Arrêter `ng serve` avec **Ctrl+C** avant `npm ci`
+pour éviter le verrouillage d'esbuild sous Windows. Les commandes de compilation
+ci-dessous ne démarrent pas les serveurs ; les commandes de lancement sont séparées.
+
 ## 1. PostgreSQL et Docker
+
+Depuis la racine du dépôt, dans le terminal 1 :
 
 ```powershell
 docker compose config --quiet
-docker compose up -d
+docker compose up -d postgres
 docker compose ps
+docker compose exec postgres pg_isready -U transport -d transportService
 docker compose logs --tail=100 postgres
 ```
+
+Le fichier Compose utilise l'image officielle `postgres:15`, sans Dockerfile
+applicatif. Il démarre PostgreSQL ; le backend et le frontend sont compilés avec
+Maven et npm dans les sections suivantes. Le contrôle `pg_isready` doit indiquer
+que PostgreSQL accepte les connexions.
 
 Configuration locale de développement :
 
@@ -132,8 +207,12 @@ Pour arrêter les services en conservant le stockage : `docker compose stop`.
 ## 2. Données existantes et schéma
 
 Le mécanisme initial `spring.jpa.hibernate.ddl-auto=update` est conservé.
-Un démarrage peut donc ajouter des colonnes : effectuer une sauvegarde avant d'utiliser
-une base métier existante. Aucun traitement ne remplace les anciens montants.
+Le garde de schéma refuse les tables historiques ou parallèles avant Hibernate.
+Le lancement de validation utilise explicitement `ddl-auto=validate` sur une copie
+déjà migrée. La copie de validation actuellement configurée est sur le port **5541** ;
+le Compose principal ci-dessus expose la base métier sur **5440**.
+La préparation de cette copie est décrite dans [l'audit SQL](docs/covoiturage/issue-3-modele-simple.md).
+Aucun traitement ne remplace les anciens montants.
 
 Exemple de sauvegarde PostgreSQL, sans redirection binaire PowerShell :
 
@@ -160,9 +239,12 @@ Le script [invariants PostgreSQL](scripts/migrations/issue-7-invariants-covoitur
 ajoute les index de recherche/créneau, l'unicité d'une demande active et le contrôle
 des villes, horaires et quatre places pour les trajets qualifiés. Même procédure
 explicite après sauvegarde ; il refuse les doublons existants, sans les supprimer.
-Il est aussi exécuté par les tests PostgreSQL sur leur base isolée.
+Les tests PostgreSQL actuels utilisent son équivalent sous les noms Transport :
+[issue-3-invariants-transport.sql](scripts/migrations/issue-3-invariants-transport.sql).
 
-Les noms SQL historiques sont conservés pour éviter une migration destructive.
+Les scripts ci-dessus concernent uniquement l'ancien schéma : ne pas les rejouer
+après renommage. Les mappings actuels utilisent les noms Transport ; la migration
+explicite est détaillée dans [l'audit SQL](docs/covoiturage/issue-3-modele-simple.md).
 Les catégories VIP/LOCAL utilisent encore les valeurs SQL GLOBAL/SITE via le convertisseur existant.
 Les anciens trajets sans villes renseignées ne sont pas vendus comme trajets de covoiturage :
 ils restent dans l'historique, en attente d'une qualification explicite.
@@ -170,16 +252,55 @@ Aucune ville, date de création ou nouvelle tarification n'est inventée pour ce
 
 ## 3. Compiler et démarrer le backend
 
-Compilation, tests et JAR :
+Depuis la racine du dépôt, dans le terminal 2. Vérifier que Maven utilise Java 21 :
+
+```powershell
+java -version
+.\mvnw.cmd -version
+```
+
+Si nécessaire, définir le JDK 21 installé avant de poursuivre, en adaptant le chemin :
+
+```powershell
+$env:JAVA_HOME = 'C:\chemin\vers\jdk-21'
+$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
+.\mvnw.cmd -version
+```
+
+**Compilation seule** :
+
+```powershell
+.\mvnw.cmd -B compile
+```
+
+**Tests backend** :
+
+```powershell
+.\mvnw.cmd -B test
+```
+
+**Compilation, tests et génération du JAR** — commande de validation habituelle :
 
 ```powershell
 .\mvnw.cmd -B verify
 ```
 
+Pour reconstruire entièrement les fichiers générés, backend et compilation IDE arrêtés :
+
+```powershell
+.\mvnw.cmd -B clean verify
+```
+
+Le JAR est généré dans `target/`. Son nom dépend de l'`artifactId` du `pom.xml` ;
+la valeur locale `industri` reste préservée. Les rapports de tests sont dans
+`target/surefire-reports/`.
+
 Sans `POSTGRES_BASELINE_URL`, les tests usuels utilisent H2 et les tests PostgreSQL opt-in sont ignorés.
 La compilation ne prouve pas le démarrage HTTP : ce dernier fait l'objet des vérifications décrites plus bas.
 
-Créer une clé JWT neuve dans l'environnement, sans l'afficher :
+**Démarrage Spring Boot**, après compilation : remplacer `<identifiant>` par
+le nom d'une copie PostgreSQL restaurée et migrée existante sur le port 5541.
+Créer une clé JWT dans l'environnement, sans l'afficher :
 
 ```powershell
 $octetsJwtTransport = New-Object byte[] 48
@@ -187,15 +308,41 @@ $generateurTransport = [System.Security.Cryptography.RandomNumberGenerator]::Cre
 try { $generateurTransport.GetBytes($octetsJwtTransport) }
 finally { $generateurTransport.Dispose() }
 $env:JWT_SECRET = [Convert]::ToBase64String($octetsJwtTransport)
-$env:DB_URL = 'jdbc:postgresql://localhost:5440/transportService'
-$env:DB_USER = 'transport'
-$env:DB_PASSWORD = 'transport'
+$env:DB_URL = 'jdbc:postgresql://127.0.0.1:5541/transport_schema_copy_<identifiant>'
+$identifiantsPostgres = Get-Credential -UserName 'transport' -Message 'Identifiants PostgreSQL de la copie de validation'
+$env:DB_USER = $identifiantsPostgres.UserName
+$env:DB_PASSWORD = $identifiantsPostgres.GetNetworkCredential().Password
 $env:DEMO_DATA_ENABLED = 'false'
-.\mvnw.cmd spring-boot:run
+$env:SPRING_JPA_HIBERNATE_DDL_AUTO = 'validate'
+.\mvnw.cmd '-Dspring-boot.run.jvmArguments=-Dspring.devtools.restart.enabled=false' spring-boot:run
 ```
 
+Laisser ce terminal ouvert. **Ctrl+C** arrête le backend.
+
+- Backend : [http://127.0.0.1:8080](http://127.0.0.1:8080) — les endpoints sont sous `/api`.
+- Swagger : [http://127.0.0.1:8080/swagger-ui.html](http://127.0.0.1:8080/swagger-ui.html).
+- OpenAPI : [http://127.0.0.1:8080/v3/api-docs](http://127.0.0.1:8080/v3/api-docs).
+
 Conserver `DEMO_DATA_ENABLED=false` sur toute base métier.
+Remplacer `<identifiant>` par une copie restaurée/migrée existante. Ne pas
+substituer transportService tant que son schéma ambigu n'a pas été régularisé
+et migré après validation explicite ; le garde doit en refuser le démarrage.
 Pour une présentation, privilégier la base de démonstration isolée décrite ci-dessous.
+
+Dans IntelliJ, la configuration Spring Boot **GestionTransportApplication** doit
+elle aussi recevoir `JWT_SECRET`. Une variable `$env:JWT_SECRET` définie dans un
+terminal ne configure pas une instance IntelliJ déjà ouverte. Pour préparer cette
+configuration locale sans afficher ni publier de secret :
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/configure-intellij-jwt.ps1
+```
+
+Le script ajoute une clé aléatoire uniquement si elle manque dans `.idea/workspace.xml`,
+ignoré par Git, et préserve une clé déjà configurée. Relancer ensuite **GestionTransportApplication**.
+Il ne modifie ni la base, ni les autres variables de lancement. L'erreur
+`Could not resolve placeholder 'JWT_SECRET'` indique cette configuration manquante
+au démarrage. Aucun secret par défaut n'est ajouté à `application.properties`.
 
 | Variable                | Usage                                                         | Défaut                                 |
 | ----------------------- | ------------------------------------------------------------- | -------------------------------------- |
@@ -210,17 +357,39 @@ Pour une présentation, privilégier la base de démonstration isolée décrite 
 
 ## 4. Installer, tester et lancer Angular
 
-Dans un autre terminal :
+Depuis la racine du dépôt, dans le terminal 3 :
 
 ```powershell
-cd frontend
+Set-Location frontend
 npm ci
-npm test
-npm run build
-npm start
 ```
 
-- Interface : [http://localhost:4200](http://localhost:4200).
+`npm ci` installe les versions du `package-lock.json` sans le remplacer.
+
+**Compilation de production** :
+
+```powershell
+npm run build
+```
+
+**Tests frontend** — le script du projet exécute Vitest puis se termine :
+
+```powershell
+npm test
+```
+
+**Démarrage du serveur de développement**, backend déjà démarré :
+
+```powershell
+npm start -- --host 127.0.0.1 --port 4202
+```
+
+Laisser ce terminal ouvert. **Ctrl+C** arrête Angular. Pour revenir à la racine :
+`Set-Location ..`.
+
+- Interface : [http://127.0.0.1:4202](http://127.0.0.1:4202).
+- Le port 4202 est utilisé pour laisser le port 4200 de l'autre application intact.
+  Sur une autre machine où 4200 est libre, `npm start` utilise ce port par défaut.
 - Le proxy existant transmet `/api` à `http://localhost:8080`.
 - Build de production : `frontend/dist/frontend/browser`.
 - L'interceptor JWT et les guards existants sont réutilisés.
@@ -259,14 +428,18 @@ Comptes créés uniquement dans cette base de démonstration :
 
 | Connexion      | Identifiant         | Fonction                                  |
 | -------------- | ------------------- | ----------------------------------------- |
-| Voyageur       | G1001               | Chauffeur autorisé                        |
-| Voyageur       | G1002               | Client VIP                                |
-| Voyageur       | S10001              | Client local                              |
-| Voyageur       | L10001              | Client libre                              |
-| Administrateur | admin@example.test  | Administrateur global                     |
-| Administrateur | agence@example.test | Gestionnaire de l'agence de démonstration |
+| Voyageur       | V1001               | Chauffeur autorisé                        |
+| Voyageur       | V1002               | Client VIP                                |
+| Voyageur       | L10001              | Client local                              |
+| Voyageur       | F10001              | Client libre                              |
+| Administrateur | admin@transp.com    | Administrateur global                     |
+| Administrateur | admin.lyon@transp.com | Gestionnaire de l'agence de démonstration |
+| Administrateur | admin.paris@transp.com | Second gestionnaire de cette même agence de démonstration |
 
-Le mot de passe est celui fourni par `DEMO_PASSWORD`.
+Lorsque `DEMO_PASSWORD` est fourni comme dans la commande ci-dessus, il remplace
+les deux mots de passe de démonstration. Sans cette variable, les valeurs sont
+`Admin1234!` pour les administrateurs et `Voyage1234!` pour les voyageurs ; elles
+sont personnalisables avec `DEMO_ADMIN_PASSWORD` et `DEMO_VOYAGEUR_PASSWORD`.
 Les huit trajets de démonstration proposent chacun quatre places,
 sans réservation du chauffeur. Ils ne sont jamais insérés automatiquement dans la base métier.
 
@@ -275,7 +448,7 @@ Parcours de présentation :
 1. Se connecter comme client et rechercher Mons → Bruxelles.
 2. Créer une demande, puis payer depuis « Mes réservations » : une place est confirmée.
 3. Consulter les paiements et l'historique ; annuler une réservation autorisée.
-4. Se connecter comme G1001 et proposer un trajet avec ses villes et son véhicule.
+4. Se connecter comme V1001 et proposer un trajet avec ses villes et son véhicule.
 5. Créer un trajet privé, inviter des clients et choisir explicitement la publication H-24.
 6. Se connecter comme administrateur, gérer les voyageurs autorisés à conduire,
    créer un trajet avec chauffeur sélectionné et consulter les statistiques du périmètre autorisé.
@@ -340,6 +513,7 @@ Toutes les PR ciblent `develop`. Les branches fonctionnelles partent du dernier
 | #5    | feature/issue-5-transport-api               | [#15](https://github.com/Zoom225/GestionTransport-Multiple/pull/15)                                                                    |
 | #6    | feature/issue-6-transport-frontend          | [#16](https://github.com/Zoom225/GestionTransport-Multiple/pull/16)                                                                    |
 | #7 | feature/issue-7-integration-validation | [#17](https://github.com/Zoom225/GestionTransport-Multiple/pull/17) |
+| #6 | feature/issue-6-ui-professionnelle | [#21](https://github.com/Zoom225/GestionTransport-Multiple/pull/21) |
 | #4, #6, #7 | feature/issue-4-soutenance-finalisation | [#18](https://github.com/Zoom225/GestionTransport-Multiple/pull/18) |
 
 Documents à lire pour présenter le projet :
@@ -415,7 +589,59 @@ Les commandes et preuves de validation figurent dans
 La CI contrôle désormais les PR vers `develop` **et `master`**. La livraison vers
 `master` se fait par PR distincte après validation de `develop`, sans fusion automatique.
 
+## Refonte UX/UI — issue #6
+
+La [PR #21](https://github.com/Zoom225/GestionTransport-Multiple/pull/21), sur
+`feature/issue-6-ui-professionnelle`, harmonise le frontend : thème marine/bleu/turquoise,
+navigation mobile, pied de page commun, formulaires, cartes, espaces voyageur/chauffeur
+et administration. **Voir le trajet** ouvre une fiche accessible avec les informations
+déjà disponibles et la même action de réservation. Les services API, guards, interceptor,
+contrats REST et règles backend sont conservés.
+
+Les couleurs et composants communs sont centralisés dans `frontend/src/styles.scss`,
+le header/footer dans `frontend/src/app/app.scss`. Les SVG sont locaux et la police
+utilise Inter lorsqu'elle est installée, puis les polices système : aucune police
+distante requise. Les nouveaux libellés, erreurs de session/réseau et statuts sont FR/EN.
+
+Comparaisons avec réponses API de démonstration **simulées dans le navigateur** :
+
+| Écran | Avant | Après |
+| --- | --- | --- |
+| Accueil ordinateur | [Avant](docs/images/ui/avant-accueil-1440.jpg) | [Après](docs/images/ui/apres-accueil-1440.jpg) |
+| Accueil mobile | [Avant](docs/images/ui/avant-accueil-375.jpg) | [Après](docs/images/ui/apres-accueil-375.jpg) |
+| Administration | [Avant](docs/images/ui/avant-dashboard-1440.jpg) | [Après](docs/images/ui/apres-dashboard-1440.jpg) |
+
+Build et tests : `cd frontend`, `npm ci`, `npm run build`, `npm test`.
+Validation de cette refonte : **69 tests Angular**, build réussi, **57 contrôles
+responsive** et **20 analyses axe-core** sans violation signalée sur les règles
+sélectionnées. Parcours de réservation/paiement vérifié avec des API simulées,
+sans accès aux données PostgreSQL.
+Le détail des vérifications, limites et commandes navigateur figure dans
+[le compte rendu UI](docs/covoiturage/issue-6-interface.md).
+
 ## Dépannage
+
+Pour le lancement IntelliJ actuel, utiliser **GestionTransportApplication** et
+configurer une copie restaurée/migrée, sans écrire dans la base métier :
+
+```powershell
+$env:DB_PASSWORD='<mot de passe de la copie de validation>'
+.\scripts\configure-intellij-validation.ps1 -Database transport_schema_copy_<identifiant>
+```
+
+Le script configure l'URL locale explicite, `ddl-auto=validate`, désactive la
+démo et le redémarrage DevTools, et réutilise la clé JWT personnelle. Il refuse
+la base métier. [Diagnostic détaillé](docs/covoiturage/issue-7-validation.md).
+La configuration Maven partagée ci-dessous exige ses propres variables
+d'environnement ; elle n'hérite pas de celles de la configuration Spring Boot.
+
+- IntelliJ : utiliser la configuration partagée **GestionTransport-Multiple**
+  (`.run/GestionTransport-Multiple.run.xml`), qui exécute `spring-boot:run` via Maven
+  sans dépendre du nom local du module. Configurer les variables DB/JWT comme ci-dessus.
+  Pour une configuration Spring Boot personnelle, la classe principale est
+  `com.transport.gestiontransport.GestionTransportApplication` ; les tests se trouvent
+  dans `com.transport.gestiontransport`. Après un renommage, vérifier ces deux champs
+  dans **Run → Edit Configurations**, puis recharger le projet Maven.
 
 - Sous Windows, arrêter une instance lancée avec `java -jar` avant de régénérer
   son JAR : le processus peut empêcher Maven de renommer le fichier pendant l'empaquetage.
@@ -428,3 +654,51 @@ La CI contrôle désormais les PR vers `develop` **et `master`**. La livraison v
 - Création refusée : vérifier la permission chauffeur, le véhicule, l'agence, les horaires et chevauchements.
 - Paiement refusé : actualiser la disponibilité, vérifier le délai, la catégorie, la zone et les restrictions.
 - Ancien montant ou trajet non qualifié : régularisation métier explicite, sans réécriture automatique des paiements.
+
+## Harmonisation PostgreSQL Transport — issue #3
+
+Branche `refactor/issue-3-schema-transport`, distincte de l'interface premium
+`feature/issue-6-admin-ui-premium` ([PR #22](https://github.com/Zoom225/GestionTransport-Multiple/pull/22)).
+Les tables cibles sont agences, vehicules, voyageurs, trajets, reservations,
+paiements, restrictions, indisponibilites_service et administrateurs.
+Les renommages explicites préservent les données, identifiants, FK et montants.
+[Audit, résultats, incident et procédure](docs/covoiturage/issue-3-modele-simple.md) ;
+[diagrammes de classes et entité-association](docs/covoiturage/modele-donnees.md).
+
+**Ne pas lancer Hibernate update sur la base historique pendant un changement
+de mappings.** Arrêter Spring Boot/DevTools et la compilation automatique avant
+de changer de branche. Le nouveau garde bloque le démarrage avant Hibernate
+si les tables historiques sont présentes. La migration sur transportService
+exige une autorisation distincte, après revue et restauration testée.
+
+Un rechargement IntelliJ resté actif a créé des tables Transport vides sur la
+base métier pendant ce chantier. Cette instance a été arrêtée ; aucune table
+n'a été supprimée. Les empreintes des données historiques sont identiques à
+la sauvegarde initiale. L'état ambigu est sauvegardé et refusé par le migrateur ;
+sa régularisation n'est pas exécutée automatiquement.
+
+```powershell
+# Restaurer et migrer une copie depuis une sauvegarde connue, jamais la source :
+.\scripts\valider-schema-transport.ps1 -BackupFile C:\chemin\sauvegarde.dump -DatabaseUser transport
+# Vérifier les mappings sans génération implicite de tables :
+$env:TRANSPORT_SCHEMA_URL='jdbc:postgresql://127.0.0.1:5541/transport_schema_copy_<identifiant>'
+$env:DB_USER='transport'
+$env:DB_PASSWORD='<mot de passe de validation>'
+mvn -B -Dtest=TransportSchemaValidationTest test
+```
+
+Résultats du chantier SQL : `mvn -B verify` réussi, **160 tests backend sans
+échec, erreur ou ignoré**, dont 15 tests PostgreSQL et deux tests JPA de la copie
+restaurée en mode validate. Migration exécutée deux fois, empreintes des neuf
+tables identiques ; contraintes supplémentaires validées sans réécriture des
+données. Un vrai lancement du jar refuse le schéma historique avant Hibernate.
+Le nouveau backend et le frontend premium ont aussi réussi ensemble le parcours
+réel sur `transport_demo_premium_20261113181820` : GLOBAL/AGENCE, périmètre local,
+réservation Angular, paiement25, confirmation, historique, annulation/remboursement,
+quatre clients/100€, concurrence dernière place ; douze contrôles responsive réels
+sans débordement et aucune erreur JS. Les dumps confidentiels restent hors Git.
+## Finition premium et accès administrateur
+
+Le header propose **Accès administrateur** avant connexion. Après connexion, le rôle affiche **Administration globale** ou **Administration de mon agence**, avec navigation dédiée responsive vers les pages existantes. Les recettes sont consultables au dashboard ; restrictions et absences dans la gestion des voyageurs.
+
+Chantier issue #6, branche `feature/issue-6-admin-ui-premium`, complément de #21 non fusionnée. [Rapport et captures](docs/covoiturage/issue-6-interface.md). Build et 72 tests Angular réussis ; 15 tests PostgreSQL isolés réussis ; parcours réel GLOBAL/AGENCE et réservation/paiement Angular réussi sur `transport_demo_premium_20261112234317`. Les 57 contrôles visuels avec API simulées sont distincts de cette intégration réelle. Aucune migration sur la base métier.
