@@ -92,13 +92,16 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         <p role="status" aria-live="polite" class="status-success">{{ message() }}</p>
       }
 
+      @if (participation()?.peutRejoindreMatch === false) {
+        <p role="status" class="status-error">{{ participation()?.message }}</p>
+      }
       @if (errorMessage()) {
         <p role="alert" class="status-error">{{ errorMessage() }}</p>
       }
 
       <a
         routerLink="/voyageur/trajets/new"
-        class="card-soft block rounded-2xl border border-sky-200 bg-gradient-to-r from-sky-50 to-indigo-50 p-5 no-underline transition hover:-translate-y-0.5 hover:shadow-md"
+        class="card-soft trip-create-callout block p-5 no-underline"
       >
         <p class="text-sm font-medium uppercase tracking-wide text-sky-700">
           {{ language.t('voyageur.public.noTrajetPrompt') }}
@@ -110,22 +113,23 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
             </p>
             <p class="text-sm text-slate-600">{{ language.t('voyageur.public.createBody') }}</p>
           </div>
-          <span class="ds-btn-primary">{{ language.t('voyageur.public.create') }}</span>
+          <span class="ds-btn ds-btn-primary">{{ language.t('voyageur.public.create') }}</span>
         </div>
       </a>
 
       <div class="grid gap-4 lg:grid-cols-2">
         @for (trajet of filteredTrajets(); track trajet.id) {
-          <mat-card class="card-soft">
+          <mat-card class="card-soft trip-result-card">
             <app-trajet-card
               [trajet]="trajet"
               [disabled]="joiningTrajetId() === trajet.id || !canJoin(trajet)"
               (reservationDemandee)="joinTrajet($event)"
             >
-              @if (isOrganizer(trajet)) {
+              @if (isOrganizer(trajet) || isAssignedDriver(trajet)) {
                 <span class="ds-badge ds-badge-info">{{
                   language.t('voyageur.public.myTrajet')
                 }}</span>
+                @if (isOrganizer(trajet)) {
                 <button
                   mat-stroked-button
                   type="button"
@@ -134,11 +138,13 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
                 >
                   {{ language.t('voyageur.public.modify') }}
                 </button>
+                }
                 <button
                   mat-stroked-button
                   type="button"
                   (click)="cancelOwnTrajet(trajet)"
-                  [disabled]="actionTrajetId() === trajet.id"
+                  [attr.aria-label]="'Annuler le trajet #' + trajet.id"
+                  [disabled]="!canCancel(trajet) || actionTrajetId() === trajet.id"
                 >
                   {{ language.t('voyageur.public.delete') }}
                 </button>
@@ -215,6 +221,7 @@ export class VoyageurPublicTrajetsPage {
   private readonly reservationsApi = inject(ReservationsApiService);
   private readonly voyageurSession = inject(VoyageurSessionService);
   readonly language = inject(LanguageService);
+  readonly participation = this.voyageurSession.participation;
 
   readonly loading = signal(false);
   readonly joiningTrajetId = signal<number | null>(null);
@@ -331,7 +338,19 @@ export class VoyageurPublicTrajetsPage {
     return trajet.organisateurId === this.voyageurSession.voyageurId();
   }
 
+  isAssignedDriver(trajet: TrajetResponse): boolean {
+    return trajet.chauffeurId === this.voyageurSession.voyageurId();
+  }
+
+  canCancel(trajet: TrajetResponse): boolean {
+    return !!this.voyageurSession.voyageurId()
+      && (this.isOrganizer(trajet) || this.isAssignedDriver(trajet))
+      && trajet.statut !== 'ANNULE'
+      && new Date(trajet.date + 'T' + trajet.heureDebut).getTime() > Date.now();
+  }
+
   canJoin(trajet: TrajetResponse): boolean {
+    if (this.participation()?.peutRejoindreMatch === false) return false;
     if (this.isOrganizer(trajet)) {
       return false;
     }
@@ -428,6 +447,7 @@ export class VoyageurPublicTrajetsPage {
   }
 
   cancelOwnTrajet(trajet: TrajetResponse): void {
+    if (!this.canCancel(trajet)) return;
     const voyageurId = this.voyageurSession.voyageurId();
     if (!voyageurId) {
       return;

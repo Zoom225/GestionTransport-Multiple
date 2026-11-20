@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { VoyageurRequest, VoyageurResponse } from '../../shared/models/voyageur.model';
+import { SanctionResponse, VoyageurRequest, VoyageurResponse } from '../../shared/models/voyageur.model';
 import { apiUrl } from './api-url';
 
 @Injectable({ providedIn: 'root' })
@@ -21,6 +21,10 @@ export class VoyageursApiService {
 
   getCurrent(): Observable<VoyageurResponse> {
     return this.http.get<VoyageurResponse>(apiUrl('/voyageurs/me'));
+  }
+
+  getSanctions(): Observable<SanctionResponse[]> {
+    return this.http.get<SanctionResponse[]>(apiUrl('/voyageurs/me/sanctions'));
   }
 
   getByMatricule(matricule: string): Observable<VoyageurResponse> {

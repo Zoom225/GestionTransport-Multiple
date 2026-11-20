@@ -9,6 +9,7 @@ import { TrajetSearchComponent } from '../../../shared/components/trajet-search.
 import { TrajetCardComponent } from '../../../shared/components/trajet-card.component';
 import { RechercheTrajet, TrajetResponse } from '../../../shared/models/trajet.model';
 import { CarHeroCarouselComponent } from '../../../shared/components/car-hero-carousel.component';
+import { AnimatedRouteBannerComponent } from '../../../shared/components/animated-route-banner.component';
 
 @Component({
   selector: 'app-landing-page',
@@ -20,6 +21,7 @@ import { CarHeroCarouselComponent } from '../../../shared/components/car-hero-ca
     TrajetSearchComponent,
     TrajetCardComponent,
     CarHeroCarouselComponent,
+    AnimatedRouteBannerComponent,
   ],
   template: `
     <app-car-hero-carousel />
@@ -64,6 +66,10 @@ import { CarHeroCarouselComponent } from '../../../shared/components/car-hero-ca
           </div>
         }
       </section>
+
+      <!-- Bannière animée ultra-légère SVG / CSS pur -->
+      <app-animated-route-banner />
+
       <section class="popular">
         <p class="eyebrow">{{ language.t('transport.belgium') }}</p>
         <h2>{{ language.t('transport.popular') }}</h2>
@@ -94,17 +100,14 @@ import { CarHeroCarouselComponent } from '../../../shared/components/car-hero-ca
         <h2>{{ language.t('transport.how') }}</h2>
         <div class="steps">
           <article>
-            <b>01</b>
             <h3>{{ language.t('transport.findStep') }}</h3>
             <p>{{ language.t('transport.findBody') }}</p>
           </article>
           <article>
-            <b>02</b>
             <h3>{{ language.t('transport.payStep') }}</h3>
             <p>{{ language.t('transport.payBody') }}</p>
           </article>
           <article>
-            <b>03</b>
             <h3>{{ language.t('transport.travelStep') }}</h3>
             <p>{{ language.t('transport.travelBody') }}</p>
           </article>
@@ -124,7 +127,7 @@ import { CarHeroCarouselComponent } from '../../../shared/components/car-hero-ca
       :host {
         display: block;
       }
-      .content { max-width: 1200px; margin-inline: auto; }
+      .content { width: min(1312px, calc(100% - var(--space-gutter) * 2)); margin-inline: auto; }
       .eyebrow {
         font-size: 0.72rem;
         font-weight: 750;
@@ -133,13 +136,11 @@ import { CarHeroCarouselComponent } from '../../../shared/components/car-hero-ca
         text-transform: uppercase;
         margin: 0 0 1rem;
       }
-      .content {
-        padding: 0 1.5rem;
-      }
       .search-panel {
         position: relative;
-        padding: 1.5rem;
-        margin-top: -3.5rem;
+        z-index: 1;
+        padding: clamp(1rem, 2.8vw, 2rem);
+        margin-top: -2.55rem;
         border: 1px solid var(--ui-border);
         background: var(--ui-surface);
         border-radius: var(--ui-radius-large);
@@ -150,7 +151,7 @@ import { CarHeroCarouselComponent } from '../../../shared/components/car-hero-ca
       .how {
         padding-top: var(--ui-space-section);
       }
-      .benefits { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1.75rem; padding-top: 2.75rem; }
+      .benefits { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1.5rem; padding-block: 2.3rem; border-bottom: 1px solid var(--ui-border); }
       .benefits article { display: flex; gap: 1rem; align-items: start; }
       .benefits article > span { display: grid; place-items: center; width: 44px; min-width: 44px; height: 44px; border-radius: 14px; background: var(--ui-teal-soft); color: var(--ui-teal-strong); font-weight: 750; }
       .benefits h2 { font-size: 1rem; margin: 0 0 .5rem; letter-spacing: -.015em; }
@@ -210,16 +211,18 @@ import { CarHeroCarouselComponent } from '../../../shared/components/car-hero-ca
         padding: 1.15rem;
         min-height: 64px;
         border: 1px solid var(--ui-border);
-        border-radius: 12px;
+        border-radius: var(--ui-radius-button);
         background: var(--ui-surface);
         color: var(--ui-navy);
         font-weight: 650;
         cursor: pointer;
         text-align: left;
+        transition: background var(--ui-motion), border-color var(--ui-motion);
       }
-      .popular-grid button:hover {
+      .popular-grid button:hover:not(:disabled) {
         border-color: var(--ui-primary);
         color: var(--ui-primary-strong);
+        background: var(--ui-primary-soft);
       }
       .popular-grid span {
         color: var(--ui-teal-strong);
@@ -233,21 +236,12 @@ import { CarHeroCarouselComponent } from '../../../shared/components/car-hero-ca
         padding: 1.75rem;
         background: var(--ui-surface);
         border: 1px solid var(--ui-border);
+        border-top: 3px solid var(--color-accent);
         border-radius: var(--ui-radius);
-      }
-      .steps b {
-        display: grid;
-        place-items: center;
-        height: 40px;
-        width: 40px;
-        border-radius: 10px;
-        color: var(--ui-primary-strong);
-        background: var(--ui-primary-soft);
-        font-size: 0.85rem;
       }
       .steps h3 {
         font-size: 1.1rem;
-        margin: 1.5rem 0 0.75rem;
+        margin: 0 0 0.75rem;
       }
       .steps p {
         font-size: 0.9rem;
@@ -285,13 +279,10 @@ import { CarHeroCarouselComponent } from '../../../shared/components/car-hero-ca
           padding: 1.25rem;
         }
       }
-      @media (max-width: 700px) {
-
-        .content {
-          padding: 0 1rem;
-        }
+      @media (max-width: 720px) {
         .search-panel {
           padding: 1rem;
+          margin-top: -1.35rem;
         }
         .trip-grid,
         .popular-grid,

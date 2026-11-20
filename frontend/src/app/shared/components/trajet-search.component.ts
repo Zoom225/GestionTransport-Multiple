@@ -72,7 +72,7 @@ import { differentCitiesValidator } from '../validators/different-cities.validat
       }
       .search-form {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr auto;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
         gap: 1rem;
         align-items: start;
       }
@@ -85,7 +85,7 @@ import { differentCitiesValidator } from '../validators/different-cities.validat
       }
       @media (max-width: 1000px) {
         .search-form {
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
       }
       @media (max-width: 560px) {

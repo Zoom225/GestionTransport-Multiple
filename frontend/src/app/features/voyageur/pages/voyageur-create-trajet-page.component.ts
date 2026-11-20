@@ -176,6 +176,9 @@ const formatDateForInput = (date: Date): string => {
               </p>
             </div>
 
+            @if (voyageur()?.participation?.peutParticiper === false) {
+              <p role="status" class="status-error md:col-span-2">{{ voyageur()?.participation?.message }}</p>
+            }
             @if (errorMessage()) {
               <p role="alert" class="status-error md:col-span-2">{{ errorMessage() }}</p>
             } @else if (!agences().length && !loading()) {
@@ -233,7 +236,7 @@ const formatDateForInput = (date: Date): string => {
                 mat-flat-button
                 color="primary"
                 type="submit"
-                [disabled]="loading() || loadingVehicules() || form.invalid || !vehicules().length"
+                [disabled]="loading() || loadingVehicules() || form.invalid || !vehicules().length || voyageur()?.participation?.peutParticiper === false"
               >
                 {{ language.t('voyageur.create.submit') }}
               </button>
@@ -422,6 +425,10 @@ export class VoyageurCreateTrajetPage {
   }
 
   submit(): void {
+    if (this.voyageur()?.participation?.peutParticiper === false) {
+      this.errorMessage.set(this.voyageur()!.participation!.message);
+      return;
+    }
     this.form.markAllAsTouched();
 
     if (this.form.invalid || this.loading() || this.loadingVehicules()) {

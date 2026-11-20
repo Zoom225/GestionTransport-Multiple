@@ -26,24 +26,20 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
     <section class="admin-shell">
       <div class="admin-hero">
         <div>
-          <p class="eyebrow">{{ language.t('admin.home.eyebrow') }}</p>
-          <h1>{{ language.t(adminSession.isGlobalAdmin() ? 'premium.global' : 'premium.local') }}</h1>
-          <p class="hero-subtitle">
+          <p class="eyebrow">{{ language.t('studio.adminEyebrow') }}</p>
+          <h1>{{ language.t('studio.adminTitle') }}</h1>
+          <p class="hero-subtitle">{{ language.t('studio.adminLead') }}</p>
+          <span class="scope-badge"
+            ><svg class="ui-icon" aria-hidden="true"><use href="images/ui-icons.svg#lock" /></svg>
             {{
-              language.t('admin.home.subtitle', {
-                scope: adminSession.isGlobalAdmin() ? 'global' : 'agence',
-              })
-            }}
-          </p>
+              language.t(adminSession.isGlobalAdmin() ? 'premium.global' : 'premium.local')
+            }}</span
+          >
         </div>
 
-        <div class="admin-actions">
-          <a routerLink="/admin/voyageurs">{{ language.t('nav.voyageurs') }}</a>
-          <a routerLink="/admin/trajets">{{ language.t('nav.trajets') }}</a>
-          <a routerLink="/admin/agences">{{ language.t('nav.agences') }}</a>
-          <a routerLink="/admin/vehicules">{{ language.t('nav.vehicules') }}</a>
-          <a routerLink="/admin/indisponibilites">{{ language.t('nav.indisponibilites') }}</a>
-        </div>
+        <a class="admin-create" routerLink="/admin/trajets/new"
+          ><span aria-hidden="true">＋</span>{{ language.t('nav.create') }}</a
+        >
       </div>
 
       @if (loading()) {
@@ -59,23 +55,40 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         <p role="alert" class="status-error">{{ errorMessage() }}</p>
       }
 
+      <div class="dashboard-section-heading">
+        <h2>{{ language.t('studio.overview') }}</h2>
+        <span>{{ language.t('admin.home.allStatuses') }}</span>
+      </div>
       <div class="kpi-grid">
         <div class="admin-kpi green">
+          <span class="kpi-icon"
+            ><svg class="ui-icon" aria-hidden="true"><use href="images/ui-icons.svg#car" /></svg
+          ></span>
           <p>{{ language.t('admin.home.trajets') }}</p>
           <strong>{{ trajets().length }}</strong>
           <span>{{ language.t('admin.home.allStatuses') }}</span>
         </div>
         <div class="admin-kpi blue">
+          <span class="kpi-icon"
+            ><svg class="ui-icon" aria-hidden="true">
+              <use href="images/ui-icons.svg#calendar" /></svg
+          ></span>
           <p>{{ language.t('admin.home.reservations') }}</p>
           <strong>{{ reservations().length }}</strong>
           <span>{{ pendingReservationsCount() }} {{ language.t('admin.home.waiting') }}</span>
         </div>
         <div class="admin-kpi slate">
+          <span class="kpi-icon"
+            ><svg class="ui-icon" aria-hidden="true"><use href="images/ui-icons.svg#user" /></svg
+          ></span>
           <p>{{ language.t('admin.home.voyageurs') }}</p>
           <strong>{{ voyageurs().length }}</strong>
           <span>{{ language.t('admin.home.visible') }}</span>
         </div>
         <div class="admin-kpi amber">
+          <span class="kpi-icon"
+            ><svg class="ui-icon" aria-hidden="true"><use href="images/ui-icons.svg#payment" /></svg
+          ></span>
           <p>{{ language.t('admin.home.revenue') }}</p>
           <strong>{{ revenue() }} EUR</strong>
           <span>{{ language.t('admin.home.validPayments') }}</span>
@@ -91,9 +104,16 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
           <mat-card-content>
             <div class="data-list">
               @for (item of occupancyByAgence(); track item.agence) {
-                <div class="data-row">
-                  <span>{{ item.agence }}</span>
-                  <strong>{{ item.count }} {{ language.t('admin.home.trajetCount') }}</strong>
+                <div class="agency-activity">
+                  <div class="data-row">
+                    <span>{{ item.agence }}</span>
+                    <strong>{{ item.count }} {{ language.t('admin.home.trajetCount') }}</strong>
+                  </div>
+                  <div class="activity-track" aria-hidden="true">
+                    <span
+                      [style.width.%]="trajets().length ? (item.count / trajets().length) * 100 : 0"
+                    ></span>
+                  </div>
                 </div>
               } @empty {
                 <p class="empty-state">{{ language.t('admin.home.empty') }}</p>
@@ -131,240 +151,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
       </div>
     </section>
   `,
-  styles: [
-    `
-      .admin-shell {
-        width: min(1220px, calc(100% - 2rem));
-        margin: 0 auto;
-        padding: 2rem 0 4rem;
-      }
-
-      .admin-hero {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 1.5rem;
-        padding: clamp(1.5rem, 3vw, 2.5rem);
-        border-radius: 8px;
-        background: var(--ui-navy);
-        background-size:
-          auto,
-          44px 44px;
-        color: var(--ui-surface);
-        box-shadow: var(--ui-shadow);
-      }
-
-      .eyebrow {
-        margin: 0 0 0.75rem;
-        color: var(--ui-surface);
-        font-size: 0.78rem;
-        font-weight: 900;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-      }
-
-      h1 {
-        margin: 0;
-        font-size: clamp(1.8rem, 3vw, 2.5rem);
-        font-weight: 900;
-        letter-spacing: 0;
-        line-height: 1;
-      }
-
-      .hero-subtitle {
-        max-width: 620px;
-        margin: 1rem 0 0;
-        color: color-mix(in srgb, var(--ui-surface) 78%, transparent);
-        line-height: 1.65;
-      }
-
-      .admin-actions {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-        gap: 0.65rem;
-      }
-
-      .admin-actions a {
-        padding: 0.55rem 0.85rem;
-        border: 1px solid color-mix(in srgb, var(--ui-surface) 18%, transparent);
-        border-radius: 8px;
-        background: color-mix(in srgb, var(--ui-surface) 12%, transparent);
-        color: var(--ui-surface);
-        font-size: 0.86rem;
-        font-weight: 800;
-        text-decoration: none;
-        backdrop-filter: blur(12px);
-        transition:
-          background 0.15s,
-          transform 0.15s;
-      }
-
-      .admin-actions a:hover {
-        background: color-mix(in srgb, var(--ui-surface) 20%, transparent);
-        transform: translateY(-1px);
-      }
-
-      .loading-panel {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        margin-top: 1.25rem;
-        color: var(--ui-text-secondary);
-        font-weight: 800;
-      }
-
-      .kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 1rem;
-        margin-top: 1.25rem;
-      }
-
-      .admin-kpi {
-        min-height: 148px;
-        padding: 1.2rem;
-        border: 1px solid color-mix(in srgb, var(--ui-navy) 8%, transparent);
-        border-radius: 8px;
-        background: var(--ui-surface);
-        box-shadow: var(--ui-shadow);
-      }
-
-      .admin-kpi p,
-      .admin-kpi span {
-        margin: 0;
-        color: var(--ui-text-secondary);
-        font-size: 0.86rem;
-        font-weight: 750;
-      }
-
-      .admin-kpi strong {
-        display: block;
-        margin: 0.75rem 0 0.5rem;
-        color: var(--ui-navy);
-        font-size: clamp(1.8rem, 3vw, 2.4rem);
-        line-height: 1;
-        font-weight: 900;
-      }
-
-      .admin-kpi.green {
-        border-top: 4px solid var(--ui-teal-strong);
-      }
-
-      .admin-kpi.blue {
-        border-top: 4px solid var(--ui-primary-strong);
-      }
-
-      .admin-kpi.slate {
-        border-top: 4px solid var(--ui-text-secondary);
-      }
-
-      .admin-kpi.amber {
-        border-top: 4px solid var(--ui-warning);
-      }
-
-      .dashboard-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-        gap: 1rem;
-        margin-top: 1rem;
-      }
-
-      .admin-panel {
-        border-radius: 8px !important;
-      }
-
-      .data-list {
-        display: grid;
-        gap: 0.7rem;
-        padding-top: 0.75rem;
-      }
-
-      .data-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        padding: 0.9rem 1rem;
-        border: 1px solid color-mix(in srgb, var(--ui-primary-strong) 12%, transparent);
-        border-radius: 8px;
-        background: var(--ui-surface-subtle);
-        color: var(--ui-navy);
-      }
-
-      .data-row span {
-        font-weight: 800;
-      }
-
-      .data-row strong {
-        color: var(--ui-primary-strong);
-        white-space: nowrap;
-      }
-
-      .resource-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.8rem;
-        padding-top: 0.75rem;
-      }
-
-      .resource-grid div {
-        min-height: 110px;
-        padding: 1rem;
-        border-radius: 8px;
-        background: var(--ui-surface);
-        border: 1px solid color-mix(in srgb, var(--ui-navy) 8%, transparent);
-      }
-
-      .resource-grid span {
-        display: block;
-        color: var(--ui-text-secondary);
-        font-size: 0.86rem;
-        font-weight: 750;
-      }
-
-      .resource-grid strong {
-        display: block;
-        margin-top: 0.65rem;
-        color: var(--ui-navy);
-        font-size: 1.9rem;
-        line-height: 1;
-        font-weight: 900;
-      }
-
-      .empty-state {
-        margin: 0;
-        color: var(--ui-text-secondary);
-      }
-
-      @media (max-width: 940px) {
-        .admin-hero,
-        .dashboard-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .admin-hero {
-          display: grid;
-          align-items: start;
-        }
-
-        .admin-actions {
-          justify-content: flex-start;
-        }
-
-        .kpi-grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-      }
-
-      @media (max-width: 640px) {
-        .kpi-grid,
-        .resource-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-    `,
-  ],
+  styleUrl: './admin-home.page.scss',
 })
 export class AdminHomePage {
   private readonly trajetsApi = inject(TrajetsApiService);

@@ -21,13 +21,32 @@ import { LanguageService } from '../../../core/i18n/language.service';
     MatButtonModule,
     MatProgressSpinnerModule,
   ],
+  styleUrl: './admin-login.page.scss',
   template: `
     <div class="login-shell">
       <div class="login-hero">
         <div class="login-hero-content">
-          <div class="login-hero-icon"></div>
-          <h1 class="login-hero-title">{{ language.t('admin.login.heroTitle') }}</h1>
-          <p class="login-hero-sub">{{ language.t('admin.login.heroSubtitle') }}</p>
+          <p class="login-eyebrow">{{ language.t('studio.adminEyebrow') }}</p>
+          <h1 class="login-hero-title">{{ language.t('studio.adminLoginTitle') }}</h1>
+          <p class="login-hero-sub">{{ language.t('studio.adminLoginLead') }}</p>
+          <div class="network-illustration" aria-hidden="true">
+            <span class="network-hub"
+              ><svg class="ui-icon" aria-hidden="true">
+                <use href="images/ui-icons.svg#agency" /></svg></span
+            ><span class="network-node node-one"
+              ><svg class="ui-icon" aria-hidden="true">
+                <use href="images/ui-icons.svg#car" /></svg></span
+            ><span class="network-node node-two"
+              ><svg class="ui-icon" aria-hidden="true">
+                <use href="images/ui-icons.svg#user" /></svg></span
+            ><span class="network-node node-three"
+              ><svg class="ui-icon" aria-hidden="true">
+                <use href="images/ui-icons.svg#calendar" /></svg></span
+            ><span class="network-node node-four"
+              ><svg class="ui-icon" aria-hidden="true"><use href="images/ui-icons.svg#car" /></svg
+            ></span>
+          </div>
+          <p class="login-network-note">{{ language.t('studio.adminLoginNote') }}</p>
           <div class="login-hero-badges">
             <span class="login-badge login-badge-global">{{
               language.t('admin.login.globalBadge')
@@ -52,7 +71,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
           <form [formGroup]="form" class="login-form" (ngSubmit)="submit()">
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>{{ language.t('admin.login.email') }}</mat-label>
-              <input matInput type="email" formControlName="email" />
+              <input matInput type="email" autocomplete="username" formControlName="email" />
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="w-full">
@@ -61,6 +80,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
                 matInput
                 [type]="showAdminPassword ? 'text' : 'password'"
                 formControlName="password"
+                autocomplete="current-password"
               />
               <button
                 mat-icon-button
@@ -109,188 +129,6 @@ import { LanguageService } from '../../../core/i18n/language.service';
         </div>
       </div>
     </div>
-
-    <style>
-      .login-shell {
-        display: flex;
-        min-height: min(680px, calc(100dvh - 64px));
-      }
-      .login-hero {
-        flex: 1;
-        display: none;
-        background: linear-gradient(120deg, var(--ui-navy), var(--ui-primary-strong));
-        align-items: center;
-        justify-content: center;
-        padding: 3rem 2rem;
-        position: relative;
-        overflow: hidden;
-      }
-      @media (min-width: 768px) {
-        .login-hero {
-          display: flex;
-        }
-      }
-      .login-hero::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: repeating-linear-gradient(
-          45deg,
-          transparent,
-          transparent 30px,
-          color-mix(in srgb, var(--ui-surface) 3%, transparent) 30px,
-          color-mix(in srgb, var(--ui-surface) 3%, transparent) 60px
-        );
-      }
-      .login-hero-content {
-        position: relative;
-        z-index: 1;
-        text-align: center;
-      }
-      .login-hero-icon {
-        font-size: 5rem;
-        margin-bottom: 1rem;
-      }
-      .login-hero-title {
-        font-size: 2.2rem;
-        font-weight: 800;
-        color: var(--ui-surface);
-        margin: 0 0 0.75rem;
-      }
-      .login-hero-sub {
-        color: color-mix(in srgb, var(--ui-surface) 82%, transparent);
-        font-size: 1rem;
-        line-height: 1.6;
-        margin: 0 0 1.5rem;
-      }
-      .login-hero-badges {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-        justify-content: center;
-      }
-      .login-badge {
-        padding: 0.4rem 1rem;
-        border-radius: 9999px;
-        font-weight: 700;
-        font-size: 0.8rem;
-        border: 2px solid color-mix(in srgb, var(--ui-surface) 40%, transparent);
-      }
-      .login-badge-global {
-        background: color-mix(in srgb, var(--ui-surface) 15%, transparent);
-        color: var(--ui-surface);
-      }
-      .login-badge-agence {
-        background: color-mix(in srgb, var(--ui-surface) 10%, transparent);
-        color: color-mix(in srgb, var(--ui-surface) 90%, transparent);
-      }
-
-      .login-form-panel {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem 1rem;
-        background: var(--ui-surface);
-      }
-      .login-form-card {
-        width: 100%;
-        max-width: 400px;
-        background: var(--ui-surface);
-        border-radius: 1.5rem;
-        box-shadow: var(--ui-shadow);
-        padding: clamp(1.25rem, 3vw, 2.5rem) clamp(1rem, 3vw, 2rem);
-        min-width: 0;
-        border-top: 5px solid var(--ui-primary-strong);
-      }
-      .login-form-header {
-        text-align: center;
-        margin-bottom: 1.5rem;
-      }
-      @media(max-width: 767px) { .login-shell { min-height: auto; } }
-      .login-form-icon {
-        font-size: 2.5rem;
-      }
-      .login-form-title {
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: var(--ui-navy);
-        margin: 0.5rem 0 0.25rem;
-      }
-      .login-form-sub {
-        color: var(--ui-text-secondary);
-        font-size: 0.88rem;
-        margin: 0;
-      }
-
-      .login-form {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-      }
-      .login-error {
-        background: var(--ui-surface);
-        border: 1px solid var(--ui-danger);
-        border-radius: 0.75rem;
-        padding: 0.75rem 1rem;
-        color: var(--ui-danger);
-        font-size: 0.875rem;
-      }
-      .login-actions {
-        display: flex;
-        gap: 0.75rem;
-        align-items: center;
-        padding-top: 0.5rem;
-      }
-      .login-btn-primary {
-        flex: 1;
-        background: var(--ui-primary);
-        color: var(--ui-surface);
-        border: none;
-        border-radius: 0.75rem;
-        padding: 0.8rem 1.5rem;
-        font-weight: 700;
-        font-size: 1rem;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        box-shadow: var(--ui-shadow);
-        transition: transform 0.15s;
-      }
-      .login-btn-primary:hover:not(:disabled) {
-        transform: translateY(-2px);
-      }
-      .login-btn-primary:disabled {
-        background: var(--ui-disabled);
-        color: var(--ui-text-secondary);
-        cursor: not-allowed;
-      }
-      .login-btn-secondary {
-        padding: 0.8rem 1.25rem;
-        border-radius: 0.75rem;
-        border: 1.5px solid var(--ui-surface-subtle);
-        color: var(--ui-text-secondary);
-        font-weight: 600;
-        font-size: 0.9rem;
-        text-decoration: none;
-        background: var(--ui-surface);
-        transition: background 0.15s;
-        white-space: nowrap;
-      }
-      .login-btn-secondary:hover {
-        background: var(--ui-surface-subtle);
-      }
-
-      .password-toggle-button {
-        width: 40px;
-        height: 40px;
-        line-height: 40px;
-        color: var(--ui-text-secondary);
-      }
-    </style>
   `,
 })
 export class AdminLoginPage {
