@@ -40,7 +40,7 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
-      - run: bash ./mvnw -B verify
+      - run: mvn -B -ntp verify
       - name: Vérifier migration et mappings sur copie PostgreSQL
         env:
           PGPASSWORD: transport_ci_only
@@ -70,7 +70,7 @@ jobs:
                            scripts/migrations/issue-10-auteur-annulation.sql; do
             pg15 psql -U transport -d transport_schema_copy_ci -v ON_ERROR_STOP=1 < "$migration"
           done
-          bash ./mvnw -B -Dtest=TransportSchemaValidationTest test
+          mvn -B -ntp -Dtest=TransportSchemaValidationTest test
 
   frontend:
     runs-on: ubuntu-latest
