@@ -11,6 +11,7 @@ import { TrajetResponse } from '../../../shared/models/trajet.model';
 import { VoyageurReservationsPage } from './voyageur-reservations-page.component';
 
 describe('VoyageurReservationsPage', () => {
+  const farFuture = '2099-05-20';
   const organizedTrajets: TrajetResponse[] = [
     {
       id: 1,
@@ -19,7 +20,7 @@ describe('VoyageurReservationsPage', () => {
       agenceNom: 'Lyon',
       organisateurId: 1,
       organisateurNom: 'Tom Bernard',
-      date: '2026-05-14',
+      date: farFuture,
       heureDebut: '09:00:00',
       heureFin: '10:30:00',
       typeTrajet: 'PUBLIC',
@@ -35,7 +36,7 @@ describe('VoyageurReservationsPage', () => {
       agenceNom: 'Lyon',
       organisateurId: 1,
       organisateurNom: 'Tom Bernard',
-      date: '2026-05-20',
+      date: farFuture,
       heureDebut: '11:00:00',
       heureFin: '12:30:00',
       typeTrajet: 'PRIVE',
@@ -84,7 +85,7 @@ describe('VoyageurReservationsPage', () => {
         { provide: TrajetsApiService, useValue: trajetsApiMock },
         { provide: ReservationsApiService, useValue: reservationsApiMock },
         { provide: PaiementsApiService, useValue: { pay: vi.fn() } },
-        { provide: VoyageurSessionService, useValue: { voyageurId: vi.fn().mockReturnValue(1) } }
+        { provide: VoyageurSessionService, useValue: { voyageurId: vi.fn().mockReturnValue(1), participation: () => undefined } }
       ]
     }).compileComponents();
   });
@@ -146,5 +147,24 @@ describe('VoyageurReservationsPage', () => {
     expect(trajetsApiMock.cancel).toHaveBeenCalledWith(2, 1);
     expect(component.managedTrajetId()).toBeNull();
     expect(trajetsApiMock.getByOrganisateur).toHaveBeenCalled();
+  });
+
+  it('ne contacte pas API pour annuler un trajet deja parti', () => {
+    const fixture = TestBed.createComponent(VoyageurReservationsPage);
+    const component = fixture.componentInstance;
+
+    const trajetPasse = { ...organizedTrajets[1], date: '2000-01-01' };
+    expect(component.peutAnnulerTrajet(trajetPasse)).toBe(false);
+  });
+
+  it('autorise annulation pour le chauffeur affecte distinct de organisateur', () => {
+    const fixture = TestBed.createComponent(VoyageurReservationsPage);
+    const component = fixture.componentInstance;
+
+    const trajetChauffeur = { ...organizedTrajets[1], organisateurId: 9, chauffeurId: 1 };
+    expect(component.peutAnnulerTrajet(trajetChauffeur)).toBe(true);
+
+    const trajetTiers = { ...organizedTrajets[1], organisateurId: 9, chauffeurId: 8 };
+    expect(component.peutAnnulerTrajet(trajetTiers)).toBe(false);
   });
 });

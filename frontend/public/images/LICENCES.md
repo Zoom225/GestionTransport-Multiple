@@ -42,3 +42,17 @@ Bruxelles est localisée en Belgique par sa source ; les autres n’ont pas cett
 Les crédits de la photo courante sont consultables dans le carrousel, et les cartes
 portent la mention « Photos d’illustration · hors flotte réelle ».
 Le SVG original local demeure le secours en cas d’échec d’une photo du carrousel.
+
+## Refonte premium
+
+- `car-suv-{640,1024,1536,mobile}.webp` : SUV fictif sur une route en forêt.
+- `car-electrique-{640,1024,1536,mobile}.webp` : voiture électrique fictive sur une route côtière.
+
+Ces deux visuels ont été générés avec l’outil intégré ImageGen d’OpenAI pour cette interface, selon les [conditions d’utilisation d’OpenAI](https://openai.com/policies/terms-of-use/). Ils ne proviennent pas d’une photothèque et ne représentent aucun véhicule réservable. Le carrousel les signale comme visuels générés. Les autres diapositives sont la berline de Kelvin Linhares et la photo de Mikhail Nilov, sous licence Pexels et créditées dans l’interface.
+
+Les variantes paysage sont recadrées en 16:9, la version mobile en 640×800. Compression WebP. Le visuel `car-suv-mobile.webp` pèse 71 046 octets.
+
+Prompts ImageGen utilisés :
+
+1. Use case: photorealistic-natural. Asset: wide automotive website banner photo. Fictional unbranded premium graphite silver SUV, believable proportions and clean bodywork, full vehicle clearly framed in right half, front three-quarter view on a quiet European paved road by fir trees and distant rocky slopes. Left third deep blue evergreen shadows and uncluttered road for overlay. Cool early morning, polished automotive editorial, physically plausible reflections. Landscape 16:9 framing, leave room around car for a mobile crop. No logos, no badge, blank plates, no text, no people, no watermark.
+2. Use case: photorealistic-natural. Asset: wide automotive website banner photo. Fictional unbranded contemporary electric crossover in ice blue silver on a believable quiet European coastal paved road, full vehicle centered-right in front three-quarter view. Dark navy shadows left, low cliffs and pale blue sea in background, soft overcast cyan light, realistic wheels and reflections, professional automotive editorial. Landscape 16:9 with room for responsive crop. No logos, badge, text, people, or watermark.

@@ -77,7 +77,7 @@ describe('VoyageurPublicTrajetsPage', () => {
         { provide: TrajetsApiService, useValue: trajetsApiMock },
         { provide: AgencesApiService, useValue: { getAll: vi.fn().mockReturnValue(of([{ id: 1, nom: 'Lyon' }, { id: 2, nom: 'Paris' }])) } },
         { provide: ReservationsApiService, useValue: reservationsApiMock },
-        { provide: VoyageurSessionService, useValue: { voyageurId: vi.fn().mockReturnValue(1) } }
+        { provide: VoyageurSessionService, useValue: { voyageurId: vi.fn().mockReturnValue(1), participation: () => undefined } }
       ]
     }).compileComponents();
   });
@@ -141,6 +141,28 @@ describe('VoyageurPublicTrajetsPage', () => {
     component.cancelOwnTrajet(trajets[0]);
 
     expect(trajetsApiMock.cancel).toHaveBeenCalledWith(1, 1);
+  });
+
+  it('autorise annulation pour le chauffeur affecte et refuse un tiers', () => {
+    const component = TestBed.createComponent(VoyageurPublicTrajetsPage).componentInstance;
+    expect(component.canCancel({ ...trajets[1], chauffeurId: 1 })).toBe(true);
+    expect(component.canCancel({ ...trajets[1], chauffeurId: 8 })).toBe(false);
+  });
+
+  it('ne contacte pas API pour annuler un trajet deja parti', () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const component = TestBed.createComponent(VoyageurPublicTrajetsPage).componentInstance;
+    component.cancelOwnTrajet({ ...trajets[0], date: '2000-01-01' });
+    expect(trajetsApiMock.cancel).not.toHaveBeenCalled();
+  });
+
+  it('affiche le bouton annuler pour le chauffeur distinct de organisateur', () => {
+    trajetsApiMock.getPublic.mockReturnValue(of([{ ...trajets[1], chauffeurId: 1 }]));
+    const fixture = TestBed.createComponent(VoyageurPublicTrajetsPage);
+    fixture.detectChanges();
+    const bouton = fixture.nativeElement.querySelector('button[aria-label="Annuler le trajet #2"]') as HTMLButtonElement;
+    expect(bouton).not.toBeNull();
+    expect(bouton.disabled).toBe(false);
   });
 
   it('affiche un message clair après une demande de participation', () => {

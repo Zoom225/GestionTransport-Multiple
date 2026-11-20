@@ -5,36 +5,48 @@
 @tailwind utilities;
 
 :root {
-  --ui-navy: #0b1f33;
-  --ui-primary: #2563eb;
-  --ui-primary-strong: #1d4ed8;
-  --ui-primary-soft: #eff6ff;
-  --ui-teal: #0d9488;
-  --ui-teal-strong: #0f766e;
-  --ui-teal-soft: #f0fdfa;
-  --ui-surface: #ffffff;
-  --ui-background: #f5f7fb;
-  --ui-surface-subtle: #f8fafc;
-  --ui-text: #14263d;
-  --ui-text-secondary: #52657a;
-  --ui-muted: #64748b;
-  --ui-border: #dbe3ee;
+  --color-primary: #10243A;
+  --color-accent: #12B8A6;
+  --color-surface: #F5F7FA;
+  --color-text: var(--color-primary);
+  --color-text-muted: color-mix(in srgb, var(--color-primary) 73%, var(--color-surface));
+  --color-border: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface));
+  --color-focus: color-mix(in srgb, var(--color-primary) 58%, var(--color-accent));
+  --color-disabled: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 84%, var(--color-surface));
+  --space-gutter: clamp(1rem, 3vw, 2.5rem);
+  --ease-ui: cubic-bezier(.2, .7, .3, 1);
+  --ui-navy: var(--color-primary);
+  --ui-primary: var(--color-focus);
+  --ui-primary-strong: color-mix(in srgb, var(--color-primary) 74%, var(--color-accent));
+  --ui-primary-soft: color-mix(in srgb, var(--color-accent) 11%, var(--color-surface));
+  --ui-teal: var(--color-accent);
+  --ui-teal-strong: var(--ui-primary);
+  --ui-teal-soft: var(--ui-primary-soft);
+  --ui-surface: color-mix(in srgb, var(--color-surface) 46%, white);
+  --ui-background: var(--color-surface);
+  --ui-surface-subtle: color-mix(in srgb, var(--color-primary) 4%, var(--color-surface));
+  --ui-text: var(--color-text);
+  --ui-text-secondary: var(--color-text-muted);
+  --ui-muted: color-mix(in srgb, var(--color-primary) 64%, var(--color-surface));
+  --ui-border: var(--color-border);
   --ui-success: #065f46;
   --ui-success-soft: #ecfdf5;
   --ui-danger: #991b1b;
   --ui-danger-soft: #fef2f2;
   --ui-warning: #92400e;
   --ui-warning-soft: #fffbeb;
-  --ui-disabled: #e2e8f0;
-  --ui-warm: #f59e0b;
-  --ui-hero-accent: #99f6e4;
-  --ui-radius-button: 12px;
+  --ui-disabled: var(--color-disabled);
+  --ui-warm: var(--color-accent);
+  --ui-hero-accent: color-mix(in srgb, var(--color-accent) 65%, var(--color-surface));
+  --ui-radius-button: 13px;
   --ui-radius-large: 24px;
   --ui-space-section: clamp(2.75rem, 5vw, 4.5rem);
-  --ui-motion: 180ms cubic-bezier(.2, .7, .3, 1);
-  --ui-radius: 16px;
-  --ui-shadow: 0 6px 28px rgb(11 31 51 / 6%);
-  --ui-shadow-raised: 0 18px 44px rgb(11 31 51 / 12%);
+  --ui-motion: 240ms var(--ease-ui);
+  --ui-radius: 20px;
+  --ui-shadow: 0 8px 28px rgb(16 36 58 / 7%);
+  --ui-shadow-raised: 0 20px 48px rgb(16 36 58 / 15%);
+  --ui-shadow-action: 0 9px 21px rgb(18 184 166 / 20%);
   --ui-font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 app-root .app-main-shell .card-soft {
@@ -160,7 +172,7 @@ a {
   text-underline-offset: 0.2em;
 }
 :focus-visible {
-  outline: 3px solid var(--ui-primary);
+  outline: 3px solid var(--color-focus);
   outline-offset: 4px;
 }
 .page-shell,
@@ -227,9 +239,9 @@ a {
 }
 .ds-btn-primary,
 .quick-action-public {
-  color: var(--ui-surface);
-  background: var(--ui-primary);
-  border: 1px solid var(--ui-primary);
+  color: var(--color-primary);
+  background: var(--color-accent);
+  border: 1px solid var(--color-accent);
 }
 .ds-btn-secondary {
   color: var(--ui-text);
@@ -407,9 +419,10 @@ th {
   font-weight: 650;
   transition: background-color var(--ui-motion), box-shadow var(--ui-motion), transform var(--ui-motion);
 }
-.mat-mdc-unelevated-button:not(:disabled) {
-  --mat-button-filled-container-color: var(--ui-primary);
-  --mat-button-filled-label-text-color: var(--ui-surface);
+.mat-mdc-unelevated-button:not(:disabled):not([aria-disabled='true']) {
+  --mat-button-filled-container-color: var(--color-accent);
+  --mat-button-filled-label-text-color: var(--color-primary);
+  box-shadow: var(--ui-shadow-action);
 }
 .mat-mdc-outlined-button {
   --mat-button-outlined-outline-color: var(--ui-border);
@@ -433,9 +446,28 @@ tbody tr:hover { background: var(--ui-primary-soft); }
 }
 @keyframes ui-enter { from { opacity: .65; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @media(hover: hover) and (prefers-reduced-motion: no-preference) {
-  .mat-mdc-button-base:not(:disabled):hover, .ds-btn:hover, .quick-action:hover { transform: translateY(-1px); box-shadow: var(--ui-shadow); }
-  .mat-mdc-button-base:not(:disabled):active, .ds-btn:active { transform: translateY(0); }
+  :is(.mat-mdc-button-base, .ds-btn, .quick-action):not(:disabled):not([aria-disabled='true']):hover {
+    transform: translateY(-2px);
+    box-shadow: var(--ui-shadow);
+  }
+  .mat-mdc-unelevated-button:not(:disabled):not([aria-disabled='true']):hover {
+    --mat-button-filled-container-color: var(--color-accent-hover);
+    box-shadow: var(--ui-shadow-action);
+  }
+  :is(.mat-mdc-button-base, .ds-btn, .quick-action):not(:disabled):not([aria-disabled='true']):active {
+    transform: translateY(0);
+  }
+  :is(.login-btn-primary, .gestiontransport-btn-primary):not(:disabled):hover { transform: translateY(-2px); }
+  :is(.login-btn-primary, .gestiontransport-btn-primary):not(:disabled):active { transform: translateY(0); }
 }
+.trip-result-card { transition: transform var(--ui-motion), border-color var(--ui-motion), box-shadow var(--ui-motion); }
+@media (hover: hover) {
+  app-root .app-main-shell .trip-result-card:hover { border-color: var(--color-accent); box-shadow: var(--ui-shadow-raised); }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .trip-result-card:hover { transform: translateY(-2px); }
+}
+.trip-create-callout { background: linear-gradient(115deg, var(--ui-primary-soft), var(--ui-surface)); }
 @media (max-width: 600px) {
   .page-shell,
   .admin-shell {
