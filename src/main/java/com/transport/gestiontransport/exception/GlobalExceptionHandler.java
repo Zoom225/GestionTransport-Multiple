@@ -14,6 +14,10 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleMissingRoute() {
+        return erreur(HttpStatus.NOT_FOUND, "Ressource introuvable.");
+    }
 
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(Exception ex) {
@@ -52,6 +56,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
+                .code(ex instanceof ParticipationException p ? p.getCode() : null)
                 .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);

@@ -49,8 +49,11 @@ public interface TrajetService {
     void checkAndConvertExpiredPrivateTrajets();
 
     /**
-     * Règle métier : impute la pénalité équivalente aux 4 places (100€) à l'organisateur/chauffeur
+     * Règle métier : impute la pénalité équivalente aux 4 places (100€) au voyageur organisateur.
+     * Le chauffeur affecté n'est jamais débité du seul fait qu'il conduit.
      * lorsqu'un trajet privé arrive à échéance en restant incomplet sans conversion publique autorisée.
      */
     void imputerPenaliteTrajetPriveIncomplet(Long trajetId);
+
+    void payerPenalite(Long trajetId, Long voyageurId);
 }

@@ -57,7 +57,7 @@ class PaiementServiceTest {
     @BeforeEach
     void setUp() {
         agence = Agence.builder().nom("Agence Lyon").build();
-        vehicule = Vehicule.builder().nom("Court A").agence(agence).build();
+        vehicule = Vehicule.builder().nom("Peugeot 308").agence(agence).build();
 
         organisateur = Voyageur.builder()
                 .matricule("G1001").nom("Martin").prenom("Lucas")

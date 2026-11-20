@@ -43,6 +43,11 @@ public class TrajetServiceImpl implements TrajetService {
     private final VehiculeService vehiculeService;
     private final VoyageurService voyageurService;
     private final TrajetMapper trajetMapper;
+    private final RestrictionRepository restrictionRepository;
+    private final VoyageurEligibilityService eligibilityService;
+    private java.time.Clock clock = java.time.Clock.systemUTC();
+    @org.springframework.beans.factory.annotation.Autowired
+    void configurerHorloge(java.time.Clock clock) { this.clock = clock; }
 
     @Override
     @Transactional
@@ -52,7 +57,7 @@ public class TrajetServiceImpl implements TrajetService {
         if (request.chauffeurId() != null && !request.chauffeurId().equals(chauffeur.getId())) {
             throw new BusinessException("Le chauffeur est déterminé par votre authentification.");
         }
-        return creerPourChauffeur(request, chauffeur);
+        return creerPourChauffeur(request, chauffeur, chauffeur);
     }
 
     @Override
@@ -62,10 +67,10 @@ public class TrajetServiceImpl implements TrajetService {
         Voyageur chauffeur = voyageurService.getById(request.chauffeurId());
         adminAuthorizationService.checkVoyageurAccess(chauffeur);
         adminAuthorizationService.checkVehiculeAccess(vehiculeService.getById(request.vehiculeId()));
-        return creerPourChauffeur(request, chauffeur);
+        return creerPourChauffeur(request, chauffeur, null);
     }
 
-    private TrajetDto creerPourChauffeur(CreateTrajetRequest request, Voyageur chauffeur) {
+    private TrajetDto creerPourChauffeur(CreateTrajetRequest request, Voyageur chauffeur, Voyageur organisateur) {
         if (request.villeDepart() == null || request.villeArrivee() == null) {
             throw new BusinessException("La ville de départ et la destination sont obligatoires.");
         }
@@ -73,6 +78,7 @@ public class TrajetServiceImpl implements TrajetService {
         Vehicule vehicule = vehiculeService.getById(request.vehiculeId());
         entityManager.lock(chauffeur, LockModeType.PESSIMISTIC_WRITE);
         entityManager.refresh(chauffeur);
+        eligibilityService.verifier(chauffeur.getId(), false);
         entityManager.lock(vehicule, LockModeType.PESSIMISTIC_WRITE);
         entityManager.refresh(vehicule);
         if (Boolean.FALSE.equals(vehicule.getDisponible())) throw new BusinessException("Ce véhicule est indisponible.");
@@ -102,7 +108,7 @@ public class TrajetServiceImpl implements TrajetService {
         if (trajetRepository.existsChauffeurOverlap(chauffeur.getId(), debut, fin, 0L)) {
             throw new BusinessException("Le chauffeur effectue déjà un trajet à cet horaire.");
         }
-        Trajet trajet = Trajet.builder().chauffeur(chauffeur).vehicule(vehicule)
+        Trajet trajet = Trajet.builder().chauffeur(chauffeur).organisateur(organisateur).vehicule(vehicule)
                 .dateDebut(debut).dateFin(fin).villeDepart(request.villeDepart()).villeArrivee(request.villeArrivee())
                 .typeTrajet(type).statut(StatutTrajet.PLANIFIE).nbPassagersActuels(0)
                 .publicationAutomatiqueAutorisee(request.publicationAutomatiqueAutorisee())
@@ -145,8 +151,10 @@ public class TrajetServiceImpl implements TrajetService {
 
     @Override
     public List<TrajetDto> findByOrganisateur(Long organisateurId) {
-        return trajetRepository.findByChauffeurId(organisateurId)
-                .stream()
+        java.util.Map<Long, Trajet> mesTrajets = new java.util.LinkedHashMap<>();
+        trajetRepository.findOrganisesPar(organisateurId).forEach(t -> mesTrajets.put(t.getId(), t));
+        trajetRepository.findByChauffeurId(organisateurId).forEach(t -> mesTrajets.putIfAbsent(t.getId(), t));
+        return mesTrajets.values().stream()
                 .map(trajetMapper::toTrajetDto)
                 .collect(Collectors.toList());
     }
@@ -179,7 +187,7 @@ public class TrajetServiceImpl implements TrajetService {
             return;
         }
         Voyageur voyageur = voyageurCourantService.currentVoyageur();
-        if (trajet.getChauffeur().getId().equals(voyageur.getId())) return;
+        if (trajet.estResponsable(voyageur.getId()) || trajet.getChauffeur().getId().equals(voyageur.getId())) return;
         if (trajet.getTypeTrajet() == TypeTrajet.PRIVE
                 && !reservationRepository.existsByTrajetIdAndVoyageurId(trajetId, voyageur.getId())) {
             throw new org.springframework.security.access.AccessDeniedException("Ce trajet privé nécessite une invitation.");
@@ -243,7 +251,7 @@ public class TrajetServiceImpl implements TrajetService {
     @Override
     @Transactional
     public void checkAndConvertExpiredPrivateTrajets() {
-        LocalDateTime maintenant = LocalDateTime.now();
+        LocalDateTime maintenant = LocalDateTime.ofInstant(clock.instant(), java.time.ZoneId.systemDefault());
         List<Trajet> trajets24h = trajetRepository.findByDateDebutBetweenAndStatut(maintenant, maintenant.plusHours(24), StatutTrajet.PLANIFIE);
 
         // 1. Conversion automatique si autorisée par le chauffeur
@@ -252,7 +260,7 @@ public class TrajetServiceImpl implements TrajetService {
                 .forEach(t -> convertToPublic(t.getId()));
 
         // 2. Trajet privé sans consentement de conversion restant incomplet (< 4 passagers) :
-        // Le chauffeur est tenu responsable du montant complet des 4 places (100€)
+        // L'organisateur identifié est redevable des quatre places (100€), jamais le chauffeur affecté.
         trajets24h.stream()
                 .filter(t -> t.getTypeTrajet() == TypeTrajet.PRIVE && !t.isPublicationAutomatiqueAutorisee())
                 .filter(t -> t.getNbPassagersActuels() < Trajet.MAX_CLIENTS)
@@ -263,19 +271,57 @@ public class TrajetServiceImpl implements TrajetService {
     @Transactional
     public void imputerPenaliteTrajetPriveIncomplet(Long trajetId) {
         Trajet trajet = getTrajetEntityById(trajetId);
-        if (trajet.getTypeTrajet() != TypeTrajet.PRIVE) {
-            throw new BusinessException("Seuls les trajets privés sont soumis à la pénalité de complétude.");
+        entityManager.lock(trajet, LockModeType.PESSIMISTIC_WRITE);
+        entityManager.refresh(trajet);
+        java.time.Instant instantSanction = clock.instant().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+        LocalDateTime maintenant = LocalDateTime.ofInstant(instantSanction, java.time.ZoneId.systemDefault());
+        if (trajet.getOrganisateur() == null || trajet.getPenaliteIncompletImputeeLe() != null
+                || trajet.getTypeTrajet() != TypeTrajet.PRIVE || trajet.isPublicationAutomatiqueAutorisee()
+                || trajet.getStatut() != StatutTrajet.PLANIFIE || !trajet.getDateDebut().isAfter(maintenant)
+                || trajet.getDateDebut().isAfter(maintenant.plusHours(24))
+                || trajet.getNbPassagersActuels() >= Trajet.MAX_CLIENTS) return;
+        Voyageur organisateur = voyageurRepository.findByIdForUpdate(trajet.getOrganisateur().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Organisateur introuvable."));
+        entityManager.refresh(organisateur);
+        // Timestamp the actual sanction after any wait for the organiser's lock.
+        instantSanction = clock.instant().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+        maintenant = LocalDateTime.ofInstant(instantSanction, java.time.ZoneId.systemDefault());
+        organisateur.setSolde(java.math.BigDecimal.valueOf(organisateur.getSolde())
+                .add(PRIX_TRAJET_EUROS).doubleValue());
+        java.time.Instant finSuspension = instantSanction.plus(java.time.Duration.ofHours(168));
+        restrictionRepository.save(Restriction.builder().voyageur(organisateur).trajetOrigine(trajet)
+                .sourceEvenement("trajet-prive-incomplet:" + trajetId)
+                .motif("Suspension automatique de 168 heures : trajet privé incomplet")
+                .montantPenalite(PRIX_TRAJET_EUROS)
+                .debutSuspension(instantSanction).finSuspension(finSuspension)
+                .dateDebut(java.time.LocalDate.ofInstant(instantSanction, java.time.ZoneOffset.UTC))
+                .dateFin(java.time.LocalDate.ofInstant(finSuspension, java.time.ZoneOffset.UTC)).build());
+        trajet.setPenaliteIncompletImputeeLe(maintenant);
+        voyageurRepository.save(organisateur);
+        trajetRepository.save(trajet);
+    }
+
+    @Override
+    @Transactional
+    public void payerPenalite(Long trajetId, Long voyageurId) {
+        Trajet trajet = getTrajetEntityById(trajetId);
+        entityManager.lock(trajet, LockModeType.PESSIMISTIC_WRITE);
+        entityManager.refresh(trajet);
+        if (trajet.getOrganisateur() == null || !trajet.getOrganisateur().getId().equals(voyageurId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Seul l'organisateur peut regler cette penalite.");
         }
-        if (trajet.getNbPassagersActuels() < Trajet.MAX_CLIENTS) {
-            Voyageur chauffeur = trajet.getChauffeur();
-            if (chauffeur != null && chauffeur.getSolde() == 0.0) {
-                entityManager.lock(chauffeur, LockModeType.PESSIMISTIC_WRITE);
-                chauffeur.setSolde(PRIX_TRAJET_EUROS.doubleValue());
-                voyageurRepository.save(chauffeur);
-                log.info("Règle métier : pénalité de {}€ imputée au chauffeur {} pour trajet privé {} incomplet.",
-                        PRIX_TRAJET_EUROS, chauffeur.getMatricule(), trajet.getId());
-            }
+        if (trajet.getPenaliteIncompletImputeeLe() == null) throw new BusinessException("Aucune penalite a regler.");
+        if (trajet.getPenaliteIncompletPayeeLe() != null) return;
+        Voyageur organisateur = voyageurRepository.findByIdForUpdate(voyageurId)
+                .orElseThrow(() -> new ResourceNotFoundException("Organisateur introuvable."));
+        entityManager.refresh(organisateur);
+        if (organisateur.getSolde() < PRIX_TRAJET_EUROS.doubleValue()) {
+            throw new BusinessException("Solde incoherent : regularisation necessaire.");
         }
+        organisateur.setSolde(java.math.BigDecimal.valueOf(organisateur.getSolde()).subtract(PRIX_TRAJET_EUROS).doubleValue());
+        trajet.setPenaliteIncompletPayeeLe(LocalDateTime.ofInstant(clock.instant(), java.time.ZoneId.systemDefault()));
+        voyageurRepository.save(organisateur);
+        trajetRepository.save(trajet);
     }
 
     @Override

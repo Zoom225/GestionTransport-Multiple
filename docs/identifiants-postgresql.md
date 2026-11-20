@@ -5,8 +5,8 @@ mot de passe **transport**.
 Spring et Compose utilisent les mêmes variables DB_USER et DB_PASSWORD.
 Ces valeurs de démonstration ne sont pas des identifiants de production.
 
-Le conteneur et le volume existants restent inchangés pour préserver les données.
-Le nom de base est migré explicitement de padelService vers transportService.
+Le nom du volume existant est renseigné dans `TRANSPORT_DB_VOLUME` dans le
+fichier local `.env`. Le nom de base cible est `transportService`.
 POSTGRES_DB, POSTGRES_USER et
 POSTGRES_PASSWORD initialisent uniquement un volume neuf ; les modifier ne
 renomme pas un compte déjà enregistré.
@@ -16,18 +16,18 @@ renomme pas un compte déjà enregistré.
 Depuis la racine du dépôt sous PowerShell, avec le conteneur PostgreSQL lancé :
 
 ```powershell
-# Uniquement si le compte historique n'a pas encore été migré :
-.\scripts\migrate-dev-db-user.ps1
+# Remplacer les exemples par les noms utilisés par le cluster à migrer.
+.\scripts\migrate-dev-db-user.ps1 -AncienRole 'ancien_role'
 # Renommer ensuite la base (applications connectées arrêtées) :
-.\scripts\rename-dev-database.ps1
+.\scripts\rename-dev-database.ps1 -AncienneBase 'ancienne_base'
 docker compose up -d
 docker compose ps
 ```
 
 Le script cible exclusivement le compte de développement historique. Il refuse
 un conflit de comptes, sauvegarde le cluster dans target/ (ignoré par Git),
-renomme le rôle en conservant son identifiant interne et ses propriétés, change
-son mot de passe de développement, puis supprime uniquement le rôle temporaire
+renomme le rôle en conservant son identifiant interne et ses propriétés, reprend
+le mot de passe configuré dans le conteneur, puis supprime uniquement le rôle temporaire
 créé pour cette opération. Le second script refuse une base encore utilisée,
 sauvegarde son contenu, renomme la base et vérifie son identifiant interne ainsi
 que les effectifs de ses tables. Les tables, propriétaires et historiques
@@ -47,7 +47,7 @@ Pour vérifier l'authentification TCP depuis le conteneur sans imprimer le mot d
 
 ## Exécution vérifiée le 12 novembre 2026
 
-- Compte renommé de padel en transport, identifiant interne conservé ; mot de
+- Compte renommé en transport, identifiant interne conservé ; mot de
   passe de développement transport. Aucun rôle temporaire de migration restant.
 - Base renommée en transportService, identifiant interne conservé ; effectifs
   des neuf tables publiques identiques avant/après. Sauvegardes locales conservées.

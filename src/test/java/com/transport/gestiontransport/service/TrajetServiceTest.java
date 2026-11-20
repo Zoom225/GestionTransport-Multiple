@@ -56,6 +56,7 @@ class TrajetServiceTest {
 
     @Mock private jakarta.persistence.EntityManager entityManager;
     @Mock private ReservationService reservationService;
+    @Mock private com.transport.gestiontransport.service.impl.VoyageurEligibilityService eligibilityService;
     @Mock private com.transport.gestiontransport.service.impl.AdminAuthorizationService adminAuthorizationService;
 
     @InjectMocks
@@ -66,6 +67,20 @@ class TrajetServiceTest {
     private Agence agence;
     private CreateTrajetRequest createTrajetRequest;
     private TrajetDto trajetDto;
+
+    @Test
+    void mesTrajetsIncluentLesTrajetsConduitsSansDoublon() {
+        Trajet organise = new Trajet(); organise.setId(1L);
+        Trajet conduit = new Trajet(); conduit.setId(2L);
+        when(trajetRepository.findOrganisesPar(1L)).thenReturn(java.util.List.of(organise));
+        when(trajetRepository.findByChauffeurId(1L)).thenReturn(java.util.List.of(organise, conduit));
+        when(trajetMapper.toTrajetDto(organise)).thenReturn(trajetDto);
+        when(trajetMapper.toTrajetDto(conduit)).thenReturn(new TrajetDto(2L, null, null, null,
+                9L, null, null, null, null, TypeTrajet.PRIVE, StatutTrajet.PLANIFIE, 0, 25.0, null));
+        assertEquals(java.util.List.of(1L, 2L), trajetService.findByOrganisateur(1L).stream().map(TrajetDto::id).toList());
+        verify(trajetMapper).toTrajetDto(organise);
+        verify(trajetMapper).toTrajetDto(conduit);
+    }
 
     @BeforeEach
     void setUp() {
@@ -86,7 +101,7 @@ class TrajetServiceTest {
 
         vehicule = new Vehicule();
         vehicule.setId(1L);
-        vehicule.setNom("Court Central");
+        vehicule.setNom("Renault Clio");
         vehicule.setDisponible(true);
         vehicule.setPrix(20.0);
         vehicule.setAgence(agence);
@@ -125,6 +140,15 @@ class TrajetServiceTest {
         assertTrue(error.getMessage().contains("la ville de départ et la destination ne peuvent pas être identiques"));
         verifyNoInteractions(entityManager, vehiculeService);
         verify(trajetRepository, never()).save(any());
+    }
+
+    @Test
+    void creationVoyageurConserveSonIdentiteCommeOrganisateurPourLaSanction() {
+        when(voyageurRepository.findByMatriculeIgnoreCase("user123")).thenReturn(Optional.of(organisateur));
+        when(vehiculeService.getById(1L)).thenReturn(vehicule);
+        when(trajetRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        trajetService.createTrajet(createTrajetRequest, "user123");
+        verify(trajetRepository).save(argThat(t -> t.getOrganisateur() == organisateur));
     }
 
     @Test

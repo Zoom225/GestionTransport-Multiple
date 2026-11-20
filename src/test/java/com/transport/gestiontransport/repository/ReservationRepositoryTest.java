@@ -38,7 +38,7 @@ class ReservationRepositoryTest {
     @DisplayName("existsByTrajetIdAndVoyageurId détecte un voyageur déjà inscrit")
     void shouldFindExistingReservationForVoyageurAndTrajet() {
         Agence agence = agenceRepository.save(agence());
-        Vehicule vehicule = vehiculeRepository.save(Vehicule.builder().nom("Court A").agence(agence).prix(60.0).build());
+        Vehicule vehicule = vehiculeRepository.save(Vehicule.builder().nom("Peugeot 308").agence(agence).prix(60.0).build());
         Voyageur organisateur = voyageurRepository.save(voyageur("G1001"));
         Voyageur passager = voyageurRepository.save(voyageur("G1002"));
         Trajet trajet = trajetRepository.save(trajet(vehicule, organisateur));

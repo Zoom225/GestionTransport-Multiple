@@ -23,6 +23,8 @@ import java.util.List;
 @Builder
 public class Trajet extends BaseEntity {
     private java.time.LocalDateTime dateAnnulation;
+    // Immutable actor identifier retained in the cancellation history.
+    private Long annuleParVoyageurId;
     public static final int MAX_CLIENTS = 4;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -33,6 +35,19 @@ public class Trajet extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "chauffeur_id", nullable = false)
     private Voyageur chauffeur;
+
+    // Independent from the assigned driver. Historical trips remain unassigned.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "voyageur_organisateur_id")
+    private Voyageur organisateur;
+
+    private LocalDateTime penaliteIncompletImputeeLe;
+    private LocalDateTime penaliteIncompletPayeeLe;
+
+    public boolean estResponsable(Long voyageurId) {
+        return organisateur != null ? organisateur.getId().equals(voyageurId)
+                : chauffeur != null && chauffeur.getId().equals(voyageurId);
+    }
 
     @Enumerated(EnumType.STRING)
     private com.transport.gestiontransport.entity.enums.VilleBelge villeDepart;

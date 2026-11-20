@@ -16,6 +16,7 @@ import java.util.Optional;
 
 @Repository
 public interface TrajetRepository extends JpaRepository<Trajet, Long> {
+    List<Trajet> findByOrganisateurIdAndPenaliteIncompletImputeeLeIsNotNullOrderByPenaliteIncompletImputeeLeDesc(Long organisateurId);
     long countByChauffeurIdAndStatutAndDateAnnulationAfter(Long chauffeurId, StatutTrajet statut, LocalDateTime depuis);
 
     List<Trajet> findByTypeTrajetAndStatut(TypeTrajet type, StatutTrajet statut);
@@ -23,6 +24,9 @@ public interface TrajetRepository extends JpaRepository<Trajet, Long> {
     List<Trajet> findByVehiculeAgenceId(Long agenceId);
 
     List<Trajet> findByChauffeurId(Long organisateurId);
+
+    @Query("SELECT t FROM Trajet t LEFT JOIN t.organisateur o WHERE o.id = :id OR (o IS NULL AND t.chauffeur.id = :id)")
+    List<Trajet> findOrganisesPar(@Param("id") Long id);
 
     @Query("SELECT count(t) > 0 FROM Trajet t WHERE t.chauffeur.id = :chauffeurId " +
             "AND t.statut <> com.transport.gestiontransport.entity.enums.StatutTrajet.ANNULE " +

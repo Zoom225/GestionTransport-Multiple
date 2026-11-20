@@ -15,6 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * COMPTES DE VALIDATION — identifiants et mots de passe pour les essais locaux.
@@ -53,6 +56,9 @@ import java.time.LocalTime;
 public class DataInitializer implements CommandLineRunner {
     private static final String AGENCE_ELEGANT = "Agence Transport Élégant";
     private static final String AGENCE_DESIGN = "Agence Transport Design";
+    private static final String ADMIN_GLOBAL_EMAIL = "admin@transp.com";
+    private static final String ADMIN_LYON_EMAIL = "admin.lyon@transp.com";
+    private static final String ADMIN_PARIS_EMAIL = "admin.paris@transp.com";
     // Modèles d'exemple pour la validation locale, sans immatriculation inventée.
     private static final java.util.List<String> DEMO_VEHICLE_NAMES = java.util.List.of("Renault Clio", "Peugeot 308");
     private final AgenceRepository agenceRepository;
@@ -71,8 +77,10 @@ public class DataInitializer implements CommandLineRunner {
     @Value("${DEMO_ADMIN_PASSWORD:Admin1234!}") private String demoAdminPassword = "Admin1234!";
     @Value("${DEMO_VOYAGEUR_PASSWORD:Voyage1234!}") private String demoVoyageurPassword = "Voyage1234!";
     @Value("${DEMO_UPDATE_CREDENTIALS:false}") private boolean updateCredentials;
+    @Value("${DEMO_PREVIOUS_ADMIN_DOMAIN:}") private String previousAdminDomain = "";
     @Value("${DEMO_PREPARE_VEHICLES:false}") private boolean prepareVehicles;
     @Value("${DEMO_PREPARE_AGENCIES:false}") private boolean prepareAgencies;
+    @Value("${DEMO_PREVIOUS_AGENCY_PREFIX:}") private String previousAgencyPrefix = "";
 
     @Override
     @Transactional
@@ -114,9 +122,9 @@ public class DataInitializer implements CommandLineRunner {
         Voyageur chauffeur = voyageurRepository.save(Voyageur.builder().matricule("V1001").nom("Démo").prenom("Alice")
                 .email("chauffeur@example.test").passwordHash(hash).typeVoyageur(TypeVoyageur.VIP)
                 .solde(0.0).peutProposerTrajet(true).agence(agence).build());
-        voyageurRepository.save(Voyageur.builder().matricule("V1002").nom("Démo").prenom("Client VIP")
+        Voyageur organisateurDemo = voyageurRepository.save(Voyageur.builder().matricule("V1002").nom("Démo").prenom("Client VIP")
                 .email("vip@example.test").passwordHash(hash).typeVoyageur(TypeVoyageur.VIP)
-                .solde(0.0).agence(agence).build());
+                .solde(0.0).peutProposerTrajet(true).agence(agence).build());
         voyageurRepository.save(Voyageur.builder().matricule("L10001").nom("Démo").prenom("Client local")
                 .email("local@example.test").passwordHash(hash).typeVoyageur(TypeVoyageur.LOCAL)
                 .solde(0.0).agence(agence).build());
@@ -133,11 +141,11 @@ public class DataInitializer implements CommandLineRunner {
                 .sourceEvenement("demo:penalite:trajet-prive-incomplet")
                 .build());
         administrateurRepository.save(Administrateur.builder().matricule("AD1001").nom("Démo").prenom("Admin global")
-                .email("admin@transp.com").passwordHash(adminHash).typeAdministrateur(TypeAdministrateur.GLOBAL).build());
+                .email(ADMIN_GLOBAL_EMAIL).passwordHash(adminHash).typeAdministrateur(TypeAdministrateur.GLOBAL).build());
         administrateurRepository.save(Administrateur.builder().matricule("AD1002").nom("Démo").prenom("Admin local")
-                .email("admin.lyon@transp.com").passwordHash(adminHash).typeAdministrateur(TypeAdministrateur.AGENCE).agence(agence).build());
+                .email(ADMIN_LYON_EMAIL).passwordHash(adminHash).typeAdministrateur(TypeAdministrateur.AGENCE).agence(agence).build());
         administrateurRepository.save(Administrateur.builder().matricule("AD1003").nom("Démo").prenom("Admin local 2")
-                .email("admin.paris@transp.com").passwordHash(adminHash).typeAdministrateur(TypeAdministrateur.AGENCE).agence(agence).build());
+                .email(ADMIN_PARIS_EMAIL).passwordHash(adminHash).typeAdministrateur(TypeAdministrateur.AGENCE).agence(agence).build());
         LocalDate jour = LocalDate.now().plusDays(2);
         VilleBelge[][] parcours = {
                 {VilleBelge.MONS, VilleBelge.BRUXELLES}, {VilleBelge.BRUXELLES, VilleBelge.MONS},
@@ -146,20 +154,21 @@ public class DataInitializer implements CommandLineRunner {
                 {VilleBelge.GAND, VilleBelge.BRUXELLES}, {VilleBelge.LOUVAIN, VilleBelge.BRUXELLES}};
         for (int i = 0; i < parcours.length; i++) {
             java.time.LocalDateTime depart = jour.atTime(7 + 2 * i, 0);
-            trajetRepository.save(Trajet.builder().chauffeur(chauffeur).vehicule(voiture)
+            trajetRepository.save(Trajet.builder().chauffeur(chauffeur).organisateur(organisateurDemo).vehicule(voiture)
                 .villeDepart(parcours[i][0]).villeArrivee(parcours[i][1])
                 .dateDebut(depart).dateFin(depart.plusMinutes(90)).typeTrajet(i == 1 || i == 7 ? TypeTrajet.PRIVE : TypeTrajet.PUBLIC)
                 .statut(StatutTrajet.PLANIFIE).nbPassagersActuels(0)
                 .prixTotal(TrajetService.PRIX_TRAJET_EUROS.doubleValue())
                 .prixParPassager(TrajetService.PRIX_CLIENT_EUROS.doubleValue()).build());
         }
-        // Trajet privé resté incomplet créé par le chauffeur pénalisé ayant engendré la pénalité de 100€
-        java.time.LocalDateTime departPriveIncomplet = jour.minusDays(1).atTime(10, 0);
-        trajetRepository.save(Trajet.builder().chauffeur(penalise).vehicule(voiture)
+        // Historical demo debt: the organiser owes 100 EUR, the assigned driver owes nothing.
+        java.time.LocalDateTime departPriveIncomplet = LocalDate.now().minusDays(1).atTime(10, 0);
+        trajetRepository.save(Trajet.builder().chauffeur(chauffeur).organisateur(penalise).vehicule(voiture)
                 .villeDepart(VilleBelge.MONS).villeArrivee(VilleBelge.BRUXELLES)
                 .dateDebut(departPriveIncomplet).dateFin(departPriveIncomplet.plusMinutes(90))
                 .typeTrajet(TypeTrajet.PRIVE).statut(StatutTrajet.PLANIFIE).nbPassagersActuels(0)
                 .publicationAutomatiqueAutorisee(false)
+                .penaliteIncompletImputeeLe(departPriveIncomplet.minusHours(24))
                 .prixTotal(TrajetService.PRIX_TRAJET_EUROS.doubleValue())
                 .prixParPassager(TrajetService.PRIX_CLIENT_EUROS.doubleValue()).build());
 
@@ -168,10 +177,14 @@ public class DataInitializer implements CommandLineRunner {
 
     private void updateValidationCredentials() {
         requireLocalValidationDatabase();
-        java.util.Map<String, String> emails = java.util.Map.of(
-                "admin@padel.com", "admin@transp.com", "admin@transp.com", "admin@transp.com",
-                "admin.lyon@padel.com", "admin.lyon@transp.com", "admin.lyon@transp.com", "admin.lyon@transp.com",
-                "admin.paris@padel.com", "admin.paris@transp.com", "admin.paris@transp.com", "admin.paris@transp.com");
+        Map<String, String> emails = new HashMap<>();
+        String domainePrecedent = previousAdminDomain.strip();
+        for (String email : List.of(ADMIN_GLOBAL_EMAIL, ADMIN_LYON_EMAIL, ADMIN_PARIS_EMAIL)) {
+            emails.put(email, email);
+            if (!domainePrecedent.isEmpty()) {
+                emails.put(email.substring(0, email.indexOf('@') + 1) + domainePrecedent, email);
+            }
+        }
         var admins = administrateurRepository.findAll().stream()
                 .filter(a -> emails.containsKey(a.getEmail())).toList();
         if (admins.size() != 3 || admins.stream().map(a -> emails.get(a.getEmail())).distinct().count() != 3) {
@@ -250,14 +263,19 @@ public class DataInitializer implements CommandLineRunner {
 
     private void prepareValidationAgencies() {
         requireLocalValidationDatabase();
+        String ancienPrefixe = previousAgencyPrefix.strip();
+        if (!ancienPrefixe.isEmpty()) ancienPrefixe += " ";
         for (Agence agence : agenceRepository.findAll()) {
             String nom = agence.getNom();
             if (nom == null) continue;
-            String nouveauNom = switch (nom) {
-                case "Padel Club Lyon", "Agence Transport Lyon" -> AGENCE_ELEGANT;
-                case "Padel Club Paris", "Agence Transport Paris" -> AGENCE_DESIGN;
-                default -> nom.replaceAll("(?i)padel\\s+club", "Agence Transport")
-                        .replaceAll("(?i)padel", "Transport").trim();
+            String nomTransport = nom;
+            if (!ancienPrefixe.isEmpty() && nom.regionMatches(true, 0, ancienPrefixe, 0, ancienPrefixe.length())) {
+                nomTransport = "Agence Transport " + nom.substring(ancienPrefixe.length()).strip();
+            }
+            String nouveauNom = switch (nomTransport) {
+                case "Agence Transport Lyon" -> AGENCE_ELEGANT;
+                case "Agence Transport Paris" -> AGENCE_DESIGN;
+                default -> nomTransport;
             };
             if (!nom.equals(nouveauNom)) {
                 agence.setNom(nouveauNom);

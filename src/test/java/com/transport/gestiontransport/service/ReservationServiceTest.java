@@ -46,6 +46,7 @@ class ReservationServiceTest {
     private jakarta.persistence.EntityManager entityManager;
 
     @Mock private com.transport.gestiontransport.service.impl.AdminAuthorizationService adminAuthorizationService;
+    @Mock private com.transport.gestiontransport.service.impl.VoyageurEligibilityService eligibilityService;
 
     @InjectMocks
     private ReservationServiceImpl reservationService;
@@ -169,7 +170,7 @@ class ReservationServiceTest {
         agence.setId(1L);
 
         vehicule = Vehicule.builder()
-                .nom("Court A")
+                .nom("Peugeot 308")
                 .agence(agence)
                 .build();
         vehicule.setId(1L);
@@ -316,8 +317,6 @@ class ReservationServiceTest {
         void shouldCreateReservationForPublicTrajet() {
             when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic)); // MODIFIÉ
             when(voyageurService.getById(2L)).thenReturn(passager);
-            when(voyageurService.hasActiveRestriction(2L)).thenReturn(false);
-            when(voyageurService.hasOutstandingBalance(2L)).thenReturn(false);
                         when(reservationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(paiementRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -341,8 +340,6 @@ class ReservationServiceTest {
         void shouldCreateReservationForPriveTrajetByOrganizer() {
             when(trajetRepository.findById(10L)).thenReturn(Optional.of(trajetPrive)); // MODIFIÉ
             when(voyageurService.getById(2L)).thenReturn(passager);
-            when(voyageurService.hasActiveRestriction(2L)).thenReturn(false);
-            when(voyageurService.hasOutstandingBalance(2L)).thenReturn(false);
                         when(reservationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(paiementRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -360,8 +357,6 @@ class ReservationServiceTest {
             when(trajetRepository.findById(10L)).thenReturn(Optional.of(trajetPrive));
             when(voyageurService.getByMatricule("g1002")).thenReturn(passager);
             when(voyageurService.getById(2L)).thenReturn(passager);
-            when(voyageurService.hasActiveRestriction(2L)).thenReturn(false);
-            when(voyageurService.hasOutstandingBalance(2L)).thenReturn(false);
                         when(reservationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(paiementRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -418,7 +413,7 @@ class ReservationServiceTest {
         void shouldThrowWhenVoyageurHasActiveRestriction() {
             when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic)); // MODIFIÉ
             when(voyageurService.getById(2L)).thenReturn(passager);
-                        when(voyageurService.hasActiveRestriction(2L)).thenReturn(true);
+            doThrow(new BusinessException("restriction active")).when(eligibilityService).verifier(2L, false);
 
             assertThatThrownBy(() -> reservationService.create(11L, 2L, 2L))
                     .isInstanceOf(BusinessException.class)
@@ -432,8 +427,7 @@ class ReservationServiceTest {
         void shouldThrowWhenVoyageurHasOutstandingBalance() {
             when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic)); // MODIFIÉ
             when(voyageurService.getById(2L)).thenReturn(passager);
-                        when(voyageurService.hasActiveRestriction(2L)).thenReturn(false);
-            when(voyageurService.hasOutstandingBalance(2L)).thenReturn(true);
+            doThrow(new BusinessException("solde impayé")).when(eligibilityService).verifier(2L, false);
 
             assertThatThrownBy(() -> reservationService.create(11L, 2L, 2L))
                     .isInstanceOf(BusinessException.class)
@@ -451,8 +445,8 @@ class ReservationServiceTest {
             when(voyageurService.getById(2L)).thenReturn(passager);
 
             assertThatThrownBy(() -> reservationService.create(10L, 2L, 2L))
-                    .isInstanceOf(BusinessException.class)
-                    .hasMessageContaining("seul le chauffeur");
+                    .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
+                    .hasMessageContaining("chauffeur affecté");
 
             verify(reservationRepository, never()).save(any());
         }
@@ -463,8 +457,6 @@ class ReservationServiceTest {
             // passagerAgenceB est rattaché à Paris → ne peut pas réserver sur Lyon
             when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic)); // MODIFIÉ
             when(voyageurService.getById(3L)).thenReturn(passagerAgenceB);
-                        when(voyageurService.hasActiveRestriction(3L)).thenReturn(false);
-            when(voyageurService.hasOutstandingBalance(3L)).thenReturn(false);
 
             assertThatThrownBy(() -> reservationService.create(11L, 3L, 3L))
                     .isInstanceOf(BusinessException.class)
@@ -478,8 +470,6 @@ class ReservationServiceTest {
         void shouldCreatePaiementWithCorrectAmount() {
             when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic)); // MODIFIÉ
             when(voyageurService.getById(2L)).thenReturn(passager);
-                        when(voyageurService.hasActiveRestriction(2L)).thenReturn(false);
-            when(voyageurService.hasOutstandingBalance(2L)).thenReturn(false);
             when(reservationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(paiementRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 

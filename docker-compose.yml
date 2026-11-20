@@ -11,7 +11,7 @@ services:
     ports:
       - "5440:5432"
     volumes:
-      - padel-db-data:/var/lib/postgresql/data
+      - transport-db-data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
@@ -20,6 +20,6 @@ services:
       retries: 5
 
 volumes:
-  padel-db-data:
-    name: padellaoutt_padel-db-data
+  transport-db-data:
+    name: ${TRANSPORT_DB_VOLUME:?Renseigner le nom du volume PostgreSQL existant dans .env}
     external: true

@@ -84,6 +84,32 @@ class DataInitializerTest {
     }
 
     @Test
+    void demonstrationPenaliseOrganisateurF10002AvecChauffeurDistinctSansDette() {
+        ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://localhost:5542/transport_demo_coherence");
+        when(passwordEncoder.encode(any())).thenReturn("hash-demo");
+        when(agenceRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(vehiculeRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(voyageurRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(restrictionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        dataInitializer.run();
+        var capteur = org.mockito.ArgumentCaptor.forClass(Trajet.class);
+        verify(trajetRepository, times(9)).save(capteur.capture());
+        var penalises = capteur.getAllValues().stream()
+                .filter(t -> t.getPenaliteIncompletImputeeLe() != null).toList();
+        assertThat(penalises).hasSize(1);
+        Trajet prive = penalises.getFirst();
+        assertThat(prive.getOrganisateur()).isNotSameAs(prive.getChauffeur());
+        assertThat(prive.getOrganisateur().getMatricule()).isEqualTo("F10002");
+        assertThat(prive.getOrganisateur().getSolde()).isEqualTo(100.0);
+        assertThat(prive.getChauffeur().getMatricule()).isEqualTo("V1001");
+        assertThat(prive.getChauffeur().getSolde()).isZero();
+        assertThat(prive.getPenaliteIncompletPayeeLe()).isNull();
+        assertThat(prive.getTypeTrajet()).isEqualTo(com.transport.gestiontransport.entity.enums.TypeTrajet.PRIVE);
+        assertThat(prive.getDateDebut()).isBefore(java.time.LocalDateTime.now());
+        assertThat(capteur.getAllValues()).allSatisfy(t -> assertThat(t.getOrganisateur()).isNotNull());
+    }
+
+    @Test
     void refuseLaMiseAJourDesComptesSurLaBaseMetier() {
         when(agenceRepository.count()).thenReturn(1L);
         ReflectionTestUtils.setField(dataInitializer, "updateCredentials", true);
@@ -98,10 +124,11 @@ class DataInitializerTest {
         when(agenceRepository.count()).thenReturn(1L);
         ReflectionTestUtils.setField(dataInitializer, "updateCredentials", true);
         ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://127.0.0.1:5541/transport_schema_copy_test");
+        ReflectionTestUtils.setField(dataInitializer, "previousAdminDomain", "anciens-comptes.example.test");
         when(administrateurRepository.findAll()).thenReturn(java.util.List.of(
-                Administrateur.builder().email("admin@padel.com").build(),
-                Administrateur.builder().email("admin.lyon@padel.com").build(),
-                Administrateur.builder().email("admin.paris@padel.com").build()));
+                Administrateur.builder().email("admin@anciens-comptes.example.test").build(),
+                Administrateur.builder().email("admin.lyon@anciens-comptes.example.test").build(),
+                Administrateur.builder().email("admin.paris@anciens-comptes.example.test").build()));
         Voyageur ancien = Voyageur.builder().matricule("G1001").typeVoyageur(com.transport.gestiontransport.entity.enums.TypeVoyageur.VIP).build();
         ancien.setId(1L);
         Voyageur nouveau = Voyageur.builder().matricule("V1001").typeVoyageur(com.transport.gestiontransport.entity.enums.TypeVoyageur.VIP).build();
@@ -110,6 +137,29 @@ class DataInitializerTest {
         assertThatThrownBy(() -> dataInitializer.run()).isInstanceOf(IllegalStateException.class).hasMessageContaining("doublon");
         verify(voyageurRepository, never()).saveAllAndFlush(any());
         verifyNoInteractions(passwordEncoder);
+    }
+
+    @Test
+    void migreUniquementLesComptesDeValidationAvecLeDomaineConfigure() {
+        when(administrateurRepository.count()).thenReturn(4L);
+        ReflectionTestUtils.setField(dataInitializer, "updateCredentials", true);
+        ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://127.0.0.1:5541/transport_schema_copy_test");
+        ReflectionTestUtils.setField(dataInitializer, "previousAdminDomain", "anciens-comptes.example.test");
+        Administrateur global = Administrateur.builder().email("admin@anciens-comptes.example.test").build();
+        Administrateur lyon = Administrateur.builder().email("admin.lyon@transp.com").build();
+        Administrateur paris = Administrateur.builder().email("admin.paris@anciens-comptes.example.test").build();
+        Administrateur autre = Administrateur.builder().email("admin@externe.example.test").build();
+        when(administrateurRepository.findAll()).thenReturn(java.util.List.of(global, lyon, paris, autre));
+
+        dataInitializer.run();
+        ReflectionTestUtils.setField(dataInitializer, "previousAdminDomain", "");
+        dataInitializer.run();
+
+        assertThat(global.getEmail()).isEqualTo("admin@transp.com");
+        assertThat(lyon.getEmail()).isEqualTo("admin.lyon@transp.com");
+        assertThat(paris.getEmail()).isEqualTo("admin.paris@transp.com");
+        assertThat(autre.getEmail()).isEqualTo("admin@externe.example.test");
+        verify(administrateurRepository, times(2)).saveAllAndFlush(java.util.List.of(global, lyon, paris));
     }
 
     @Test
@@ -172,9 +222,10 @@ class DataInitializerTest {
         when(agenceRepository.count()).thenReturn(2L);
         ReflectionTestUtils.setField(dataInitializer, "prepareAgencies", true);
         ReflectionTestUtils.setField(dataInitializer, "databaseUrl", "jdbc:postgresql://127.0.0.1:5541/transport_schema_copy_test");
-        Agence lyon = Agence.builder().nom("Padel Club Lyon").adresse("Adresse conservée").build();
+        ReflectionTestUtils.setField(dataInitializer, "previousAgencyPrefix", "Ancienne Enseigne");
+        Agence lyon = Agence.builder().nom("Ancienne Enseigne Lyon").adresse("Adresse conservée").build();
         lyon.setId(1L);
-        Agence paris = Agence.builder().nom("Padel Club Paris").build();
+        Agence paris = Agence.builder().nom("Ancienne Enseigne Paris").build();
         paris.setId(2L);
         when(agenceRepository.findAll()).thenReturn(java.util.List.of(lyon, paris));
         dataInitializer.run();

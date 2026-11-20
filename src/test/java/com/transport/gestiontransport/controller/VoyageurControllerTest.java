@@ -41,6 +41,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = VoyageurController.class)
 @DisplayName("Tests de VoyageurController")
 class VoyageurControllerTest {
+    @MockitoBean
+    private com.transport.gestiontransport.service.impl.VoyageurEligibilityService eligibilityService;
 
     @Autowired
     private MockMvc mockMvc;

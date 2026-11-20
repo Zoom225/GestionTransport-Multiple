@@ -77,7 +77,7 @@ class TrajetControllerTest {
         trajetDto = new TrajetDto(
                 1L,                                        // id
                 1L,                                        // vehiculeId
-                "Court Central",                           // vehiculeNom
+                "Renault Clio",                           // vehiculeNom
                 "Agence Lyon",                         // agenceNom
                 10L,                                       // organisateurId
                 "John Doe",                                // organisateurNom

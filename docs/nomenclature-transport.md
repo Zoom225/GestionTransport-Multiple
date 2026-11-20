@@ -5,15 +5,15 @@ Branche : `refactor/transport-nomenclature`.
 Ce chantier répond à la demande de renommage transversal. Il dépend du socle
 de la PR #8, sans modifier la branche d'audit ni fusionner cette PR.
 
-| Ancien concept | Nom du code Transport |
+| Concept métier | Nom du code Transport |
 | --- | --- |
-| Site | Agence |
-| Terrain | Vehicule |
-| Match | Trajet |
-| Membre / Member | Voyageur |
-| Joueur / Player | Passager |
-| JourFermeture | IndisponibiliteService |
-| Penalite / Penalty | Restriction |
+| Agence | Agence |
+| Véhicule | Vehicule |
+| Trajet | Trajet |
+| Voyageur | Voyageur |
+| Passager | Passager |
+| Indisponibilité du service | IndisponibiliteService |
+| Pénalité | Restriction |
 
 Les noms des classes, propriétés, services, DTO, routes REST, types Angular,
 traductions et tests doivent être cohérents. Réservation et paiement restent
@@ -21,7 +21,7 @@ des concepts valides dans le transport.
 
 ## Protection des données existantes
 
-Le renommage du code ne vaut pas conversion des anciennes données sportives.
+Le renommage du code ne vaut pas conversion des données historiques.
 Les tables et colonnes historiques restent explicitement mappées tant qu'une
 migration avec sauvegarde, qualification des données et validation du modèle
 Transport n'est pas approuvée. Les tests PostgreSQL doivent être dirigés vers
@@ -35,7 +35,7 @@ Ne pas renommer une base, un volume ou un compte PostgreSQL par substitution.
 
 Ce renommage ne valide pas les règles RM01–RM30. Les hypothèses héritées sur
 la capacité, les tarifs et les durées doivent encore être remplacées par les
-concepts et règles de transport validés. Une ancienne ressource sportive ne
+concepts et règles de transport validés. Une ressource historique non qualifiée ne
 devient pas automatiquement un véhicule exploitable par ce seul renommage.
 
 Le diff local préexistant de `pom.xml` (`artifactId=industri`) reste préservé.
@@ -58,11 +58,9 @@ Le diff local préexistant de `pom.xml` (`artifactId=industri`) reste préservé
 
 ## Exceptions intentionnelles
 
-Les tables sites, terrains, matches, membres, penalites, jours_fermeture et leurs
-colonnes historiques restent dans les annotations JPA. Les autres tables restent
-également inchangées. Les convertisseurs contiennent SITE comme valeur physique
-de compatibilité. Ces exceptions évitent une création de colonnes ou une perte
-de données par renommage implicite ; elles nécessiteront une migration validée.
+Les scripts SQL et le garde de schéma identifient les anciens noms de tables
+et de colonnes pour sécuriser la migration vers le schéma Transport. Les
+convertisseurs conservent aussi la valeur SQL `SITE` pour les comptes existants.
 
 Les identifiants du volume/conteneur Docker existants restent conservés. La base
 est désormais transportService et le compte de développement transport : voir la
@@ -71,8 +69,6 @@ L'artifactId commité et le module IDE associé restent ceux du
 socle tant que le diff local de l'artifactId n'est pas intégré volontairement.
 Les audits et l'ancienne documentation sont explicitement historiques ; le
 [guide d'exécution Transport](transport-execution.md) décrit les contrats courants.
-Les noms techniques de bibliothèques (requestMatchers, anyMatch, matches,
-ArgumentMatchers, MatChipsModule, etc.) ne sont pas des concepts métier à renommer.
 
 Déployer frontend/backend ensemble et se reconnecter : les contrats REST, noms
 JSON et clés de session ont changé. Aucune compatibilité des anciens clients
@@ -93,10 +89,9 @@ comme véhicules ou trajets exploitables dans le futur modèle Transport.
   403 ; connexion invalide 400. Base HTTP : sites et membres toujours vides.
 - Journaux locaux transport-*.log sous target/. Aucun secret JWT imprimé.
 
-Échecs intermédiaires corrigés : référence dynamique CreateMatchRequest manquée
-par l'IDE, puis noms techniques requestMatchers/ArgumentMatchers/anyMatch/allMatch
-altérés par la transformation textuelle. Les tests et builds finaux précités
-ont été exécutés après ces corrections. Les logs initiaux restent conservés.
+La validation finale a suivi la correction d’une référence dynamique de création
+de trajet et le rétablissement des appels aux bibliothèques. Les journaux
+conservent les résultats intermédiaires.
 
 La revue automatique a d'abord refusé les transformations globales. Le demandeur
 a ensuite expressément autorisé les transformations contrôlées, puis les trois
