@@ -12,17 +12,27 @@ Les paiements et remboursements sont **simulés**, sans prestataire bancaire.
 
 ## Connexions de validation
 
-Administrateurs : [connexion](http://127.0.0.1:4202/admin/login).
-Voyageurs : [connexion](http://127.0.0.1:4202/voyageur).
+Accès directs aux portails de l'application :
+* **Portail Administrateur** : [Connexion Admin](http://127.0.0.1:4200/admin/login) (ou port `4202`)
+* **Portail Voyageur** : [Connexion Voyageur](http://127.0.0.1:4200/voyageur) (ou port `4202`)
 
-| Compte | Identifiant | Mot de passe de validation |
-| --- | --- | --- |
-| Administrateur global | `admin@transp.com` | `Admin1234!` |
-| Administrateur local Lyon | `admin.lyon@transp.com` | `Admin1234!` |
-| Administrateur local Paris | `admin.paris@transp.com` | `Admin1234!` |
-| Voyageurs VIP | `V1001`, `V1002` | `Voyage1234!` |
-| Voyageurs locaux | `L10001`, `L10002` | `Voyage1234!` |
-| Voyageurs libres | `F10001`, `F10002` | `Voyage1234!` |
+### 1. Comptes Administrateurs
+
+| Rôle | Identifiant (Email) | Mot de passe | Périmètre d'administration |
+| :--- | :--- | :--- | :--- |
+| **Administrateur global** | `admin@transp.com` | `Admin1234!` | Accès total : toutes les agences, tous les véhicules, création de trajets et KPIs globaux |
+| **Administrateur local Lyon** | `admin.lyon@transp.com` | `Admin1234!` | Gestionnaire d'agence : accès restreint aux ressources et voyageurs de son agence |
+| **Administrateur local Paris** | `admin.paris@transp.com` | `Admin1234!` | Second gestionnaire d'agence : gestion des ressources de son agence |
+
+### 2. Comptes Voyageurs
+
+| Profil / Usage | Matricule | Mot de passe | Type | Solde | Statut & Règle métier démontrée |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Chauffeur autorisé** | `V1001` | `Voyage1234!` | `VIP` | `0.0 €` | **Chauffeur actif** : autorisé à proposer et publier des trajets publics et privés |
+| **Client VIP** | `V1002` | `Voyage1234!` | `VIP` | `0.0 €` | **Client actif** : réservations prioritaires et simulation de paiement |
+| **Client local** | `L10001` | `Voyage1234!` | `LOCAL` | `0.0 €` | **Client actif** : rattaché à l'agence de démonstration |
+| **Client libre** | `F10001` | `Voyage1234!` | `LIBRE` | `0.0 €` | **Client actif** : voyageur standard tout public |
+| **Client pénalisé (Démo)** | `F10002` | `Voyage1234!` | `LIBRE` | **`100.0 €`** | **Cas de pénalité & restriction** :<br>• Solde débiteur de **100 €** (impayé de 4 places pour trajet privé resté incomplet)<br>• **Restriction active 7 jours** : réservations et créations de trajets bloquées par les règles métier |
 
 Ces identifiants concernent la copie locale de validation. Les suffixes numériques,
 identifiants internes, catégories, agences et historiques sont conservés.
@@ -34,8 +44,13 @@ L'initialiseur reste désactivé par défaut. Une mise à jour de comptes exista
 exige explicitement le profil `dev`, `DEMO_DATA_ENABLED=true` et
 `DEMO_UPDATE_CREDENTIALS=true`, exclusivement sur une copie locale nommée
 `transport_schema_copy_...` ou `transport_demo_...`. Les doublons sont contrôlés
-avant écriture et les changements sont transactionnels. Aucune mise à jour des
-comptes de transportService n'est autorisée par ce mécanisme.
+avant écriture et les changements sont transactionnels. Ce mécanisme refuse
+toute mise à jour sur la base `transportService`.
+
+Pour reconnaître les anciens identifiants sur une telle copie, renseigner
+`DEMO_PREVIOUS_ADMIN_DOMAIN` avec leur domaine (sans `@`). Pour renommer les
+agences de cette copie, activer `DEMO_PREPARE_AGENCIES=true` et renseigner
+`DEMO_PREVIOUS_AGENCY_PREFIX` si leurs noms utilisent encore une ancienne enseigne.
 
 ## Fonctionnement métier
 
@@ -158,6 +173,18 @@ ci-dessous ne démarrent pas les serveurs ; les commandes de lancement sont sép
 
 ## 1. PostgreSQL et Docker
 
+Avant le premier lancement sur ce poste, renseigner `TRANSPORT_DB_VOLUME` dans
+le fichier local `.env`. Pour une installation existante, retrouver le volume
+monté par `gestiontransport-db` et recopier son nom exact :
+
+```powershell
+docker inspect gestiontransport-db --format '{{range .Mounts}}{{println .Destination .Name}}{{end}}'
+```
+
+Utiliser le volume associé à `/var/lib/postgresql/data`. Pour une installation
+neuve uniquement, créer le volume avec `docker volume create gestiontransport-db-data`
+et ajouter `TRANSPORT_DB_VOLUME=gestiontransport-db-data` dans `.env`.
+
 Depuis la racine du dépôt, dans le terminal 1 :
 
 ```powershell
@@ -184,8 +211,8 @@ Port interne : 5432
 Version      : PostgreSQL 15
 ```
 
-Le conteneur `padel-db` et le volume historique `padel-db-data` gardent leurs identités
-pour conserver les données. Changer le nom du volume créerait un autre stockage.
+Le conteneur se nomme `gestiontransport-db`. Compose référence le volume externe
+par `TRANSPORT_DB_VOLUME` pour réutiliser les données du poste.
 Les variables POSTGRES\_\* initialisent uniquement une base neuve : elles ne renomment
 pas un rôle ou une base existante.
 
@@ -198,8 +225,8 @@ Ne pas les rejouer sur une installation déjà migrée.
 Vérifier le serveur sans écrire de données :
 
 ```powershell
-docker exec padel-db pg_isready -U transport -d transportService
-docker exec padel-db psql -U transport -d transportService -c "SELECT version();"
+docker exec gestiontransport-db pg_isready -U transport -d transportService
+docker exec gestiontransport-db psql -U transport -d transportService -c "SELECT version();"
 docker volume ls
 ```
 
@@ -221,8 +248,8 @@ Exemple de sauvegarde PostgreSQL, sans redirection binaire PowerShell :
 ```powershell
 New-Item -ItemType Directory -Force .local-validation/backups | Out-Null
 $archiveTransport = "transportService_$(Get-Date -Format yyyyMMdd_HHmmss).dump"
-docker exec padel-db pg_dump -U transport -Fc -f "/tmp/$archiveTransport" transportService
-docker cp "padel-db:/tmp/$archiveTransport" ".local-validation/backups/$archiveTransport"
+docker exec gestiontransport-db pg_dump -U transport -Fc -f "/tmp/$archiveTransport" transportService
+docker cp "gestiontransport-db:/tmp/$archiveTransport" ".local-validation/backups/$archiveTransport"
 ```
 
 Le statut EXPIREE nécessite le script SQL
@@ -231,7 +258,7 @@ sur un schéma historique. Après sauvegarde et revue, appliquer explicitement �
 
 ```powershell
 Get-Content -Raw -Encoding UTF8 scripts/migrations/issue-4-reservation-expiration.sql |
-  docker exec -i padel-db psql -U transport -d transportService -X -v ON_ERROR_STOP=1
+  docker exec -i gestiontransport-db psql -U transport -d transportService -X -v ON_ERROR_STOP=1
 ```
 
 Ce script modifie uniquement le CHECK des statuts, sans réécrire de réservation ou de paiement.
@@ -413,7 +440,7 @@ Créer une nouvelle base dédiée, sans supprimer un stockage existant :
 
 ```powershell
 $baseDemoTransport = 'transport_demo_' + (Get-Date -Format yyyyMMddHHmmss)
-docker exec padel-db createdb -U transport $baseDemoTransport
+docker exec gestiontransport-db createdb -U transport $baseDemoTransport
 $env:DB_URL = "jdbc:postgresql://localhost:5440/$baseDemoTransport"
 $env:DB_USER = 'transport'
 $env:DB_PASSWORD = 'transport'
@@ -428,22 +455,37 @@ finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointeurDemoTransport
 
 Comptes créés uniquement dans cette base de démonstration :
 
-| Connexion      | Identifiant         | Fonction                                  |
-| -------------- | ------------------- | ----------------------------------------- |
-| Voyageur       | V1001               | Chauffeur autorisé                        |
-| Voyageur       | V1002               | Client VIP                                |
-| Voyageur       | L10001              | Client local                              |
-| Voyageur       | F10001              | Client libre                              |
-| Administrateur | admin@transp.com    | Administrateur global                     |
-| Administrateur | admin.lyon@transp.com | Gestionnaire de l'agence de démonstration |
-| Administrateur | admin.paris@transp.com | Second gestionnaire de cette même agence de démonstration |
+| Espace | Profil / Rôle | Identifiant / Matricule | Mot de passe | Solde | Rôle & Particularité démonstration |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Voyageur** | Chauffeur autorisé | `V1001` | `Voyage1234!` | `0.0 €` | Propose et publie des trajets |
+| **Voyageur** | Client VIP | `V1002` | `Voyage1234!` | `0.0 €` | Réservations prioritaires |
+| **Voyageur** | Client local | `L10001` | `Voyage1234!` | `0.0 €` | Client rattaché à l'agence |
+| **Voyageur** | Client libre | `F10001` | `Voyage1234!` | `0.0 €` | Voyageur standard tout public |
+| **Voyageur** | **Client pénalisé** | `F10002` | `Voyage1234!` | **`100.0 €`** | **Cas concret pénalité** : solde impayé (4 × 25 €) + restriction 7 jours (bloqué à la réservation & création) |
+| **Admin** | Administrateur global | `admin@transp.com` | `Admin1234!` | — | Supervision et gestion complète |
+| **Admin** | Administrateur local 1 | `admin.lyon@transp.com` | `Admin1234!` | — | Gestionnaire d'agence Lyon |
+| **Admin** | Administrateur local 2 | `admin.paris@transp.com` | `Admin1234!` | — | Gestionnaire d'agence Paris |
 
 Lorsque `DEMO_PASSWORD` est fourni comme dans la commande ci-dessus, il remplace
 les deux mots de passe de démonstration. Sans cette variable, les valeurs sont
 `Admin1234!` pour les administrateurs et `Voyage1234!` pour les voyageurs ; elles
 sont personnalisables avec `DEMO_ADMIN_PASSWORD` et `DEMO_VOYAGEUR_PASSWORD`.
-Les huit trajets de démonstration proposent chacun quatre places,
-sans réservation du chauffeur. Ils ne sont jamais insérés automatiquement dans la base métier.
+Les neuf trajets de démonstration proposent chacun quatre places (dont le trajet privé
+resté incomplet rattaché au voyageur pénalisé `F10002`). Ils ne sont jamais insérés automatiquement dans la base métier.
+
+Dans cette démonstration, les rôles sont séparés : **V1001 est le chauffeur affecté**,
+avec un solde de **0 €**. **V1002 organise les huit trajets à venir**.
+**F10002 est l'organisateur du trajet privé incomplet historique**, daté d'hier,
+avec une dette de **100 €** et une date d'imputation déjà enregistrée : ce trajet
+ne doit pas être facturé une seconde fois. Il n'est pas le chauffeur de ce trajet.
+La restriction de sept jours est une donnée explicite de démonstration.
+Les identifiants restent `F10002` / `Voyage1234!`, sauf personnalisation du mot de passe.
+
+Ces corrections concernent les nouvelles bases de démonstration. Une base déjà
+renseignée est conservée telle quelle ; utiliser une nouvelle base vide pour obtenir
+ce scénario, sans supprimer ni réattribuer les anciennes dettes. Le profil voyageur
+affiche l’historique des sanctions et permet d’enregistrer un règlement interne.
+La suspension continue de s’appliquer jusqu’à son échéance, même après règlement.
 
 Parcours de présentation :
 
@@ -457,20 +499,38 @@ Parcours de présentation :
 
 ## 6. Tests PostgreSQL réels
 
-Créer une base de test distincte de la base métier et de la démonstration :
+Pour executer **tous les tests backend sans test ignore**, demarrer Docker Desktop puis
+lancer depuis la racine du depot :
 
 ```powershell
-docker exec padel-db createdb -U transport issue1_validation_tests
-$env:POSTGRES_BASELINE_URL = 'jdbc:postgresql://localhost:5440/issue1_validation_tests'
-$env:DB_USER = 'transport'
-$env:DB_PASSWORD = 'transport'
-.\mvnw.cmd -B verify
-Remove-Item Env:POSTGRES_BASELINE_URL
+.\scripts\test-all.ps1
 ```
 
-Les tests opt-in refusent une URL dont le nom ne suit pas `issue1_validation_<suffixe>`.
-Ils ajoutent leurs fixtures sans vider la base après exécution. Une base neuve évite
-les différences de contraintes d'un ancien schéma de test.
+Le script prepare un conteneur PostgreSQL 15 dedie `gestiontransport-tests`, accessible
+uniquement sur `127.0.0.1:5542`, avec des identifiants reserves aux tests locaux.
+Il crée deux bases neuves et exécute les 18 tests métier PostgreSQL. Il restaure
+une copie, applique la fixture historique, la migration Transport et les migrations
+des sanctions et annulations, puis lance `mvnw clean verify` avec les deux URL de test.
+La base metier et le volume de `gestiontransport-db` restent inchanges.
+Les variables du terminal sont restaurees apres execution.
+
+**IntelliJ :** apres cette preparation, selectionner la configuration
+`GestionTransport - Tous les tests PostgreSQL`, puis Run.
+Elle contient `POSTGRES_BASELINE_URL`, `TRANSPORT_SCHEMA_URL`, `DB_USER` et `DB_PASSWORD`.
+Elle est generee dans `.idea/runConfigurations` (ignore par Git).
+Si necessaire, recharger le projet pour faire apparaitre la configuration.
+Pour preparer seulement les bases et cette configuration :
+
+```powershell
+.\scripts\test-all.ps1 -PrepareOnly
+```
+
+Le conteneur de test reste disponible pour les relances IntelliJ. Une nouvelle
+execution du script cree de nouvelles bases ; les anciennes restent disponibles.
+Une exécution directe de `mvnw verify` sans ces URL ignore les 20 tests PostgreSQL
+conditionnels.
+Les tests refusent des noms autres que `issue1_validation_<suffixe>` et
+`transport_schema_copy_<suffixe>`.
 
 Couverture : chauffeur authentifié, refus sans chauffeur, villes différentes,
 chauffeur exclu des places, quatre confirmations, cinquième refusée, concurrence

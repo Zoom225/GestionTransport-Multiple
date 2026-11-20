@@ -161,7 +161,7 @@ d'un chauffeur autorisé et les guards administrateurs existants.
 Administration : case de permission chauffeur dans le formulaire Voyageur existant,
 tableau de bord conservé, agences filtrées par identifiant. Profil voyageur : voyages
 à venir, historique, paiements et liste des trajets proposés ; restrictions existantes
-conservées. Les appellations et pictogrammes sportifs visibles ont été corrigés.
+conservées. Les libellés et pictogrammes affichés utilisent la nomenclature du covoiturage.
 
 Code supprimé : `app.html` était un doublon inutilisé du template inline de `App`.
 Le template réellement utilisé reste inline, compatible avec les tests Vitest.
@@ -258,7 +258,7 @@ correctif des villes distinctes de la PR #27. Les PR précédentes restent à re
 et ne sont pas fusionnées automatiquement. `pom.xml` conserve son diff local
 `artifactId=industri`, hors commit ; le package-lock non suivi à la racine est conservé.
 
-Les noms Padel dans les filtres provenaient des données des agences renvoyées
+Les anciens noms d’agence dans les filtres provenaient des données des agences renvoyées
 par `/api/agences`, pas du libellé du filtre. DataInitializer dispose maintenant
 d’une préparation explicite des noms sur copie locale uniquement : profil dev,
 `DEMO_DATA_ENABLED=true`, `DEMO_PREPARE_AGENCIES=true`. Ce dernier flag est faux par
@@ -321,7 +321,7 @@ Les dumps, secrets, rapports détaillés et captures supplémentaires restent ho
 
 Complément demandé : les noms finaux sont **Agence Transport Élégant** (ID 1)
 et **Agence Transport Design** (ID 2). La préparation reconnaît aussi bien les
-anciens noms Padel que les noms intermédiaires « Agence Transport Lyon/Paris ».
+noms intermédiaires « Agence Transport Lyon/Paris » que les anciennes enseignes configurées avec `DEMO_PREVIOUS_AGENCY_PREFIX`.
 Les noms cibles sont centralisés dans DataInitializer, sans création d’agence supplémentaire.
 Après une nouvelle sauvegarde, le renommage est appliqué à la copie locale active.
 Packaging Maven et **13 tests DataInitializer réussis**, compilation IntelliJ réussie,

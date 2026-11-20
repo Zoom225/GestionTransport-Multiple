@@ -46,7 +46,7 @@ class TrajetMapperTest {
 
         vehicule = new Vehicule();
         vehicule.setId(1L);
-        vehicule.setNom("Court Central");
+        vehicule.setNom("Renault Clio");
         vehicule.setPrix(20.0);
         vehicule.setAgence(agence);
 
@@ -84,6 +84,18 @@ class TrajetMapperTest {
                 () -> assertEquals(trajet.getPrixParPassager(), resultDto.prixParPassager()),
                 () -> assertNull(resultDto.dateConversionPublic())
         );
+    }
+
+    @Test
+    void distingueOrganisateurEtChauffeurDansLaReponse() {
+        Voyageur client = Voyageur.builder().prenom("Client").nom("Organisateur").build();
+        client.setId(2L);
+        trajet.setOrganisateur(client);
+        TrajetDto dto = trajetMapper.toTrajetDto(trajet);
+        assertEquals(2L, dto.organisateurId());
+        assertEquals("Client Organisateur", dto.organisateurNom());
+        assertEquals(1L, dto.chauffeurId());
+        assertEquals("John Doe", dto.chauffeurNom());
     }
 
     @Test

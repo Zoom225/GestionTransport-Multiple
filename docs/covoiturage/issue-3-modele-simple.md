@@ -112,7 +112,7 @@ qui modifie les mappings SQL. Les dumps sont confidentiels et ignorés par Git.
 # Application/IDE arrêté. Restaurer la sauvegarde initiale dans une NOUVELLE copie :
 .\scripts\valider-schema-transport.ps1 -BackupFile C:\chemin\sauvegarde.dump -DatabaseUser transport
 # Ou sauvegarder/restaurer la source actuelle : l'état ambigu sera refusé, jamais fusionné.
-.\scripts\valider-schema-transport.ps1 -SourceContainer padel-db -SourceDatabase transportService -DatabaseUser transport
+.\scripts\valider-schema-transport.ps1 -SourceContainer gestiontransport-db -SourceDatabase transportService -DatabaseUser transport
 
 $env:DB_USER='transport'
 $env:DB_PASSWORD='<mot de passe de la base de validation>'

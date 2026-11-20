@@ -86,7 +86,7 @@ doit jamais créer de tables parallèles à la place d'une migration explicite.
 | voyageurs | membres → Voyageur : matricule unique, identité, mot de passe, catégorie, agence éventuelle et droit de proposer |
 | administrateurs | Administrateur : comptes distincts déjà présents, type global/agence et agence éventuelle conservés |
 | vehicules | terrains → Vehicule : nom et disponibilité ; aucune plaque, marque ou modèle inventés |
-| trajets | matches → Trajet : vehicule_id et chauffeur_id obligatoires, villes et consentement ; maximum clients centralisé à quatre |
+| trajets | Entité `Trajet`. Véhicule et chauffeur obligatoires. Le trajet conserve les villes et le consentement, avec une capacité de quatre clients. |
 | reservations | Même table : trajet_id, voyageur_id et date de création ; échéance calculée, une place par réservation |
 | paiements | Paiement : réservation, montant, date et statut ; historique remboursé conservé |
 | restrictions | penalites → Restriction : voyageur_id, date_debut, date_fin, motif, source_evenement |
@@ -179,7 +179,7 @@ restent centralisés en BigDecimal dans les services, sans réécrire les encais
   autorisé vérifié par le service, distinct des réservations passagers.
 - L'entité actuelle ne possède pas d'immatriculation : aucune contrainte fictive
   n'est ajoutée. Sa qualification et une éventuelle unicité restent un chantier
-  métier distinct ; pas de plaque inventée pour une ressource sportive.
+  métier distinct ; pas de plaque inventée pour une ressource historique.
 - Quatre confirmations clients maximum sous transaction/verrou. Le chauffeur
   ne crée pas de réservation et ne peut pas acheter une place de son propre trajet.
 - Départ différent de destination ; arrivée strictement après départ ; prix
@@ -209,7 +209,7 @@ avant toute écriture d'une nouvelle valeur.
    ddl-auto existant jusqu'à validation d'une autre stratégie ; ne pas ajouter
    Flyway/Liquibase simplement pour ce chantier.
 3. Ajouter les données nouvelles de façon compatible avec les anciennes lignes.
-   Une ancienne ressource sportive non qualifiée n'est pas un véhicule réservable.
+   Seules les ressources qualifiées comme véhicules sont réservables.
    Les nouveaux DTO imposent ces champs, les anciennes lignes restent consultables
    en historique et exclues de l'exploitation jusqu'à qualification explicite.
 4. Ne pas attribuer automatiquement le droit de conduire aux anciens voyageurs.

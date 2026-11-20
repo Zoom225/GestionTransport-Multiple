@@ -32,6 +32,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final EntityManager entityManager;
     private final AdminAuthorizationService adminAuthorizationService;
     private final VoyageurCourantService voyageurCourantService;
+    private final VoyageurEligibilityService eligibilityService;
 
     @Value("${transport.reservation.delai-paiement:PT30M}")
     private Duration delaiPaiement = Duration.ofMinutes(30);
@@ -61,13 +62,14 @@ public class ReservationServiceImpl implements ReservationService {
         Voyageur voyageur = voyageurService.getById(voyageurId);
         if (trajet.getChauffeur() == null) throw new BusinessException("Le chauffeur du trajet est obligatoire.");
         if (trajet.getTypeTrajet() == TypeTrajet.PRIVE
-                && !trajet.getChauffeur().getId().equals(requesterId)) {
-            throw new BusinessException("Pour un trajet privé, seul le chauffeur peut inviter des clients.");
+                && !peutInviter(trajet, requesterId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Seul l’organisateur ou le chauffeur affecté peut inviter.");
         }
         if (trajet.getTypeTrajet() == TypeTrajet.PUBLIC && !voyageurId.equals(requesterId)) {
             throw new BusinessException("Un voyageur ne peut réserver un trajet public que pour lui-même.");
         }
-        verifierEligibilite(trajet, voyageur);
+        eligibilityService.verifier(voyageurId, !voyageurId.equals(requesterId));
+        verifierConditionsTrajet(trajet, voyageur);
         if (reservationRepository.existsByTrajetIdAndVoyageurIdAndStatutIn(trajetId, voyageurId, ACTIVES)) {
             throw new BusinessException("Ce voyageur est déjà inscrit à ce trajet.");
         }
@@ -84,17 +86,22 @@ public class ReservationServiceImpl implements ReservationService {
     public List<Reservation> createForInvites(Long trajetId, Long requesterId, List<String> matricules) {
         if (matricules == null || matricules.isEmpty()) return List.of();
         Trajet trajet = verrouillerTrajet(trajetId);
-        if (trajet.getTypeTrajet() != TypeTrajet.PRIVE || trajet.getChauffeur() == null
-                || !trajet.getChauffeur().getId().equals(requesterId)) {
-            throw new BusinessException("Seul le chauffeur peut inviter sur son trajet privé.");
+        if (trajet.getTypeTrajet() != TypeTrajet.PRIVE || !peutInviter(trajet, requesterId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Seul l’organisateur ou le chauffeur affecté peut inviter sur un trajet privé.");
         }
+        List<Long> invites = matricules.stream().filter(java.util.Objects::nonNull)
+                .map(String::trim).filter(value -> !value.isEmpty()).distinct()
+                .map(voyageurService::getByMatricule).map(Voyageur::getId).distinct().sorted().toList();
         List<Reservation> result = new ArrayList<>();
-        for (String matricule : matricules.stream().filter(java.util.Objects::nonNull)
-                .map(String::trim).filter(value -> !value.isEmpty()).distinct().toList()) {
-            Voyageur voyageur = voyageurService.getByMatricule(matricule);
-            result.add(create(trajetId, voyageur.getId(), requesterId));
+        for (Long inviteId : invites) {
+            result.add(create(trajetId, inviteId, requesterId));
         }
         return result;
+    }
+
+    private boolean peutInviter(Trajet trajet, Long auteurId) {
+        return trajet.estResponsable(auteurId)
+                || (trajet.getChauffeur() != null && trajet.getChauffeur().getId().equals(auteurId));
     }
 
     @Override
@@ -127,6 +134,12 @@ public class ReservationServiceImpl implements ReservationService {
         }
     }
 
+    /**
+     * Règle métier : Préparation et vérification d'éligibilité avant paiement d'une place.
+     * Le voyageur ne paie pas le trajet entier en un bloc, mais sa place individuelle (25 €).
+     * Une demande EN_ATTENTE ne garantit pas la place tant que le paiement n'est pas validé.
+     * Seul le titulaire de la réservation peut procéder au règlement dans le délai imparti.
+     */
     @Override
     @Transactional
     public Reservation preparePaiement(Long reservationId, Long voyageurId) {
@@ -143,7 +156,8 @@ public class ReservationServiceImpl implements ReservationService {
         if (paiement == null || paiement.getStatut() != StatutPaiement.EN_ATTENTE) {
             throw new BusinessException("Ce paiement ne peut pas être validé une seconde fois.");
         }
-        verifierEligibilite(trajet, reservation.getVoyageur());
+        eligibilityService.verifier(voyageurId, false);
+        verifierConditionsTrajet(trajet, reservation.getVoyageur());
         if (estExpiree(reservation)) throw new BusinessException("Le délai de paiement de cette réservation est expiré.");
         if (BigDecimal.valueOf(paiement.getMontant()).compareTo(TrajetService.PRIX_CLIENT_EUROS) != 0) {
             throw new BusinessException("Ce montant historique nécessite une régularisation ; il ne sera pas modifié automatiquement.");
@@ -151,6 +165,14 @@ public class ReservationServiceImpl implements ReservationService {
         return reservation;
     }
 
+    /**
+     * Règle métier : Confirmation de réservation et attribution définitive de la place.
+     * Principe « Premier payé, premier servi » :
+     * 1. La place n'est confirmée qu'après validation effective du paiement (statut PAYE).
+     * 2. L'incrémentation du compteur passagers (nbPassagersActuels) attribue formellement la place.
+     * 3. Si les 4 places clients sont confirmées, le trajet passe automatiquement au statut COMPLET.
+     * 4. Toute tentative ultérieure de confirmation sur ce trajet sera rejetée.
+     */
     @Override
     @Transactional
     public void confirm(Long reservationId) {
@@ -161,7 +183,8 @@ public class ReservationServiceImpl implements ReservationService {
             throw new BusinessException("Une réservation n'est confirmée qu'après paiement validé.");
         }
         if (estExpiree(reservation)) throw new BusinessException("Le délai de paiement est expiré.");
-        verifierEligibilite(trajet, reservation.getVoyageur());
+        eligibilityService.verifier(reservation.getVoyageur().getId(), false);
+        verifierConditionsTrajet(trajet, reservation.getVoyageur());
         reservation.setStatut(StatutReservation.CONFIRMEE);
         modifierCompteur(trajet, 1);
         reservationRepository.save(reservation);
@@ -206,21 +229,34 @@ public class ReservationServiceImpl implements ReservationService {
                 "annulation-client:" + reservationId, "Annulation tardive d'une réservation confirmée");
     }
 
+    /**
+     * Règle métier : Annulation intégrale du trajet.
+     * - Autorisation : Seul l'organisateur responsable ou le chauffeur affecté peut annuler le trajet entier.
+     * - Horaire : L'annulation est strictement interdite dès l'horaire de départ, même si le trajet est vide.
+     * - Réservations : Toutes les réservations actives passent à ANNULEE et les paiements confirmés sont marqués REMBOURSE.
+     * - Dettes / pénalités : Aucune dette préexistante n'est supprimée ou modifiée.
+     * - Traçabilité : La date et l'identifiant de l'auteur de l'annulation sont enregistrés dans l'entité.
+     */
     @Override
     @Transactional
     public void cancelTrajet(Long trajetId, Long chauffeurId) {
         Trajet trajet = verrouillerTrajet(trajetId);
-        if (trajet.getChauffeur() == null || !trajet.getChauffeur().getId().equals(chauffeurId)) {
-            throw new BusinessException("Seul le chauffeur peut annuler son trajet.");
+        boolean chauffeurAffecte = trajet.getChauffeur() != null && trajet.getChauffeur().getId().equals(chauffeurId);
+        if (!trajet.estResponsable(chauffeurId) && !chauffeurAffecte) {
+            throw new BusinessException("Vous n'êtes pas autorisé à annuler ce trajet.");
         }
         if (trajet.getStatut() == StatutTrajet.ANNULE) throw new BusinessException("Ce trajet est déjà annulé.");
+        if (!trajet.getDateDebut().isAfter(LocalDateTime.now())) {
+            throw new BusinessException("L'annulation n'est plus autorisée dès le départ du trajet.");
+        }
         for (Reservation reservation : reservationRepository.findByTrajetId(trajetId)) {
             if (ACTIVES.contains(reservation.getStatut())) cancel(reservation.getId());
         }
         trajet.setStatut(StatutTrajet.ANNULE);
         trajet.setDateAnnulation(LocalDateTime.now());
+        trajet.setAnnuleParVoyageurId(chauffeurId);
         trajetRepository.save(trajet);
-        if (annulationChauffeurActive && trajetRepository.countByChauffeurIdAndStatutAndDateAnnulationAfter(
+        if (annulationChauffeurActive && chauffeurAffecte && trajetRepository.countByChauffeurIdAndStatutAndDateAnnulationAfter(
                 chauffeurId, StatutTrajet.ANNULE, LocalDateTime.now().minusDays(fenetreChauffeurJours)) >= seuilAnnulationsChauffeur) {
             voyageurService.addRestrictionPourEvenement(chauffeurId, "annulation-chauffeur:" + trajetId,
                     "Seuil validé d'annulations de trajets par le chauffeur atteint");
@@ -240,8 +276,10 @@ public class ReservationServiceImpl implements ReservationService {
         adminAuthorizationService.checkTrajetAccess(reservation.getTrajet().getId());
         Trajet trajet = verrouillerTrajet(reservation.getTrajet().getId());
         entityManager.refresh(reservation);
-        if (trajet.getStatut() == StatutTrajet.ANNULE || trajet.getDateDebut().isAfter(LocalDateTime.now())
-                || reservation.getStatut() != StatutReservation.CONFIRMEE || reservation.getPaiement() == null
+        if (trajet.getStatut() == StatutTrajet.ANNULE || trajet.getDateDebut().isAfter(LocalDateTime.now())) {
+            throw new BusinessException("Une absence exige un départ passé et une réservation confirmée et payée sur un trajet non annulé.");
+        }
+        if (reservation.getStatut() != StatutReservation.CONFIRMEE || reservation.getPaiement() == null
                 || reservation.getPaiement().getStatut() != StatutPaiement.PAYE) {
             throw new BusinessException("Une absence exige un départ passé et une réservation confirmée et payée sur un trajet non annulé.");
         }
@@ -281,7 +319,7 @@ public class ReservationServiceImpl implements ReservationService {
         return trajet;
     }
 
-    private void verifierEligibilite(Trajet trajet, Voyageur voyageur) {
+    private void verifierConditionsTrajet(Trajet trajet, Voyageur voyageur) {
         if (trajet.getChauffeur() == null) throw new BusinessException("Le chauffeur du trajet est obligatoire.");
         if (trajet.getChauffeur().getId().equals(voyageur.getId())) {
             throw new BusinessException("Le chauffeur ne réserve aucune des quatre places clients.");
@@ -297,8 +335,6 @@ public class ReservationServiceImpl implements ReservationService {
         int maximum = switch (voyageur.getTypeVoyageur()) { case VIP -> 21; case LOCAL -> 14; case LIBRE -> 5; };
         long jours = ChronoUnit.DAYS.between(LocalDate.now(), trajet.getDateDebut().toLocalDate());
         if (jours > maximum) throw new BusinessException("Ce profil ne peut réserver plus de " + maximum + " jours à l'avance.");
-        if (voyageurService.hasActiveRestriction(voyageur.getId())) throw new BusinessException("Vous avez une restriction active et ne pouvez pas réserver ce trajet.");
-        if (voyageurService.hasOutstandingBalance(voyageur.getId())) throw new BusinessException("Vous avez un solde impayé et ne pouvez pas réserver ce trajet.");
         Agence agence = trajet.getVehicule().getAgence() != null ? trajet.getVehicule().getAgence() : trajet.getChauffeur().getAgence();
         if (voyageur.getTypeVoyageur() == TypeVoyageur.LOCAL && (voyageur.getAgence() == null || agence == null
                 || !voyageur.getAgence().getId().equals(agence.getId()))) {

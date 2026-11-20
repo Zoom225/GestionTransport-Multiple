@@ -6,6 +6,7 @@ import com.transport.gestiontransport.exception.BusinessException;
 import com.transport.gestiontransport.repository.*;
 import com.transport.gestiontransport.service.ReservationService;
 import com.transport.gestiontransport.service.PaiementService;
+import com.transport.gestiontransport.service.TrajetService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -53,6 +54,8 @@ class PostgresBaselineTest {
     @Autowired ReservationRepository reservations;
     @Autowired ReservationService reservationService;
     @Autowired PaiementService paiementService;
+    @Autowired TrajetService trajetService;
+    @Autowired com.transport.gestiontransport.service.impl.VoyageurEligibilityService eligibility;
     @Autowired com.transport.gestiontransport.service.VoyageurService voyageurService;
     @Autowired RestrictionRepository restrictions;
     @Autowired PlatformTransactionManager transactionManager;
@@ -73,6 +76,91 @@ class PostgresBaselineTest {
         assertThatThrownBy(() -> jdbc.update("INSERT INTO reservations(trajet_id,voyageur_id,statut) VALUES (?,?,'EN_ATTENTE')",
                 trajet.getId(), demande.getVoyageur().getId())).isInstanceOf(DataIntegrityViolationException.class);
         assertThat(trajets.findById(trajet.getId()).orElseThrow().getNbPassagersActuels()).isZero();
+    }
+
+    @Test
+    void penaliteConcurrenteEtPaiementNeDebitentQueOrganisateurUneSeuleFois() throws Exception {
+        Trajet trajet = trajetVide();
+        Voyageur organisateur = voyageur();
+        trajet.setOrganisateur(organisateur);
+        trajet.setTypeTrajet(TypeTrajet.PRIVE);
+        trajet.setDateDebut(LocalDateTime.now().plusHours(12));
+        trajet.setDateFin(trajet.getDateDebut().plusMinutes(90));
+        trajets.saveAndFlush(trajet);
+        Long trajetId = trajet.getId();
+        Long organisateurId = organisateur.getId();
+        Long chauffeurId = trajet.getChauffeur().getId();
+        assertThat(organisateurId).isNotEqualTo(chauffeurId);
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        try {
+            executerSimultanement(pool, () -> trajetService.imputerPenaliteTrajetPriveIncomplet(trajetId));
+            assertThat(voyageurs.findById(organisateurId).orElseThrow().getSolde()).isEqualTo(100.0);
+            assertThat(voyageurs.findById(chauffeurId).orElseThrow().getSolde()).isZero();
+            assertThat(trajets.findById(trajetId).orElseThrow().getPenaliteIncompletImputeeLe()).isNotNull();
+
+            executerSimultanement(pool, () -> trajetService.payerPenalite(trajetId, organisateurId));
+            assertThat(voyageurs.findById(organisateurId).orElseThrow().getSolde()).isZero();
+            assertThat(voyageurs.findById(chauffeurId).orElseThrow().getSolde()).isZero();
+            assertThat(trajets.findById(trajetId).orElseThrow().getPenaliteIncompletPayeeLe()).isNotNull();
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    private void executerSimultanement(ExecutorService pool, Runnable action) throws Exception {
+        CyclicBarrier depart = new CyclicBarrier(2);
+        Callable<Void> travail = () -> {
+            depart.await(10, TimeUnit.SECONDS);
+            action.run();
+            return null;
+        };
+        Future<Void> premier = pool.submit(travail);
+        Future<Void> second = pool.submit(travail);
+        premier.get(30, TimeUnit.SECONDS);
+        second.get(30, TimeUnit.SECONDS);
+    }
+
+    @Test
+    void T17_sanctionPaiementEtInscriptionConcurrentsRespectentLaSuspension() throws Exception {
+        Trajet prive = trajetVide();
+        Voyageur client = voyageur();
+        prive.setOrganisateur(client);
+        prive.setTypeTrajet(TypeTrajet.PRIVE);
+        prive.setDateDebut(LocalDateTime.now().plusHours(12));
+        prive.setDateFin(prive.getDateDebut().plusMinutes(90));
+        trajets.saveAndFlush(prive);
+        Trajet publicTrajet = trajetVide();
+        CyclicBarrier depart = new CyclicBarrier(3);
+        ExecutorService pool = Executors.newFixedThreadPool(3);
+        try {
+            Future<?> sanction = pool.submit(() -> {
+                depart.await(10, TimeUnit.SECONDS);
+                trajetService.imputerPenaliteTrajetPriveIncomplet(prive.getId());
+                return null;
+            });
+            Future<Boolean> paiement = pool.submit(() -> {
+                depart.await(10, TimeUnit.SECONDS);
+                try { trajetService.payerPenalite(prive.getId(), client.getId()); return true; }
+                catch (BusinessException avantCreationSanction) { return false; }
+            });
+            Future<?> inscription = pool.submit(() -> {
+                depart.await(10, TimeUnit.SECONDS);
+                try { reservationService.create(publicTrajet.getId(), client.getId(), client.getId()); }
+                catch (BusinessException sanctionDejaCreee) { /* Allowed before the sanction, refused afterwards. */ }
+                return null;
+            });
+            sanction.get(30, TimeUnit.SECONDS);
+            boolean reglee = paiement.get(30, TimeUnit.SECONDS);
+            inscription.get(30, TimeUnit.SECONDS);
+            assertThat(voyageurs.findById(client.getId()).orElseThrow().getSolde()).isEqualTo(reglee ? 0.0 : 100.0);
+            var historique = restrictions.findByVoyageurIdOrderByDateFinDescIdDesc(client.getId());
+            assertThat(historique).hasSize(1);
+            assertThat(java.time.Duration.between(historique.getFirst().getDebutSuspension(), historique.getFirst().getFinSuspension()))
+                    .isEqualTo(java.time.Duration.ofHours(168));
+            assertThat(eligibility.statut(client.getId()).suspensionActive()).isTrue();
+            assertThatThrownBy(() -> reservationService.create(publicTrajet.getId(), client.getId(), client.getId()))
+                    .isInstanceOf(com.transport.gestiontransport.exception.ParticipationException.class);
+        } finally { pool.shutdownNow(); }
     }
 
     @Test
@@ -327,6 +415,20 @@ class PostgresBaselineTest {
         Long id = jdbc.queryForObject("INSERT INTO vehicules(nom, agence_id) VALUES ('Ressource historique à qualifier', ?) RETURNING id",
                 Long.class, trajet.getVehicule().getAgence().getId());
         assertThat(jdbc.queryForObject("SELECT disponible FROM vehicules WHERE id = ?", Boolean.class, id)).isFalse();
+    }
+
+    @Test
+    void organisateurDistinctConsulteSonTrajetPriveAvecLeBonChauffeur() throws Exception {
+        Trajet trajet = trajetVide();
+        Voyageur client = voyageur();
+        trajet.setOrganisateur(client);
+        trajet.setTypeTrajet(TypeTrajet.PRIVE);
+        trajets.saveAndFlush(trajet);
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/trajets/" + trajet.getId())
+                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(client.getMatricule()).roles("VOYAGEUR")))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.organisateurId").value(client.getId()))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.chauffeurId").value(trajet.getChauffeur().getId()));
     }
 
     @Test

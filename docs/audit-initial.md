@@ -9,7 +9,7 @@ Les résultats contemporains sont ajoutés au rapport de validation de l'issue #
 ## Git et modifications préexistantes
 
 État initial : master à 688190e, seule modification locale dans pom.xml :
-artifactId padelmultiple remplacé par industri. Contenu préservé, non inclus dans
+artifactId historique remplacé par industri. Contenu préservé, non inclus dans
 les commits de baseline. git fetch origin exécuté. Branche de travail :
 chore/issue-1-audit-baseline, issue de la branche distante existante à 509b630.
 PR #8 confirmée ouverte en brouillon et ciblant develop. Aucun changement métier
@@ -24,15 +24,15 @@ Transport ni phase dépendante engagé ; aucune fusion effectuée.
   centralisées. AuthController délègue à AuthService ; SecurityConfig définit
   les rôles MEMBER/ADMIN et les endpoints anonymes ; le filtre JWT est enregistré.
   AdminAuthorizationService assure des contrôles de périmètre métier.
-- Transactions présentes dans les services ; MatchRepository.findByIdForUpdate
-  utilise PESSIMISTIC_WRITE. Aucune preuve de concurrence PostgreSQL dans cet audit.
+- Les services utilisent des transactions. La méthode `findByIdForUpdate` du dépôt
+  de trajets utilise `PESSIMISTIC_WRITE`. La concurrence PostgreSQL reste à vérifier à cette étape.
 - GlobalExceptionHandler masque le détail des erreurs génériques côté client,
   mais utilise printStackTrace ; validation et exceptions métier existent.
 - Angular 21, Material, Tailwind 3, TypeScript 5.9, Vitest 4 : routes, guards,
   sessions membre/admin, intercepteur HTTP enregistré dans app.config.ts,
   services REST et traductions présents. Le build et les tests doivent compléter
   l'examen statique ; présence de fichiers seule ne prouve pas le fonctionnement.
-- PostgreSQL 15 dans Docker Compose, port 5440, volume padel-db-data.
+- PostgreSQL 15 dans Docker Compose, port 5440, volume persistant local.
   Pas de conteneur backend/frontend dans ce Compose. ddl-auto=update conservé
   pour l'application ; aucune migration Flyway/Liquibase introduite.
 - Maven installé 3.9.15 ; wrapper configuré pour 3.9.16, non exécuté.
@@ -62,7 +62,7 @@ navigateur complet.
    avec une clé JWT réservée aux tests et l'initialiseur désactivé. Les tests ne
    nécessitent plus une base locale susceptible de contenir des données métier.
 2. DataInitializer devient opt-in via app.demo-data.enabled. Son exécution
-   automatique pouvait créer des matchs et réécrire des identifiants existants.
+   automatique pouvait créer des trajets et réécrire des identifiants existants.
    Son comportement explicite reste inchangé pour la démonstration.
 3. jwt.secret provient désormais de JWT_SECRET, sans secret par défaut. DB_URL,
    DB_USER et DB_PASSWORD peuvent être fournis par environnement. Les valeurs
@@ -86,7 +86,7 @@ aucune commande de migration ou d'effacement lancée ; PostgreSQL inaccessible.
   sur une base de validation distincte sauvegardée.
 - Terminer l'installation reproductible et valider Angular.
 - Faire valider la PR #8 avant toute fusion et avant la phase 1.
-- Les règles Padel (quatre joueurs, prix 60, durées) restent volontairement dans
+- Les règles historiques (quatre places, prix 60, durées) restent volontairement dans
   le socle : aucune RM01–RM30 Transport n'est déclarée implémentée en phase 0.
 - Concevoir les migrations et règles Transport dans #2, puis les tester dans
   les phases #3–#7. Aucun terrain ne doit devenir un véhicule par renommage.
@@ -145,13 +145,13 @@ mise à jour ni réinitialisation Docker/WSL, aucune modification du BIOS/BCD.
 
 ### Volume et PostgreSQL
 
-- Volume padellaoutt_padel-db-data inspecté : volume local créé le 4 août 2026,
+- Volume PostgreSQL existant inspecté : volume local créé le 4 août 2026,
   métadonnées Compose cohérentes avec le dépôt. Son contenu n'a pas été monté
   manuellement ni effacé.
 - docker compose config, up -d, ps et logs exécutés. Image postgres:15 téléchargée.
 - PostgreSQL 15.19 sain ; 5440 côté hôte vers 5432 dans le conteneur.
 - Log : « PostgreSQL Database directory appears to contain a database; Skipping initialization ».
-- Base préexistante padelService : neuf tables publiques. Aucun démarrage Hibernate
+- Base préexistante avant renommage : neuf tables publiques. Aucun démarrage Hibernate
   ni test dirigé vers cette base. Aucun down -v, DROP ou effacement effectué.
 - Bases explicitement créées : issue1_validation_pg_20261111 et
   issue1_validation_http_20261111 ; réservées aux fixtures et au schéma de validation.
@@ -188,7 +188,7 @@ preuve de paiement externe ou de parcours navigateur complet n'est revendiquée.
 
 PostgresBaselineTest, opt-in et limité aux noms issue1_validation_<suffixe>,
 utilise le vrai driver PostgreSQL et les vrais services/repositories. L'unicité
-matricule et la clé étrangère reservations.match_id sont réellement vérifiées
+du matricule et la clé étrangère qui relie une réservation à son trajet sont vérifiées
 (SQLSTATE 23505 et 23503 attendus). Le test orchestre deux transactions ayant lu
 le même état avant leurs réservations, sans mock du service métier.
 
@@ -196,10 +196,10 @@ Première exécution : 2 tests, 1 échec, 0 erreur. Deux réservations réussiss
 pour la dernière place (expected 1, but was 2). Le compteur pouvait masquer la
 sur-réservation par perte de mise à jour.
 
-Correction : ReservationServiceImpl rafraîchit le match sous PESSIMISTIC_WRITE
+ReservationServiceImpl rafraîchit le trajet sous PESSIMISTIC_WRITE
 avant de vérifier capacité et doublon. Cela recharge aussi une entité déjà lue
 dans la transaction appelante ; le verrou dure jusqu'au commit/rollback.
-La règle Padel existante n'est pas modifiée. Aucune entité ni migration Transport
+La règle de capacité historique est conservée. Aucune entité ni migration Transport
 introduite. Le test Mockito reçoit un EntityManager simulé ; la régression de
 concurrence est vérifiée sur PostgreSQL réel.
 
@@ -236,6 +236,6 @@ ReservationServiceImpl.java, ReservationServiceTest.java, PostgresBaselineTest.j
 Règle du socle concernée : disponibilité de la dernière place sous concurrence.
 Aucune RM Transport n'est déclarée livrée. Le diff local pom.xml artifactId=industri
 reste conservé et exclu des commits. Les bases de validation restent distinctes
-de padelService (toujours neuf tables) ; sites et membres restent vides sur la
+de la base préexistante (toujours neuf tables) ; sites et membres restent vides sur la
 base HTTP. Le serveur temporaire de contrôle est arrêté à la fin ; PostgreSQL
 Compose est conservé sain et les volumes restent présents.

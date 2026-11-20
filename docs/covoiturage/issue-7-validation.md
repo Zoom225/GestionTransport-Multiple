@@ -120,7 +120,7 @@ classe principale et une configuration JUnit ciblait l'ancien package.
   filtre et références de configuration cohérents. Module local `industri` conservé.
 - Les deux dossiers historiques vides sous `src/main/java/com` et `src/test/java/com`
   sont supprimés après contrôle de leur contenu ; aucune classe ni aucun test supprimé.
-- `.run/Unnamed.run.xml`, lié au nom de module `padelmultiple`, est remplacé par
+- `.run/Unnamed.run.xml`, lié à l’ancien module, est remplacé par
   `.run/GestionTransport-Multiple.run.xml` : lancement Maven `spring-boot:run`,
   indépendant de l'artifactId local. Aucun secret ajouté à cette configuration.
 - README : classe de lancement, package des tests et utilisation de la configuration partagée.
@@ -176,7 +176,7 @@ Localement, `mvn -B clean verify` a aussi réussi avec 154 tests avant l'ajout d
 contrôle BCrypt (155 ensuite en CI). Les relances locales sur le port 5440 ont
 rencontré `SocketTimeoutException: Read timed out`, puis une disparition du conteneur
 Docker et `Connection refused`. Le volume historique est resté présent. La remise
-en service par `docker compose up -d` a réutilisé `padellaoutt_padel-db-data` ; les
+en service par `docker compose up -d` a réutilisé le volume PostgreSQL existant ; les
 huit paiements métier étaient toujours présents. Aucune suppression ni réinitialisation.
 Une instance PostgreSQL de validation distincte, sans volume métier, est ensuite
 utilisée sur le port 5541. Ces incidents ne sont pas présentés comme des tests réussis.
@@ -253,7 +253,7 @@ Pull request : [#17](https://github.com/Zoom225/GestionTransport-Multiple/pull/1
 - Véhicule indisponible : refus côté backend, case administrative et exclusion
   des véhicules proposés dans le formulaire de création.
   Les ressources historiques sont indisponibles par défaut ; aucune ancienne
-  ressource sportive n'est automatiquement mise en service comme voiture.
+  ressource historique n'est automatiquement mise en service comme voiture.
 - `requesterId` n'est plus obligatoire : le demandeur effectif vient du JWT.
 - Les trajets historiques non qualifiés ou portant un ancien tarif ne sont pas
   revendus au nouveau prix ; aucun ancien montant n'est remplacé.
@@ -322,17 +322,17 @@ Windows ; après arrêt de cette seule JVM, `verify` a réussi avec les 142 test
 Aucune commande de modification métier n'a ciblé `transportService` pendant ces
 validations. Comparaison des compteurs avec la sauvegarde avant renommage :
 
-| Table historique | Avant | Après |
+| Données contrôlées (libellés actuels) | Avant | Après |
 | --- | --- | --- |
-| administrateurs | 3 | 3 |
-| jours_fermeture | 3 | 3 |
-| matches | 4 | 4 |
-| membres | 6 | 6 |
-| paiements | 8 | 8 |
-| penalites | 1 | 1 |
-| reservations | 8 | 8 |
-| sites | 2 | 2 |
-| terrains | 5 | 5 |
+| Administrateurs | 3 | 3 |
+| Indisponibilités du service | 3 | 3 |
+| Trajets | 4 | 4 |
+| Voyageurs | 6 | 6 |
+| Paiements | 8 | 8 |
+| Restrictions | 1 | 1 |
+| Réservations | 8 | 8 |
+| Agences | 2 | 2 |
+| Véhicules | 5 | 5 |
 
 Le conteneur et le volume historiques sont conservés. Le diff local de pom.xml
 avec artifactId industri reste exclu des commits.

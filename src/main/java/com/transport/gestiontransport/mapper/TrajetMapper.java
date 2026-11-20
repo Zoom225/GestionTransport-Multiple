@@ -16,7 +16,7 @@ public class TrajetMapper {
         }
 
         Vehicule vehicule = trajet.getVehicule();
-        Voyageur organisateur = trajet.getChauffeur();
+        Voyageur organisateur = trajet.getOrganisateur() != null ? trajet.getOrganisateur() : trajet.getChauffeur();
         Agence agence = (vehicule != null) ? vehicule.getAgence() : null;
 
         Long vehiculeId = (vehicule != null) ? vehicule.getId() : null;
@@ -44,7 +44,11 @@ public class TrajetMapper {
                 trajet.getDateConversionPublic(),
                 trajet.getVilleDepart(),
                 trajet.getVilleArrivee(),
-                agence != null ? agence.getId() : null
+                agence != null ? agence.getId() : null,
+                trajet.getChauffeur() != null ? trajet.getChauffeur().getId() : null,
+                trajet.getChauffeur() != null ? trajet.getChauffeur().getPrenom() + " " + trajet.getChauffeur().getNom() : null,
+                trajet.getPenaliteIncompletImputeeLe(),
+                trajet.getPenaliteIncompletPayeeLe()
         );
     }
 }

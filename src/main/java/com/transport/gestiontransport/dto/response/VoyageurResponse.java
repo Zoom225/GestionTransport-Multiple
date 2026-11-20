@@ -20,4 +20,6 @@ public class VoyageurResponse {
     private Double solde;
     private String token;
     private Boolean peutProposerTrajet;
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    private com.transport.gestiontransport.service.impl.VoyageurEligibilityService.Statut participation;
 }

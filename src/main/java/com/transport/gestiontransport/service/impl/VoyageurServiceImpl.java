@@ -26,6 +26,9 @@ public class VoyageurServiceImpl implements VoyageurService {
     private final PasswordEncoder passwordEncoder; // Added PasswordEncoder
     @org.springframework.beans.factory.annotation.Value("${transport.restriction.duree-jours:7}")
     private int dureeRestrictionJours = 7;
+    private java.time.Clock clock = java.time.Clock.systemUTC();
+    @org.springframework.beans.factory.annotation.Autowired
+    void configurerHorloge(java.time.Clock clock) { this.clock = clock; }
 
     @Override
     public Voyageur create(Voyageur voyageur) {
@@ -86,7 +89,8 @@ public class VoyageurServiceImpl implements VoyageurService {
 
     @Override
     public boolean hasActiveRestriction(Long voyageurId) {
-        return restrictionRepository.existsByVoyageurIdAndDateFinAfter(voyageurId, LocalDate.now());
+        return restrictionRepository.existsByVoyageurIdAndDateFinAfter(voyageurId, LocalDate.now(clock))
+                || restrictionRepository.finSuspensionActive(voyageurId, clock.instant()) != null;
     }
 
     @Override

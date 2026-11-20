@@ -21,7 +21,7 @@ La clé JWT précédemment versionnée doit être considérée compromise et rem
 dans tout environnement qui l'utilisait. Ne jamais la réutiliser.
 
 `mvn spring-boot:run` conserve `ddl-auto=update` : sauvegarder la base avant tout
-démarrage sur une base existante. Ne pas supprimer le volume `padel-db-data`.
+démarrage sur une base existante. Ne pas supprimer le volume PostgreSQL existant.
 Le Compose existant expose PostgreSQL 15 sur le port 5440 avec des identifiants
 de développement publics ; il ne constitue pas une configuration de production.
 
@@ -62,7 +62,7 @@ mvn -B test
 
 Les autres tests continuent d'utiliser H2. Le test PostgreSQL vérifie l'unicité
 matricule, une clé étrangère de réservation, et deux transactions concurrentes
-sur la dernière place d'un match Padel. Ces règles restent celles du socle,
+sur la dernière place d'une réservation dans le schéma historique. Ces règles restent celles du socle,
 aucune capacité Transport n'est introduite.
 
 Pour le contrôle HTTP, employer une AUTRE base neuve, par exemple

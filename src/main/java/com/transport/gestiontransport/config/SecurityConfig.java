@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/trajets/public", "/api/trajets/villes").permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/api/trajets").hasAnyRole("VOYAGEUR", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/trajets/*/penalite/pay").hasRole("VOYAGEUR")
                         .requestMatchers(HttpMethod.GET, "/api/trajets/organisateur/**").hasRole("VOYAGEUR")
                         .requestMatchers(HttpMethod.GET, "/api/trajets").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/trajets/agence/**").hasRole("ADMIN")
@@ -57,12 +58,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/reservations/*").hasAnyRole("VOYAGEUR", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/reservations/*/absence").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/reservations").hasRole("VOYAGEUR")
+                        .requestMatchers(HttpMethod.POST, "/api/reservations/private-invites").hasRole("VOYAGEUR")
                         .requestMatchers(HttpMethod.PATCH, "/api/reservations/*/cancel").hasRole("VOYAGEUR")
 
                         .requestMatchers("/api/paiements/**").hasRole("VOYAGEUR")
 
                         .requestMatchers(HttpMethod.GET, "/api/voyageurs").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/voyageurs/me").hasRole("VOYAGEUR")
+                        .requestMatchers(HttpMethod.GET, "/api/voyageurs/me", "/api/voyageurs/me/sanctions").hasRole("VOYAGEUR")
                         .requestMatchers(HttpMethod.GET, "/api/voyageurs/matricule/**").hasAnyRole("VOYAGEUR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/voyageurs/*/restrictions").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/voyageurs/*/restriction").hasAnyRole("VOYAGEUR", "ADMIN")
