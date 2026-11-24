@@ -130,8 +130,7 @@ frontend/src/app/
 
 Backend monolithique Spring Boot 3.5.0, Spring Security/JWT, JPA, validation et exceptions centralisées.
 Frontend Angular 21, Angular Material, Tailwind CSS et formulaires réactifs.
-Les versions du `pom.xml` et du verrou npm sont conservées. Le diff local de `pom.xml`,
-notamment l'artifactId `industri`, reste préservé hors commit.
+Les versions du backend et du frontend sont définies dans `pom.xml` et le verrou npm.
 
 ## Prérequis
 
@@ -320,9 +319,9 @@ Pour reconstruire entièrement les fichiers générés, backend et compilation I
 .\mvnw.cmd -B clean verify
 ```
 
-Le JAR est généré dans `target/`. Son nom dépend de l'`artifactId` du `pom.xml` ;
-la valeur locale `industri` reste préservée. Les rapports de tests sont dans
-`target/surefire-reports/`.
+Le build génère `target/gestiontransport-multiple-0.0.1-SNAPSHOT.jar`. Les rapports de tests
+sont dans `target/surefire-reports/`. Les [exceptions de compatibilité](docs/finalisation/exceptions-compatibilite.md)
+répertorient les anciens identifiants de schéma nécessaires aux migrations.
 
 Sans `POSTGRES_BASELINE_URL`, les tests usuels utilisent H2 et les tests PostgreSQL opt-in sont ignorés.
 La compilation ne prouve pas le démarrage HTTP : ce dernier fait l'objet des vérifications décrites plus bas.

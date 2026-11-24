@@ -26,7 +26,7 @@ describe('Participation dans le profil voyageur', () => {
     etat.update((profil) => ({
       ...profil,
       participation: {
-        peutParticiper: false, peutCreerMatch: false, peutRejoindreMatch: false,
+        peutParticiper: false, peutCreerTrajet: false, peutRejoindreTrajet: false,
         suspensionActive: true, soldeDu: 100, detteBloquante: true, code: 'VOYAGEUR_SUSPENDU',
         debutSuspension: '2026-03-27T12:00:00Z', finSuspension: '2026-04-03T12:00:00Z',
         message: 'Votre compte est suspendu.', motifRestriction: 'Trajet privé incomplet',
@@ -85,7 +85,7 @@ describe('Participation dans le profil voyageur', () => {
     etat.update((profil) => ({
       ...profil, participation: {
         ...profil.participation!, code: null, suspensionActive: false,
-        peutParticiper: true, peutCreerMatch: true, peutRejoindreMatch: true,
+        peutParticiper: true, peutCreerTrajet: true, peutRejoindreTrajet: true,
         message: 'Vous pouvez à nouveau créer et rejoindre des trajets.',
       },
     }));
