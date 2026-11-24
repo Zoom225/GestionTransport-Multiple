@@ -24,9 +24,9 @@ AGENCE correspond encore à la valeur SQL historique SITE, via des convertisseur
 La base et le compte sont désormais transportService et transport ; leur
 renommage suit la procédure documentée. Ne pas supprimer ou renommer le volume.
 
-Le pom.xml et son artifactId local industri sont protégés ; utiliser Maven pour
-le démarrage sans supposer le nom du JAR. Les données historiques préexistantes
-ne sont pas qualifiées comme données de transport par ce seul renommage.
+Maven empaquette le backend sous `target/gestiontransport-multiple-0.0.1-SNAPSHOT.jar`.
+Le renommage du schéma préserve les données préexistantes. La qualification métier
+des données reste une étape distincte.
 
 ## Contrats actuels
 
