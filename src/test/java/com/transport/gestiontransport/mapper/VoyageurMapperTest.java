@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.mapper;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.dto.request.VoyageurRequest;
 import com.transport.gestiontransport.dto.response.VoyageurResponse;
 import com.transport.gestiontransport.entity.Voyageur;
@@ -64,7 +66,7 @@ class VoyageurMapperTest {
                 .email("jane.smith@example.com")
                 .typeVoyageur(TypeVoyageur.LOCAL)
                 .agence(agence)
-                .solde(25.5)
+                .solde(new BigDecimal("25.50"))
                 .build();
         voyageur.setId(1L); // Simule l'ID généré par la base de données
 
@@ -81,7 +83,7 @@ class VoyageurMapperTest {
                 () -> assertEquals(TypeVoyageur.LOCAL, response.getTypeVoyageur()),
                 () -> assertEquals(1L, response.getAgenceId()),
                 () -> assertEquals("Agence Central", response.getAgenceNom()),
-                () -> assertEquals(25.5, response.getSolde())
+                () -> assertEquals(0, new BigDecimal("25.50").compareTo(response.getSolde()))
         );
     }
 
@@ -94,7 +96,7 @@ class VoyageurMapperTest {
                 .matricule("G9876")
                 .typeVoyageur(TypeVoyageur.VIP) // Un voyageur GLOBAL n'a pas de agence
                 .agence(null)
-                .solde(0.0) // Initialiser tous les champs non-null
+                .solde(new BigDecimal("0.00")) // Initialiser tous les champs non-null
                 .build();
         voyageur.setId(2L);
 

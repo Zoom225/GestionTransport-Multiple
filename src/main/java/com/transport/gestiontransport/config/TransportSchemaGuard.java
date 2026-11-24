@@ -37,6 +37,22 @@ public class TransportSchemaGuard {
                             + "Aucune création automatique de tables parallèles n'est autorisée.");
                 }
             }
+            try (Statement statement = connection.createStatement();
+                 ResultSet result = statement.executeQuery("""
+                         SELECT count(*) FROM information_schema.columns
+                         WHERE table_schema = 'public'
+                           AND (table_name, column_name) IN (
+                             ('paiements','montant'), ('trajets','prix_total'),
+                             ('trajets','prix_par_passager'), ('vehicules','prix'), ('voyageurs','solde'))
+                           AND (data_type <> 'numeric'
+                             OR numeric_precision IS DISTINCT FROM 19 OR numeric_scale IS DISTINCT FROM 2)
+                         """)) {
+                result.next();
+                if (result.getLong(1) > 0) {
+                    throw new IllegalStateException("Montants SQL à migrer avant Hibernate. "
+                            + "Valider et appliquer scripts/migrations/issue-45-montants-bigdecimal.sql sur une copie.");
+                }
+            }
         }
     }
 }

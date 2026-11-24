@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.controller;
 
+import java.math.BigDecimal;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.transport.gestiontransport.config.JwtConfig;
 import com.transport.gestiontransport.entity.enums.StatutTrajet;
@@ -87,7 +89,7 @@ class TrajetControllerTest {
                 TypeTrajet.PUBLIC,                          // typeTrajet
                 StatutTrajet.PLANIFIE,                      // statut
                 1,                                         // nbPassagersActuels
-                15.0,                                      // prixParPassager
+                new BigDecimal("15.00"),                                      // prixParPassager
                 null                                       // dateConversionPublic
         );
     }

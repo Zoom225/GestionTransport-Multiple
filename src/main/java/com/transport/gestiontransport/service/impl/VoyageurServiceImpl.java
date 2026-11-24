@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.service.impl;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.entity.Voyageur;
 import com.transport.gestiontransport.entity.Restriction;
 import com.transport.gestiontransport.entity.enums.TypeVoyageur;
@@ -48,7 +50,7 @@ public class VoyageurServiceImpl implements VoyageurService {
             throw new BusinessException("Un voyageur AGENCE doit être lié à une agence.");
         }
 
-        voyageur.setSolde(0.0);
+        voyageur.setSolde(BigDecimal.ZERO.setScale(2));
         voyageur.setPeutProposerTrajet(Boolean.TRUE.equals(voyageur.getPeutProposerTrajet()));
         return voyageurRepository.save(voyageur);
     }
@@ -96,7 +98,7 @@ public class VoyageurServiceImpl implements VoyageurService {
     @Override
     public boolean hasOutstandingBalance(Long voyageurId) {
         Voyageur voyageur = getById(voyageurId);
-        return voyageur.getSolde() > 0.0;
+        return voyageur.getSolde().signum() > 0;
     }
     @Override
     @org.springframework.transaction.annotation.Transactional

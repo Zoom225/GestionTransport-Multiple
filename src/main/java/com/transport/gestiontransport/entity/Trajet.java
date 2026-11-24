@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.entity;
 
+import java.math.BigDecimal;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.transport.gestiontransport.entity.enums.StatutTrajet;
@@ -78,11 +80,11 @@ public class Trajet extends BaseEntity {
     @jakarta.validation.constraints.Max(MAX_CLIENTS)
     private Integer nbPassagersActuels;
 
-    @Column(nullable = false)
-    private Double prixTotal;
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal prixTotal;
 
-    @Column(name = "prix_par_passager", nullable = false)
-    private Double prixParPassager;
+    @Column(name = "prix_par_passager", nullable = false, precision = 19, scale = 2)
+    private BigDecimal prixParPassager;
 
     private LocalDateTime dateConversionPublic;
 

@@ -1,5 +1,7 @@
 package com.transport.gestiontransport;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.entity.*;
 import com.transport.gestiontransport.repository.*;
 import org.junit.jupiter.api.Test;
@@ -60,7 +62,7 @@ class DataInitializerTest {
         dataInitializer.run();
         verify(trajetRepository, times(9)).save(argThat(t -> t.getChauffeur() != null
                 && Boolean.TRUE.equals(t.getChauffeur().getPeutProposerTrajet()) && t.getNbPassagersActuels() == 0
-                && t.getVilleDepart() != t.getVilleArrivee() && t.getPrixParPassager() == 25.0));
+                && t.getVilleDepart() != t.getVilleArrivee() && t.getPrixParPassager().compareTo(new BigDecimal("25.00")) == 0));
         verify(reservationRepository, never()).save(any());
         verify(paiementRepository, never()).save(any());
         verify(restrictionRepository).save(any());
@@ -100,7 +102,7 @@ class DataInitializerTest {
         Trajet prive = penalises.getFirst();
         assertThat(prive.getOrganisateur()).isNotSameAs(prive.getChauffeur());
         assertThat(prive.getOrganisateur().getMatricule()).isEqualTo("F10002");
-        assertThat(prive.getOrganisateur().getSolde()).isEqualTo(100.0);
+        assertThat(prive.getOrganisateur().getSolde()).isEqualByComparingTo("100.00");
         assertThat(prive.getChauffeur().getMatricule()).isEqualTo("V1001");
         assertThat(prive.getChauffeur().getSolde()).isZero();
         assertThat(prive.getPenaliteIncompletPayeeLe()).isNull();

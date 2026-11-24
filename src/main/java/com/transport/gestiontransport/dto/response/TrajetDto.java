@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.dto.response;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.entity.enums.StatutTrajet;
 import com.transport.gestiontransport.entity.enums.TypeTrajet;
 import java.time.LocalDate;
@@ -19,7 +21,7 @@ public record TrajetDto(
         TypeTrajet typeTrajet,
         StatutTrajet statut,
         Integer nbPassagersActuels,
-        Double prixParPassager,
+        BigDecimal prixParPassager,
         LocalDateTime dateConversionPublic,
         com.transport.gestiontransport.entity.enums.VilleBelge villeDepart,
         com.transport.gestiontransport.entity.enums.VilleBelge villeArrivee,
@@ -33,7 +35,7 @@ public record TrajetDto(
     public TrajetDto(Long id, Long vehiculeId, String vehiculeNom, String agenceNom,
             Long organisateurId, String organisateurNom, LocalDate date, LocalTime heureDebut,
             LocalTime heureFin, TypeTrajet typeTrajet, StatutTrajet statut, Integer nbPassagersActuels,
-            Double prixParPassager, LocalDateTime dateConversionPublic,
+            BigDecimal prixParPassager, LocalDateTime dateConversionPublic,
             com.transport.gestiontransport.entity.enums.VilleBelge villeDepart,
             com.transport.gestiontransport.entity.enums.VilleBelge villeArrivee, Long agenceId) {
         this(id, vehiculeId, vehiculeNom, agenceNom, organisateurId, organisateurNom, date, heureDebut,
@@ -43,7 +45,7 @@ public record TrajetDto(
     public TrajetDto(Long id, Long vehiculeId, String vehiculeNom, String agenceNom,
             Long organisateurId, String organisateurNom, LocalDate date, LocalTime heureDebut,
             LocalTime heureFin, TypeTrajet typeTrajet, StatutTrajet statut, Integer nbPassagersActuels,
-            Double prixParPassager, LocalDateTime dateConversionPublic) {
+            BigDecimal prixParPassager, LocalDateTime dateConversionPublic) {
         this(id, vehiculeId, vehiculeNom, agenceNom, organisateurId, organisateurNom, date, heureDebut,
                 heureFin, typeTrajet, statut, nbPassagersActuels, prixParPassager, dateConversionPublic, null, null, null);
     }

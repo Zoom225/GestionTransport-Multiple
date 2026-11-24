@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.mapper;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.entity.Trajet;
 import com.transport.gestiontransport.entity.Voyageur;
 import com.transport.gestiontransport.entity.Agence;
@@ -47,7 +49,7 @@ class TrajetMapperTest {
         vehicule = new Vehicule();
         vehicule.setId(1L);
         vehicule.setNom("Renault Clio");
-        vehicule.setPrix(20.0);
+        vehicule.setPrix(new BigDecimal("20.00"));
         vehicule.setAgence(agence);
 
         trajet = new Trajet();
@@ -59,7 +61,7 @@ class TrajetMapperTest {
         trajet.setTypeTrajet(TypeTrajet.PUBLIC);
         trajet.setStatut(StatutTrajet.PLANIFIE);
         trajet.setNbPassagersActuels(1);
-        trajet.setPrixParPassager(5.0);
+        trajet.setPrixParPassager(new BigDecimal("5.00"));
     }
 
     @Test

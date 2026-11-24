@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.repository;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.config.PersistenceConfig;
 import com.transport.gestiontransport.entity.*;
 import com.transport.gestiontransport.entity.enums.*;
@@ -33,12 +35,12 @@ class CovoituragePersistenceTest {
         Vehicule vehicule = vehicules.saveAndFlush(Vehicule.builder().nom("Voiture").agence(agence).build());
         Voyageur chauffeur = voyageurs.saveAndFlush(Voyageur.builder().matricule(UUID.randomUUID().toString())
                 .nom("Test").prenom("Chauffeur").typeVoyageur(TypeVoyageur.VIP)
-                .peutProposerTrajet(true).solde(0.0).build());
+                .peutProposerTrajet(true).solde(new BigDecimal("0.00")).build());
         LocalDateTime depart = LocalDateTime.now().plusDays(1);
         return Trajet.builder().chauffeur(chauffeur).vehicule(vehicule)
                 .villeDepart(VilleBelge.MONS).villeArrivee(VilleBelge.BRUXELLES)
                 .dateDebut(depart).dateFin(depart.plusHours(1)).typeTrajet(TypeTrajet.PUBLIC)
-                .statut(StatutTrajet.PLANIFIE).nbPassagersActuels(0).prixTotal(100.0).prixParPassager(25.0).build();
+                .statut(StatutTrajet.PLANIFIE).nbPassagersActuels(0).prixTotal(new BigDecimal("100.00")).prixParPassager(new BigDecimal("25.00")).build();
     }
 
     @Test

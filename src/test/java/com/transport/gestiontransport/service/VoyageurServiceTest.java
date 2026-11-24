@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.service;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.entity.Voyageur;
 import com.transport.gestiontransport.entity.Agence;
 import com.transport.gestiontransport.entity.enums.TypeVoyageur;
@@ -60,7 +62,7 @@ class VoyageurServiceTest {
                 .prenom("Lucas")
                 .email("lucas@email.com")
                 .typeVoyageur(TypeVoyageur.VIP)
-                .solde(0.0)
+                .solde(new BigDecimal("0.00"))
                 .passwordHash("$2a$10$somehashedpassword") // Added a password hash for tests
                 .build();
 
@@ -70,7 +72,7 @@ class VoyageurServiceTest {
                 .prenom("Tom")
                 .email("tom@email.com")
                 .typeVoyageur(TypeVoyageur.LOCAL)
-                .solde(0.0)
+                .solde(new BigDecimal("0.00"))
                 .agence(agence)
                 .passwordHash("$2a$10$somehashedpassword") // Added a password hash for tests
                 .build();
@@ -81,7 +83,7 @@ class VoyageurServiceTest {
                 .prenom("Alex")
                 .email("alex@email.com")
                 .typeVoyageur(TypeVoyageur.LIBRE)
-                .solde(0.0)
+                .solde(new BigDecimal("0.00"))
                 .passwordHash("$2a$10$somehashedpassword") // Added a password hash for tests
                 .build();
     }
@@ -105,7 +107,7 @@ class VoyageurServiceTest {
             assertThat(result).isNotNull();
             assertThat(result.getMatricule()).isEqualTo("G1001");
             assertThat(result.getTypeVoyageur()).isEqualTo(TypeVoyageur.VIP);
-            assertThat(result.getSolde()).isEqualTo(0.0);
+            assertThat(result.getSolde()).isEqualByComparingTo("0.00");
             verify(voyageurRepository, times(1)).save(voyageurGlobal);
         }
 
@@ -118,7 +120,7 @@ class VoyageurServiceTest {
                     .prenom("Lucas")
                     .email("lucas@email.com")
                     .typeVoyageur(TypeVoyageur.VIP)
-                    .solde(0.0)
+                    .solde(new BigDecimal("0.00"))
                     .passwordHash("$2a$10$somehashedpassword")
                     .build();
 
@@ -192,7 +194,7 @@ class VoyageurServiceTest {
                     .nom("Test")
                     .prenom("Test")
                     .typeVoyageur(TypeVoyageur.LOCAL)
-                    .solde(0.0)
+                    .solde(new BigDecimal("0.00"))
                     .agence(null) // ← pas de agence
                     .build();
 
@@ -209,7 +211,7 @@ class VoyageurServiceTest {
             Voyageur badVoyageur = Voyageur.builder()
                     .matricule("G12") // ← trop court, doit être G + 4 chiffres
                     .typeVoyageur(TypeVoyageur.VIP)
-                    .solde(0.0)
+                    .solde(new BigDecimal("0.00"))
                     .build();
 
             assertThatThrownBy(() -> voyageurService.create(badVoyageur))
@@ -223,7 +225,7 @@ class VoyageurServiceTest {
             Voyageur badVoyageur = Voyageur.builder()
                     .matricule("S123") // ← doit être S + 5 chiffres
                     .typeVoyageur(TypeVoyageur.LOCAL)
-                    .solde(0.0)
+                    .solde(new BigDecimal("0.00"))
                     .agence(agence)
                     .build();
 
@@ -238,7 +240,7 @@ class VoyageurServiceTest {
             Voyageur badVoyageur = Voyageur.builder()
                     .matricule("X10001") // ← doit commencer par L
                     .typeVoyageur(TypeVoyageur.LIBRE)
-                    .solde(0.0)
+                    .solde(new BigDecimal("0.00"))
                     .build();
 
             assertThatThrownBy(() -> voyageurService.create(badVoyageur))
@@ -249,14 +251,14 @@ class VoyageurServiceTest {
         @Test
         @DisplayName("✅ doit initialiser le solde à 0.0 lors de la création")
         void shouldInitializeSoldeToZero() {
-            voyageurGlobal.setSolde(99.0); // on force un solde non nul
+            voyageurGlobal.setSolde(new BigDecimal("99.00")); // on force un solde non nul
             when(voyageurRepository.existsByMatricule(any())).thenReturn(false);
             when(voyageurRepository.existsByEmail(any())).thenReturn(false);
             when(voyageurRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             Voyageur result = voyageurService.create(voyageurGlobal);
 
-            assertThat(result.getSolde()).isEqualTo(0.0);
+            assertThat(result.getSolde()).isEqualByComparingTo("0.00");
         }
     }
 
@@ -436,7 +438,7 @@ class VoyageurServiceTest {
         @Test
         @DisplayName("✅ doit retourner vrai quand le voyageur a un solde impayé")
         void shouldReturnTrueWhenBalancePositive() {
-            voyageurGlobal.setSolde(15.0);
+            voyageurGlobal.setSolde(new BigDecimal("15.00"));
             when(voyageurRepository.findById(1L)).thenReturn(Optional.of(voyageurGlobal));
 
             boolean result = voyageurService.hasOutstandingBalance(1L);
@@ -447,7 +449,7 @@ class VoyageurServiceTest {
         @Test
         @DisplayName("✅ doit retourner faux quand le voyageur n'a pas de solde impayé")
         void shouldReturnFalseWhenBalanceZero() {
-            voyageurGlobal.setSolde(0.0);
+            voyageurGlobal.setSolde(new BigDecimal("0.00"));
             when(voyageurRepository.findById(1L)).thenReturn(Optional.of(voyageurGlobal));
 
             boolean result = voyageurService.hasOutstandingBalance(1L);

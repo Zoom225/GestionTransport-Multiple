@@ -1,5 +1,7 @@
 package com.transport.gestiontransport;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.config.JwtConfig;
 import com.transport.gestiontransport.entity.*;
 import com.transport.gestiontransport.entity.enums.*;
@@ -68,12 +70,12 @@ class SuspensionParticipationTest {
     }
     Voyageur voyageur() {
         return voyageurs.saveAndFlush(Voyageur.builder().matricule(UUID.randomUUID().toString())
-                .nom("Test").prenom("Participation").typeVoyageur(TypeVoyageur.VIP).solde(0.0).peutProposerTrajet(true).build());
+                .nom("Test").prenom("Participation").typeVoyageur(TypeVoyageur.VIP).solde(new BigDecimal("0.00")).peutProposerTrajet(true).build());
     }
     Trajet trajet(Voyageur organisateur, TypeTrajet type, LocalDateTime depart) {
         return trajets.saveAndFlush(Trajet.builder().organisateur(organisateur).chauffeur(chauffeur).vehicule(voiture)
                 .typeTrajet(type).statut(StatutTrajet.PLANIFIE).villeDepart(VilleBelge.MONS).villeArrivee(VilleBelge.BRUXELLES)
-                .dateDebut(depart).dateFin(depart.plusMinutes(90)).nbPassagersActuels(0).prixParPassager(25.0).prixTotal(100.0).build());
+                .dateDebut(depart).dateFin(depart.plusMinutes(90)).nbPassagersActuels(0).prixParPassager(new BigDecimal("25.00")).prixTotal(new BigDecimal("100.00")).build());
     }
     void sanctionner() { trajetService.imputerPenaliteTrajetPriveIncomplet(prive.getId()); }
     void regler() { trajetService.payerPenalite(prive.getId(), client.getId()); }
@@ -97,7 +99,7 @@ class SuspensionParticipationTest {
                 .andExpect(status().isUnauthorized());
     }
 
-    @Test void T01_detteCreee() { sanctionner(); assertThat(voyageurs.findById(client.getId()).orElseThrow().getSolde()).isEqualTo(100.0); }
+    @Test void T01_detteCreee() { sanctionner(); assertThat(voyageurs.findById(client.getId()).orElseThrow().getSolde()).isEqualByComparingTo("100.00"); }
     @Test void T02_suspensionExactement168HeuresEtOrigineConservee() {
         sanctionner(); Restriction r = sanction();
         assertThat(r.getDebutSuspension()).isEqualTo(debut);
@@ -159,7 +161,7 @@ class SuspensionParticipationTest {
     @Test void T12_reexecutionIdempotente() {
         sanctionner(); sanctionner();
         assertThat(restrictions.findByVoyageurIdOrderByDateFinDescIdDesc(client.getId())).hasSize(1);
-        assertThat(voyageurs.findById(client.getId()).orElseThrow().getSolde()).isEqualTo(100.0);
+        assertThat(voyageurs.findById(client.getId()).orElseThrow().getSolde()).isEqualByComparingTo("100.00");
     }
     @Test void T13_deuxSanctionsConserventHistoriqueEtFinLaPlusTardive() {
         sanctionner(); clock.instant = debut.plusSeconds(3600);
@@ -167,7 +169,7 @@ class SuspensionParticipationTest {
         trajetService.imputerPenaliteTrajetPriveIncomplet(second.getId());
         assertThat(restrictions.findByVoyageurIdOrderByDateFinDescIdDesc(client.getId())).hasSize(2);
         assertThat(eligibility.statut(client.getId()).finSuspension()).isEqualTo(clock.instant.plus(Duration.ofHours(168)));
-        assertThat(voyageurs.findById(client.getId()).orElseThrow().getSolde()).isEqualTo(200.0);
+        assertThat(voyageurs.findById(client.getId()).orElseThrow().getSolde()).isEqualByComparingTo("200.00");
     }
     @Test void T14_messageFrancaisEtCodeStables() {
         sanctionner(); regler();
