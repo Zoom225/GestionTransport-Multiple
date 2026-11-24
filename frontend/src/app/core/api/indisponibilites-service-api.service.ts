@@ -28,4 +28,3 @@ export class IndisponibilitesServiceApiService {
     return this.http.delete<void>(apiUrl(`/indisponibilites-service/${id}`));
   }
 }
-

@@ -51,4 +51,3 @@ export class VoyageursApiService {
     return this.http.delete<void>(apiUrl(`/voyageurs/${id}`));
   }
 }
-
