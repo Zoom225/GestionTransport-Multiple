@@ -30,6 +30,21 @@ public class PaiementServiceImpl implements PaiementService {
     private final PaiementRepository paiementRepository;
     private final ReservationService reservationService;
 
+    /**
+     * Règle métier : Confirmation de réservation par le paiement (modèle simple).
+     * <p>
+     * Principe « Premier payé, premier servi » :
+     * <ul>
+     *   <li>1. Le voyageur titulaire règle son billet (25 €). L'éligibilité et la disponibilité de place sont vérifiées via {@code preparePaiement}.</li>
+     *   <li>2. Le statut du paiement passe à {@code PAYE} avec horodatage immédiat.</li>
+     *   <li>3. La réservation est confirmée (statut {@code CONFIRMEE}) via {@code confirm}, ce qui attribue définitivement la place à bord.</li>
+     *   <li>4. Message clair affiché au voyageur : « Paiement validé : votre réservation est confirmée. »</li>
+     * </ul>
+     *
+     * @param reservationId identifiant de la réservation à payer
+     * @param voyageurId identifiant du voyageur payeur (doit être le titulaire)
+     * @return le paiement validé au statut PAYE
+     */
     @Override
     @Transactional
     public Paiement pay(Long reservationId, Long voyageurId) {

@@ -56,6 +56,7 @@ public class VoyageurController {
     private final AdminAuthorizationService adminAuthorizationService;
     private final VoyageurCourantService currentVoyageurService;
     private final PasswordEncoder passwordEncoder;
+    private final com.transport.gestiontransport.service.impl.VoyageurEligibilityService eligibilityService;
 
     @Operation(
             summary = "Créer un voyageur",
@@ -166,7 +167,18 @@ public class VoyageurController {
     @GetMapping("/me")
     public ResponseEntity<VoyageurResponse> me() {
         Voyageur voyageur = currentVoyageurService.currentVoyageur();
-        return ResponseEntity.ok(voyageurMapper.toResponse(voyageur));
+        return ResponseEntity.ok(profilPersonnel(voyageur));
+    }
+
+    @GetMapping("/me/sanctions")
+    public ResponseEntity<List<com.transport.gestiontransport.service.impl.VoyageurEligibilityService.Sanction>> mesSanctions() {
+        return ResponseEntity.ok(eligibilityService.historique(currentVoyageurService.currentVoyageurId()));
+    }
+
+    private VoyageurResponse profilPersonnel(Voyageur voyageur) {
+        VoyageurResponse response = voyageurMapper.toResponse(voyageur);
+        response.setParticipation(eligibilityService.statut(voyageur.getId()));
+        return response;
     }
 
     @Operation(
@@ -282,7 +294,7 @@ public class VoyageurController {
     @PostMapping("/login")
     public ResponseEntity<VoyageurResponse> login(@Valid @RequestBody VoyageurLoginRequest request) { // Modified
         Voyageur voyageur = voyageurService.authenticate(request.getMatricule(), request.getPassword()); // Modified
-        VoyageurResponse response = voyageurMapper.toResponse(voyageur);
+        VoyageurResponse response = profilPersonnel(voyageur);
         String token = jwtConfig.generateToken(voyageur.getMatricule(), voyageur.getTypeVoyageur().name());
         response.setToken(token);
         return ResponseEntity.ok(response);

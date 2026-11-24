@@ -1,8 +1,9 @@
+name: gestiontransport
+
 services:
-  # Existing container/volume retained; the database is renamed by the documented migration.
   postgres:
     image: postgres:15
-    container_name: padel-db
+    container_name: gestiontransport-db
     environment:
       POSTGRES_DB: transportService
       POSTGRES_USER: ${DB_USER:-transport}
@@ -10,7 +11,7 @@ services:
     ports:
       - "5440:5432"
     volumes:
-      - padel-db-data:/var/lib/postgresql/data
+      - transport-db-data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
@@ -19,4 +20,6 @@ services:
       retries: 5
 
 volumes:
-  padel-db-data:
+  transport-db-data:
+    name: ${TRANSPORT_DB_VOLUME:?Renseigner le nom du volume PostgreSQL existant dans .env}
+    external: true

@@ -1,6 +1,88 @@
 ﻿export type Locale = 'fr' | 'en';
 
 export type TranslationKey =
+  | 'seo.description'
+  | 'carousel.label'
+  | 'carousel.description'
+  | 'carousel.slide'
+  | 'carousel.position'
+  | 'carousel.previous'
+  | 'carousel.next'
+  | 'carousel.pause'
+  | 'carousel.play'
+  | 'carousel.motionOff'
+  | 'carousel.controls'
+  | 'carousel.pagination'
+  | 'carousel.goTo'
+  | 'carousel.subtitle'
+  | 'carousel.discover'
+  | 'carousel.propose'
+  | 'carousel.generated'
+  | 'carousel.suvAlt'
+  | 'carousel.electricAlt'
+  | 'carousel.illustration'
+  | 'carousel.roadAlt'
+  | 'carousel.familyAlt'
+  | 'carousel.sharedAlt'
+  | 'carousel.brusselsAlt'
+  | 'benefits.label'
+  | 'benefits.driverTitle'
+  | 'benefits.driverBody'
+  | 'benefits.priceTitle'
+  | 'benefits.priceBody'
+  | 'benefits.simpleTitle'
+  | 'benefits.simpleBody'
+  | 'design.bannerLabel'
+  | 'design.bannerTitle'
+  | 'design.bannerSubtitle'
+  | 'design.adminSubtitle'
+  | 'design.carAlt'
+  | 'design.adminMenu'
+  | 'transport.differentCities'
+  | 'vehicleChoice.placeholder'
+  | 'vehicleChoice.hint'
+  | 'vehicleChoice.loading'
+  | 'vehicleChoice.chooseAgence'
+  | 'vehicleChoice.empty'
+  | 'vehicleChoice.manage'
+  | 'premium.adminAccess'
+  | 'premium.global'
+  | 'premium.local'
+  | 'premium.peopleRestrictions'
+  | 'premium.tripsBookings'
+  | 'premium.photoAlt'
+  | 'ui.sessionExpired'
+  | 'ui.networkError'
+  | 'ui.accessDenied'
+  | 'ui.expired'
+  | 'ui.driverAuthorized'
+  | 'voyageur.create.driverNotice'
+  | 'ui.restrictionHistory'
+  | 'ui.noRestrictions'
+  | 'ui.active'
+  | 'ui.inactive'
+  | 'ui.unknownStart'
+  | 'ui.reportAbsence'
+  | 'ui.absenceReason'
+  | 'ui.saveReport'
+  | 'ui.absenceReported'
+  | 'ui.antwerp'
+  | 'ui.skip'
+  | 'ui.menu'
+  | 'ui.mainNav'
+  | 'ui.searchNav'
+  | 'ui.details'
+  | 'ui.tripOverview'
+  | 'ui.vehicle'
+  | 'ui.availability'
+  | 'ui.unitPrice'
+  | 'ui.close'
+  | 'ui.cityMissing'
+  | 'ui.pendingNote'
+  | 'ui.footerTagline'
+  | 'ui.illustration'
+  | 'ui.loadError'
+  | 'ui.loadCities'
   | 'transport.reserve'
   | 'transport.eyebrow'
   | 'transport.together'
@@ -442,55 +524,165 @@ export type TranslationKey =
   | 'voyageur.reservations.paymentSuccess'
   | 'voyageur.reservations.paymentError'
   | 'voyageur.reservations.reservationCanceled'
-  | 'voyageur.reservations.reservationCancelError';
+  | 'voyageur.reservations.reservationCancelError'
+  | 'studio.adminEyebrow'
+  | 'studio.adminTitle'
+  | 'studio.adminLead'
+  | 'studio.overview'
+  | 'studio.adminLoginTitle'
+  | 'studio.adminLoginLead'
+  | 'studio.adminLoginNote'
+  | 'studio.travellerEyebrow'
+  | 'studio.travellerTitle'
+  | 'studio.travellerLead'
+  | 'studio.travellerNote'
+  | 'studio.yourSpace'
+  | 'studio.hello'
+  | 'studio.whereNext'
+  | 'studio.profileLead'
+  | 'studio.upcoming'
+  | 'studio.history'
+  | 'studio.paid'
+  | 'studio.nextStep'
+  | 'studio.propose'
+  | 'studio.personal';
 
 export type TranslationParams = Record<string, string | number>;
 
 export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>>> = {
   fr: {
+    'seo.description': 'Covoiturage entre villes belges : chauffeur identifié, quatre passagers maximum et 25 € par personne. Paiement simulé dans cette version académique.',
+    'carousel.label': 'Voyager ensemble en Belgique',
+    'carousel.description': 'carrousel',
+    'carousel.slide': 'photographie',
+    'carousel.position': 'Photographie {current} sur {total}',
+    'carousel.previous': 'Photographie précédente',
+    'carousel.next': 'Photographie suivante',
+    'carousel.pause': 'Mettre le carrousel en pause',
+    'carousel.play': 'Relancer le défilement automatique',
+    'carousel.motionOff': 'Défilement automatique désactivé : mouvement réduit',
+    'carousel.controls': 'Commandes du carrousel',
+    'carousel.pagination': 'Choisir une photographie',
+    'carousel.goTo': 'Afficher la photographie {current} sur {total}',
+    'carousel.subtitle': 'Voyagez entre les villes belges en covoiturage privé ou public. Trouvez une place ou partagez votre trajet.',
+    'carousel.discover': 'Découvrir le fonctionnement',
+    'carousel.propose': 'Proposer un trajet',
+    'carousel.generated': 'Visuel généré',
+    'carousel.suvAlt': 'SUV gris sur une route bordée de sapins',
+    'carousel.electricAlt': 'Voiture électrique bleu glacier sur une route côtière',
+    'carousel.illustration': 'Photos d’illustration · hors flotte réelle',
+    'carousel.roadAlt': 'Berline compacte sur une route à la campagne',
+    'carousel.familyAlt': 'Famille près d’une voiture compacte pendant un voyage',
+    'carousel.sharedAlt': 'Conducteur et passager vus depuis l’arrière d’une voiture',
+    'carousel.brusselsAlt': 'Voitures dans une rue résidentielle à Bruxelles',
+    'benefits.label': 'Un voyage en toute simplicité',
+    'benefits.driverTitle': 'Un chauffeur identifié',
+    'benefits.driverBody': 'Vous savez qui conduit avant de réserver votre place.',
+    'benefits.priceTitle': 'Un prix clair',
+    'benefits.priceBody': '25 € par personne. Les places inoccupées ne vous sont pas facturées.',
+    'benefits.simpleTitle': 'Une réservation suivie',
+    'benefits.simpleBody': 'Retrouvez vos paiements et votre confirmation dans votre espace.',
+    'design.bannerLabel': 'Votre espace Transport',
+    'design.bannerTitle': 'Votre prochain départ commence ici.',
+    'design.bannerSubtitle': 'Des villes qui se rapprochent, des voyages qui se partagent. Trouvez votre place et voyagez ensemble.',
+    'design.adminSubtitle': 'Pilotez votre activité de transport et vos trajets, dans le périmètre de vos autorisations.',
+    'design.carAlt': 'Illustration originale d’une voiture de covoiturage sur une route entre villes',
+    'design.adminMenu': 'Menu d’administration',
+    'transport.differentCities': 'Choisissez deux villes différentes : la ville de départ et la destination ne peuvent pas être identiques.',
+    'vehicleChoice.placeholder': 'Sélectionner un véhicule',
+    'vehicleChoice.hint': 'Véhicules disponibles de cette agence · 4 places clients, chauffeur exclu.',
+    'vehicleChoice.loading': 'Chargement des véhicules de cette agence…',
+    'vehicleChoice.chooseAgence': 'Choisissez une agence pour consulter ses véhicules disponibles.',
+    'vehicleChoice.empty': 'Les ressources indisponibles restent exclues. Contactez votre agence pour disposer d’un véhicule.',
+    'vehicleChoice.manage': 'Gérer les véhicules',
+    'premium.adminAccess': 'Accès administrateur',
+    'premium.global': 'Administration globale',
+    'premium.local': 'Administration de mon agence',
+    'premium.peopleRestrictions': 'Voyageurs · Restrictions et absences',
+    'premium.tripsBookings': 'Trajets · Réservations',
+    'premium.photoAlt': 'Automobile en déplacement sur une route, illustration de mobilité partagée',
+    'ui.sessionExpired': 'Votre session a expiré. Reconnectez-vous pour continuer.',
+    'ui.networkError': 'Connexion impossible. Vérifiez votre connexion puis réessayez.',
+    'ui.accessDenied': 'Cette action n’est pas autorisée pour votre compte.',
+    'ui.expired': 'Expirée',
+    'ui.driverAuthorized': 'Chauffeur autorisé',
+    'voyageur.create.driverNotice': 'Vous êtes le chauffeur de ce trajet : {name}. Proposez jusqu’à 4 places passagers à 25 € par personne.',
+    'ui.restrictionHistory': 'Historique des restrictions',
+    'ui.noRestrictions': 'Aucune restriction enregistrée.',
+    'ui.active': 'Active',
+    'ui.inactive': 'Inactive',
+    'ui.unknownStart': 'Début historique non renseigné',
+    'ui.reportAbsence': 'Déclarer une absence',
+    'ui.absenceReason': 'Motif vérifié de l’absence injustifiée',
+    'ui.saveReport': 'Enregistrer la déclaration',
+    'ui.absenceReported': 'Absence déclarée le',
+    'ui.antwerp': 'Anvers',
+    'ui.skip': 'Aller au contenu',
+    'ui.menu': 'Menu',
+    'ui.mainNav': 'Navigation principale',
+    'ui.searchNav': 'Rechercher un trajet',
+    'ui.details': 'Voir le trajet',
+    'ui.tripOverview': 'Votre trajet en un coup d’œil',
+    'ui.vehicle': 'Véhicule',
+    'ui.availability': 'Places clients disponibles',
+    'ui.unitPrice': 'Prix par personne · une place',
+    'ui.close': 'Fermer',
+    'ui.cityMissing': 'Ville à préciser',
+    'ui.pendingNote': 'Votre place sera confirmée après validation du paiement.',
+    'ui.footerTagline': 'Le covoiturage belge, en toute simplicité.',
+    'ui.illustration': 'Le covoiturage entre villes belges',
+    'ui.loadError':
+      'Les trajets ne sont pas disponibles pour le moment. Réessayez dans quelques instants.',
+    'ui.loadCities': 'Les villes ne peuvent pas être chargées. Réessayez dans quelques instants.',
     'transport.reserve': 'Réserver',
-    'transport.eyebrow': "LE COVOITURAGE, À LA BELGE",
-    'transport.together': "Voyagez ensemble,",
-    'transport.simply': "simplement.",
-    'transport.lead': "De Mons à Bruxelles, de Namur à Liège : partagez votre trajet et prenez la route en toute confiance.",
-    'transport.driverKnown': "Un chauffeur identifié",
-    'transport.maximum': "4 clients maximum",
-    'transport.price': "25 € par personne",
-    'transport.lessCars': "Moins de voitures.",
-    'transport.moreMeetings': "Plus de rencontres.",
-    'transport.startHere': "Votre prochain départ commence ici.",
-    'transport.onRoad': "PRENEZ LA ROUTE",
-    'transport.find': "Trouvez votre prochain trajet",
-    'transport.paymentDemo': "25 € / personne · paiement simulé",
-    'transport.searching': "Recherche des trajets…",
-    'transport.retry': "Réessayer",
-    'transport.noRides': "Aucun départ pour le moment",
-    'transport.tryOther': "Essayez une autre ville ou une autre date. Les trajets publiés apparaîtront ici.",
-    'transport.belgium': "UNE BELGIQUE PLUS PROCHE",
-    'transport.popular': "Trajets populaires",
-    'transport.suggestions': "Des idées de recherche, selon les départs réellement publiés.",
-    'transport.withYou': "ON VOUS ACCOMPAGNE",
-    'transport.how': "Comment ça marche ?",
-    'transport.findStep': "Trouvez votre trajet",
-    'transport.findBody': "Choisissez vos villes et votre date, puis découvrez le chauffeur et les places disponibles.",
-    'transport.payStep': "Réservez et payez",
-    'transport.payBody': "Votre paiement simulé confirme une place disponible. Une demande impayée ne garantit pas la place.",
+    'transport.eyebrow': 'LE COVOITURAGE, À LA BELGE',
+    'transport.together': 'Voyagez ensemble,',
+    'transport.simply': 'autrement.',
+    'transport.lead':
+      'Trouvez votre prochain covoiturage entre Bruxelles et les villes belges, en quelques clics.',
+    'transport.driverKnown': 'Un chauffeur identifié',
+    'transport.maximum': '4 clients maximum',
+    'transport.price': '25 € par personne',
+    'transport.lessCars': 'Moins de voitures.',
+    'transport.moreMeetings': 'Plus de rencontres.',
+    'transport.startHere': 'Votre prochain départ commence ici.',
+    'transport.onRoad': 'PRENEZ LA ROUTE',
+    'transport.find': 'Trouvez votre prochain trajet',
+    'transport.paymentDemo': '25 € / personne · paiement simulé',
+    'transport.searching': 'Recherche des trajets…',
+    'transport.retry': 'Réessayer',
+    'transport.noRides': 'Aucun départ pour le moment',
+    'transport.tryOther':
+      'Essayez une autre ville ou une autre date. Les trajets publiés apparaîtront ici.',
+    'transport.belgium': 'UNE BELGIQUE PLUS PROCHE',
+    'transport.popular': 'Trajets populaires',
+    'transport.suggestions': 'Des idées de recherche, selon les départs réellement publiés.',
+    'transport.withYou': 'ON VOUS ACCOMPAGNE',
+    'transport.how': 'Comment ça marche ?',
+    'transport.findStep': 'Trouvez votre trajet',
+    'transport.findBody':
+      'Choisissez vos villes et votre date, puis découvrez le chauffeur et les places disponibles.',
+    'transport.payStep': 'Réservez et payez',
+    'transport.payBody':
+      'Votre paiement simulé confirme une place disponible. Une demande impayée ne garantit pas la place.',
     'transport.travelStep': "Voyagez l'esprit libre",
-    'transport.travelBody': "Retrouvez votre confirmation, vos prochains voyages et votre historique dans votre espace.",
-    'transport.shareWheel': "Envie de partager le volant ?",
-    'transport.driverBody': "Les chauffeurs autorisés proposent leurs trajets, publics ou sur invitation.",
-    'transport.myArea': "Mon espace voyageur",
-    'transport.footer': "Le covoiturage entre villes belges.",
-    'transport.admin': "Administration",
-    'transport.departure': "Ville de départ",
-    'transport.destination': "Destination",
-    'transport.allCities': "Toutes les villes",
-    'transport.travelDate': "Date de voyage",
-    'transport.search': "Rechercher un trajet",
-    'transport.driver': "Chauffeur",
-    'transport.remaining': "place(s) restante(s) sur",
-    'transport.perPerson': "/ personne",
-    'transport.full': "Complet",
+    'transport.travelBody':
+      'Retrouvez votre confirmation, vos prochains voyages et votre historique dans votre espace.',
+    'transport.shareWheel': 'Envie de partager le volant ?',
+    'transport.driverBody':
+      'Les chauffeurs autorisés proposent leurs trajets, publics ou sur invitation.',
+    'transport.myArea': 'Mon espace voyageur',
+    'transport.footer': 'Le covoiturage entre villes belges.',
+    'transport.admin': 'Administration',
+    'transport.departure': 'Ville de départ',
+    'transport.destination': 'Destination',
+    'transport.allCities': 'Toutes les villes',
+    'transport.travelDate': 'Date de voyage',
+    'transport.search': 'Rechercher un trajet',
+    'transport.driver': 'Votre chauffeur',
+    'transport.remaining': 'Places passagers disponibles : {count} sur {maximum}',
+    'transport.perPerson': '/ personne',
+    'transport.full': 'Complet',
     'nav.home': 'Accueil',
     'nav.admin': 'Admin',
     'nav.voyageur': 'Espace voyageur',
@@ -553,7 +745,8 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'landing.feature3.title': 'Paiements',
     'landing.feature3.body': 'Vue propre des paiements, restrictions et confirmations.',
     'landing.feature4.title': 'Administration',
-    'landing.feature4.body': 'Indicateurs, voyageurs, agences, vehicules et indisponibilités au meme endroit.',
+    'landing.feature4.body':
+      'Indicateurs, voyageurs, agences, vehicules et indisponibilités au meme endroit.',
     'landing.trajetPublic': 'Trajet public',
     'landing.trajetAvailable': 'trajet(s) disponible(s)',
     'landing.reservation': 'Reservation',
@@ -561,7 +754,8 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'landing.simpleReservation': 'Simple',
     'landing.trajetPreviewLabel': 'Apercu des trajets',
     'admin.login.heroTitle': 'GestionTransport Admin',
-    'admin.login.heroSubtitle': 'Espace reserve aux administrateurs de agences et superviseurs globaux',
+    'admin.login.heroSubtitle':
+      'Espace reserve aux administrateurs de agences et superviseurs globaux',
     'admin.login.formTitle': 'Connexion',
     'admin.login.formSubtitle': 'Acces reserve aux administrateurs',
     'admin.login.email': 'Email',
@@ -571,7 +765,8 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'admin.login.error': "Echec de connexion. Verifiez l'e-mail et le mot de passe.",
     'admin.home.eyebrow': 'Tableau de bord',
     'admin.home.title': 'Administration GestionTransport',
-    'admin.home.subtitle': 'Vue {scope} des trajets, reservations, voyageurs et ressources du réseau.',
+    'admin.home.subtitle':
+      'Vue {scope} des trajets, reservations, voyageurs et ressources du réseau.',
     'admin.home.loading': 'Chargement du tableau de bord...',
     'admin.home.trajets': 'Trajets',
     'admin.home.reservations': 'Reservations',
@@ -592,7 +787,7 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'admin.voyageurs.title': 'Gestion des voyageurs',
     'admin.voyageurs.subtitle': 'Creation, modification et suppression des voyageurs du réseau',
     'admin.voyageurs.matricule': 'Matricule',
-    'admin.voyageurs.matriculeHint': 'VIP: G+4ch · LOCAL: S+5ch · LIBRE: L+5ch',
+    'admin.voyageurs.matriculeHint': 'VIP: V+4ch · LOCAL: L+5ch · LIBRE: F+5ch',
     'admin.voyageurs.type': 'Type de voyageur',
     'admin.voyageurs.typeGlobal': 'VIP - Tous les agences',
     'admin.voyageurs.typeAgence': 'Local - Agence dédié',
@@ -625,12 +820,13 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.home.title': 'Espace Voyageur',
     'voyageur.home.subtitle': 'Entrez votre matricule pour acceder a votre espace voyageur',
     'voyageur.home.identification': 'Identification',
-    'voyageur.home.loginHint': 'Saisissez votre matricule et mot de passe pour rejoindre le vehicule',
+    'voyageur.home.loginHint':
+      'Saisissez votre matricule et mot de passe pour rejoindre le vehicule',
     'voyageur.home.password': 'Mot de passe',
     'voyageur.home.cta': 'Acceder a mon espace',
     'voyageur.home.invalid': 'Identifiants invalides. Verifiez le matricule et le mot de passe.',
-    'voyageur.home.global': 'Global',
-    'voyageur.home.agence': 'Agence dédié',
+    'voyageur.home.global': 'VIP',
+    'voyageur.home.agence': 'Local',
     'voyageur.home.livre': 'Libre',
     'voyageur.home.tousAgences': 'Tous les agences',
     'voyageur.create.title': 'Creer un trajet',
@@ -655,16 +851,19 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.create.noVehicule': 'Aucun vehicule disponible pour cette agence selectionne.',
     'voyageur.create.selectedAgence': 'Agence selectionne',
     'voyageur.create.bookingLimit': 'Derniere date autorisee selon votre profil :',
-    'voyageur.create.ruleGlobal': 'VIP : jusqu\'a 3 semaines a l\'avance',
-    'voyageur.create.ruleAgence': 'LOCAL : jusqu\'a 2 semaines a l\'avance sur son agence',
-    'voyageur.create.ruleLibre': 'LIBRE : jusqu\'a 5 jours a l\'avance',
+    'voyageur.create.ruleGlobal': "VIP : jusqu'a 3 semaines a l'avance",
+    'voyageur.create.ruleAgence': "LOCAL : jusqu'a 2 semaines a l'avance sur son agence",
+    'voyageur.create.ruleLibre': "LIBRE : jusqu'a 5 jours a l'avance",
     'voyageur.create.noAgenceLoaded': 'Aucune agence charge.',
     'voyageur.create.noVehiculeLoaded': 'Aucun vehicule charge.',
-    'voyageur.create.success': 'Trajet créé avec quatre places clients. Le chauffeur ne réserve aucune place.',
-    'voyageur.create.successPrivate': 'Trajet privé créé. Les invitations sont en attente de paiement des passagers.',
-    'voyageur.create.partialSuccess': "Trajet cree, mais certains passagers n'ont pas pu etre ajoutes.",
-    'voyageur.public.title': 'Trajets publics',
-    'voyageur.public.subtitle': 'Rejoins un trajet public disponible. Premier paye = premier servi.',
+    'voyageur.create.success':
+      'Trajet créé : le chauffeur est associé et quatre places passagers sont proposées.',
+    'voyageur.create.successPrivate':
+      'Trajet privé créé. Les invitations sont en attente de paiement des passagers.',
+    'voyageur.create.partialSuccess':
+      "Trajet cree, mais certains passagers n'ont pas pu etre ajoutes.",
+    'voyageur.public.title': 'Trouvez votre prochain trajet',
+    'voyageur.public.subtitle': 'Comparez les départs et réservez votre place facilement.',
     'voyageur.public.filter': 'Filtrer par agence',
     'voyageur.public.search': 'Recherche',
     'voyageur.public.create': 'Creer un trajet',
@@ -683,11 +882,13 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.public.price': 'Prix par passager',
     'voyageur.public.registering': 'Reservation...',
     'voyageur.public.editTitle': 'Modifier le trajet',
-    'voyageur.public.editHint': 'Modification indisponible : un trajet ne peut plus etre modifie a moins de 24 h du debut.',
+    'voyageur.public.editHint':
+      'Modification indisponible : un trajet ne peut plus etre modifie a moins de 24 h du debut.',
     'voyageur.public.noTrajets': 'Aucun trajet public ne correspond aux filtres.',
     'voyageur.public.searchPlaceholder': 'Vehicule, agence, organisateur',
     'voyageur.public.noTrajetPrompt': 'Tu ne trouves pas de trajet ?',
-    'voyageur.public.createBody': 'En public ou en prive, avec choix de cette agence et du vehicule.',
+    'voyageur.public.createBody':
+      'En public ou en prive, avec choix de cette agence et du vehicule.',
     'voyageur.public.date': 'Date',
     'voyageur.public.time': 'Heure debut',
     'voyageur.public.typeLabel': 'Type',
@@ -698,7 +899,8 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.reservations.trajets': 'Trajets publics',
     'voyageur.reservations.select': 'Selectionner un trajet organise',
     'voyageur.reservations.addPassager': 'Ajouter passager',
-    'voyageur.reservations.noOrganized': 'Aucun trajet organise pour l\'instant. Creez un trajet PUBLIC ou PRIVE via les boutons ci-dessus.',
+    'voyageur.reservations.noOrganized':
+      "Aucun trajet organise pour l'instant. Creez un trajet PUBLIC ou PRIVE via les boutons ci-dessus.",
     'voyageur.reservations.edit': 'Modifier le trajet',
     'voyageur.reservations.confirmation': 'Confirmation requise',
     'voyageur.reservations.passagers': 'Passagers inscrits :',
@@ -711,14 +913,16 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.reservations.pay': 'Payer',
     'voyageur.reservations.cancel': 'Annuler',
     'voyageur.reservations.organizedTitle': 'Mes trajets organises',
-    'voyageur.reservations.organizedSub': 'Modifier, supprimer ou gerer les passagers de vos trajets.',
+    'voyageur.reservations.organizedSub':
+      'Modifier, supprimer ou gerer les passagers de vos trajets.',
     'voyageur.reservations.chooseTrajet': '-- Choisir un trajet --',
     'voyageur.reservations.inviteMatricule': 'Matricule passager a ajouter',
     'voyageur.reservations.noPassager': 'Aucun passager inscrit sur ce trajet.',
     'voyageur.reservations.reservationLabel': 'Reservation',
     'voyageur.reservations.paymentLabel': 'Paiement',
     'voyageur.reservations.removePassager': 'Retirer',
-    'voyageur.reservations.emptyBody': 'Creez un trajet ou rejoignez un trajet public pour voir vos reservations ici.',
+    'voyageur.reservations.emptyBody':
+      'Creez un trajet ou rejoignez un trajet public pour voir vos reservations ici.',
     'voyageur.payments.title': 'Mes paiements',
     'voyageur.payments.subtitle': 'Historique des paiements et remboursements',
     'voyageur.payments.reservations': 'Mes reservations',
@@ -740,8 +944,10 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.profile.privateTrajet': 'Trajet sur invitation',
     'voyageur.profile.quickPublic': 'Creer un trajet PUBLIC',
     'voyageur.profile.quickPrivate': 'Creer un trajet PRIVE',
-    'voyageur.profile.quickPublicBody': 'Voyageurs autorisés · 25 EUR/client · quatre places clients maximum',
-    'voyageur.profile.quickPrivateBody': 'Invitez jusqu’à quatre clients · Publication à H-24 uniquement avec votre consentement',
+    'voyageur.profile.quickPublicBody':
+      'Voyageurs autorisés · 25 EUR/client · quatre places clients maximum',
+    'voyageur.profile.quickPrivateBody':
+      'Invitez jusqu’à quatre clients · Publication à H-24 uniquement avec votre consentement',
     'voyageur.profile.explore': 'Explorer',
     'voyageur.profile.followup': 'Suivi',
     'voyageur.profile.finance': 'Finances',
@@ -843,30 +1049,38 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'admin.indisponibilites.deleteSuccess': 'Jour de indisponibilité supprime.',
     'admin.indisponibilites.deleteError': 'Suppression impossible.',
     'voyageur.home.matricule': 'Matricule',
-    'voyageur.home.matriculePlaceholder': 'Ex: G1234, S12345, L12345',
+    'voyageur.home.matriculePlaceholder': 'Ex: V1234, L12345, F12345',
     'voyageur.home.showPassword': 'Afficher le mot de passe voyageur',
     'voyageur.home.hidePassword': 'Masquer le mot de passe voyageur',
-    'voyageur.home.globalHint': 'G + 4 chiffres · Tous les agences',
-    'voyageur.home.agenceHint': 'S + 5 chiffres · Agence dédié',
-    'voyageur.home.livreHint': 'L + 5 chiffres · Accès libre',
+    'voyageur.home.globalHint': 'V + 4 chiffres · Tous les agences',
+    'voyageur.home.agenceHint': 'L + 5 chiffres · Agence dédié',
+    'voyageur.home.livreHint': 'F + 5 chiffres · Accès libre',
     'voyageur.home.allAgences': 'Tous les agences',
     'voyageur.profile.loadError': 'Impossible de charger le profil voyageur.',
     'voyageur.create.bookingLimitError': 'Dernière date autorisée : {date}.',
-    'voyageur.create.bookingLimitProfileError': 'Le profil {type} ne peut pas réserver plus de {days} jours à l\'avance. Date limite : {date}.',
+    'voyageur.create.bookingLimitProfileError':
+      "Le profil {type} ne peut pas réserver plus de {days} jours à l'avance. Date limite : {date}.",
     'voyageur.create.invalidType': 'Type de trajet invalide.',
     'voyageur.create.createError': 'Creation du trajet impossible.',
-    'voyageur.create.outstandingBalance': 'Vous avez un solde impaye. Reglez vos dettes avant de creer un trajet.',
-    'voyageur.create.activeRestriction': 'Vous avez une restriction active. Attendez avant de creer un trajet.',
+    'voyageur.create.outstandingBalance':
+      'Vous avez un solde impaye. Reglez vos dettes avant de creer un trajet.',
+    'voyageur.create.activeRestriction':
+      'Vous avez une restriction active. Attendez avant de creer un trajet.',
     'voyageur.create.slotTaken': 'Ce creneau est deja reserve. Choisissez un autre horaire.',
     'voyageur.create.agenceClosed': 'Le agence est ferme a cette date.',
-    'voyageur.create.outOfHours': "Cet horaire est en dehors des heures d'ouverture de cette agence.",
-    'voyageur.create.agenceOnly': 'Un voyageur LOCAL ne peut creer un trajet que sur sa propre agence.',
-    'voyageur.create.internalError': 'Une erreur interne du serveur est survenue lors de la creation du trajet.',
+    'voyageur.create.outOfHours':
+      "Cet horaire est en dehors des heures d'ouverture de cette agence.",
+    'voyageur.create.agenceOnly':
+      'Un voyageur LOCAL ne peut creer un trajet que sur sa propre agence.',
+    'voyageur.create.internalError':
+      'Une erreur interne du serveur est survenue lors de la creation du trajet.',
     'voyageur.create.addPassagersError': "Impossible d'ajouter tous les passagers.",
     'voyageur.public.loadError': 'Impossible de charger les trajets publics.',
     'voyageur.public.noVoyageur': 'Aucun voyageur connecte.',
-    'voyageur.public.joinBlocked': 'Ce trajet ne peut pas etre rejoint (complet, annule ou non autorise).',
-    'voyageur.public.joinSuccess': "Demande créée. Votre place ne sera confirmée qu'après paiement.",
+    'voyageur.public.joinBlocked':
+      'Ce trajet ne peut pas etre rejoint (complet, annule ou non autorise).',
+    'voyageur.public.joinSuccess':
+      "Demande créée. Votre place ne sera confirmée qu'après paiement.",
     'voyageur.public.joinError': 'Impossible de reserver ce trajet.',
     'voyageur.public.modifyTooLate': 'Modification impossible a moins de 24 h du debut du trajet.',
     'voyageur.public.updateSuccess': 'Trajet modifie avec succes.',
@@ -877,65 +1091,173 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.reservations.reservationTitle': 'Reservation',
     'voyageur.reservations.noVoyageur': 'Aucun voyageur connecte.',
     'voyageur.reservations.loadError': 'Impossible de charger les reservations.',
-    'voyageur.reservations.privateOnly': 'La gestion des passagers est réservée aux trajets PRIVÉS.',
+    'voyageur.reservations.privateOnly':
+      'La gestion des passagers est réservée aux trajets PRIVÉS.',
     'voyageur.reservations.passagersLoadError': 'Impossible de charger les passagers du trajet.',
     'voyageur.reservations.updateSuccess': 'Trajet mis à jour avec succès.',
     'voyageur.reservations.updateError': 'Modification du trajet impossible.',
     'voyageur.reservations.deleteSuccess': 'Trajet annule avec succes.',
     'voyageur.reservations.deleteError': 'Suppression du trajet impossible.',
     'voyageur.reservations.passagerAdded': 'Passager ajoute avec succes.',
-    'voyageur.reservations.passagerAddError': "Ajout du passager impossible.",
+    'voyageur.reservations.passagerAddError': 'Ajout du passager impossible.',
     'voyageur.reservations.passagerRemoved': 'Passager retire du trajet.',
     'voyageur.reservations.passagerRemoveError': 'Suppression du passager impossible.',
-    'voyageur.reservations.paymentSuccess': 'Paiement effectue avec succes.',
+    'voyageur.reservations.paymentSuccess': 'Paiement validé : votre réservation est confirmée.',
     'voyageur.reservations.paymentError': 'Paiement impossible.',
     'voyageur.reservations.reservationCanceled': 'Reservation annulee.',
-    'voyageur.reservations.reservationCancelError': 'Annulation impossible.'
+    'voyageur.reservations.reservationCancelError': 'Annulation impossible.',
+    'studio.adminEyebrow': "Espace d'administration",
+    'studio.adminTitle': 'Tableau de bord réseau',
+    'studio.adminLead': 'Supervisez les trajets, réservations et agences du réseau.',
+    'studio.overview': "Vue d'ensemble",
+    'studio.adminLoginTitle': 'Gestion centralisée du transport',
+    'studio.adminLoginLead': 'Accédez au pilotage des trajets interurbains et au suivi en temps réel.',
+    'studio.adminLoginNote': "Réseau d'agences connecté à travers toute la Belgique.",
+    'studio.travellerEyebrow': 'Covoiturage interurbain',
+    'studio.travellerTitle': 'Partagez la route en toute confiance',
+    'studio.travellerLead': "Voyagez confortablement entre villes avec un chauffeur vérifié et jusqu'à 4 passagers.",
+    'studio.travellerNote': '25 € par personne · Paiement sécurisé',
+    'studio.yourSpace': 'Votre espace personnel',
+    'studio.hello': 'Bonjour, {name}',
+    'studio.whereNext': 'Où souhaitez-vous aller ?',
+    'studio.profileLead': 'Recherchez un trajet disponible ou proposez votre propre itinéraire.',
+    'studio.upcoming': 'À venir',
+    'studio.history': 'Historique',
+    'studio.paid': 'Paiements validés',
+    'studio.nextStep': 'Que souhaitez-vous faire ?',
+    'studio.propose': 'Proposer un trajet',
+    'studio.personal': 'Informations du compte',
   },
   en: {
+    'seo.description': 'Carpooling between Belgian cities: an identified driver, up to four passengers and €25 per person. Simulated payments in this academic version.',
+    'carousel.label': 'Travelling together in Belgium',
+    'carousel.description': 'carousel',
+    'carousel.slide': 'photograph',
+    'carousel.position': 'Photograph {current} of {total}',
+    'carousel.previous': 'Previous photograph',
+    'carousel.next': 'Next photograph',
+    'carousel.pause': 'Pause the carousel',
+    'carousel.play': 'Resume automatic rotation',
+    'carousel.motionOff': 'Automatic rotation disabled: reduced motion',
+    'carousel.controls': 'Carousel controls',
+    'carousel.pagination': 'Choose a photograph',
+    'carousel.goTo': 'Show photograph {current} of {total}',
+    'carousel.subtitle': 'Travel between Belgian cities with private or public ridesharing. Find a seat or share your ride.',
+    'carousel.discover': 'See how it works',
+    'carousel.propose': 'Offer a ride',
+    'carousel.generated': 'Generated visual',
+    'carousel.suvAlt': 'Grey SUV on a road lined with fir trees',
+    'carousel.electricAlt': 'Ice-blue electric car on a coastal road',
+    'carousel.illustration': 'Illustrative photos · not the actual fleet',
+    'carousel.roadAlt': 'Compact saloon on a country road',
+    'carousel.familyAlt': 'Family beside a compact car during a journey',
+    'carousel.sharedAlt': 'Driver and passenger viewed from the back of a car',
+    'carousel.brusselsAlt': 'Cars on a residential street in Brussels',
+    'benefits.label': 'A simpler way to travel',
+    'benefits.driverTitle': 'An identified driver',
+    'benefits.driverBody': 'Know who is driving before you book your seat.',
+    'benefits.priceTitle': 'A clear price',
+    'benefits.priceBody': '€25 per person. You are not charged for unoccupied seats.',
+    'benefits.simpleTitle': 'An easy-to-follow booking',
+    'benefits.simpleBody': 'Find your payments and confirmation in your personal area.',
+    'design.bannerLabel': 'Your Transport space',
+    'design.bannerTitle': 'Your next journey starts here.',
+    'design.bannerSubtitle': 'Connecting cities, sharing journeys. Find your seat and travel together.',
+    'design.adminSubtitle': 'Manage your agencies, vehicles and trips in one place, within your permissions.',
+    'design.carAlt': 'Original illustration of a shared car on a road between cities',
+    'design.adminMenu': 'Administration menu',
+    'transport.differentCities': 'Choose two different cities: departure and destination cannot be the same.',
+    'vehicleChoice.placeholder': 'Select a vehicle',
+    'vehicleChoice.hint': 'Available vehicles from this agency · 4 passenger places, excluding the driver.',
+    'vehicleChoice.loading': 'Loading vehicles for this agency…',
+    'vehicleChoice.chooseAgence': 'Choose an agency to view its available vehicles.',
+    'vehicleChoice.empty': 'Unavailable resources remain excluded. Contact your agency to arrange a vehicle.',
+    'vehicleChoice.manage': 'Manage vehicles',
+    'premium.adminAccess': 'Administrator access',
+    'premium.global': 'Global administration',
+    'premium.local': 'My agency administration',
+    'premium.peopleRestrictions': 'Passengers · Restrictions and absences',
+    'premium.tripsBookings': 'Trips · Bookings',
+    'premium.photoAlt': 'Car travelling on a road, illustration of shared mobility',
+    'ui.sessionExpired': 'Your session has expired. Sign in again to continue.',
+    'ui.networkError': 'Unable to connect. Check your connection and try again.',
+    'ui.accessDenied': 'This action is not allowed for your account.',
+    'ui.expired': 'Expired',
+    'ui.driverAuthorized': 'Authorized driver',
+    'voyageur.create.driverNotice': 'You are the driver for this ride: {name}. Offer up to 4 passenger seats at €25 per person.',
+    'ui.restrictionHistory': 'Restriction history',
+    'ui.noRestrictions': 'No restrictions recorded.',
+    'ui.active': 'Active',
+    'ui.inactive': 'Inactive',
+    'ui.unknownStart': 'Historical start date unknown',
+    'ui.reportAbsence': 'Report an absence',
+    'ui.absenceReason': 'Verified reason for the unjustified absence',
+    'ui.saveReport': 'Save report',
+    'ui.absenceReported': 'Absence reported on',
+    'ui.antwerp': 'Antwerp',
+    'ui.skip': 'Skip to content',
+    'ui.menu': 'Menu',
+    'ui.mainNav': 'Main navigation',
+    'ui.searchNav': 'Find a ride',
+    'ui.details': 'View ride',
+    'ui.tripOverview': 'Your ride at a glance',
+    'ui.vehicle': 'Vehicle',
+    'ui.availability': 'Available passenger places',
+    'ui.unitPrice': 'Price per person · one place',
+    'ui.close': 'Close',
+    'ui.cityMissing': 'City not specified',
+    'ui.pendingNote': 'Your place is confirmed after payment is validated.',
+    'ui.footerTagline': 'Belgian ridesharing, made simple.',
+    'ui.illustration': 'Ridesharing between Belgian cities',
+    'ui.loadError': 'Rides are temporarily unavailable. Please try again shortly.',
+    'ui.loadCities': 'Cities could not be loaded. Please try again shortly.',
     'transport.reserve': 'Book',
-    'transport.eyebrow': "RIDESHARING, THE BELGIAN WAY",
-    'transport.together': "Travel together,",
-    'transport.simply': "simply.",
-    'transport.lead': "From Mons to Brussels, from Namur to Liège: share your journey and travel with confidence.",
-    'transport.driverKnown': "An identified driver",
-    'transport.maximum': "4 clients maximum",
-    'transport.price': "€25 per person",
-    'transport.lessCars': "Fewer cars.",
-    'transport.moreMeetings': "More connections.",
-    'transport.startHere': "Your next journey starts here.",
-    'transport.onRoad': "HIT THE ROAD",
-    'transport.find': "Find your next ride",
-    'transport.paymentDemo': "€25 / person · simulated payment",
-    'transport.searching': "Searching for rides…",
-    'transport.retry': "Try again",
-    'transport.noRides': "No rides at the moment",
-    'transport.tryOther': "Try another city or date. Published rides will appear here.",
-    'transport.belgium': "BRINGING BELGIUM CLOSER",
-    'transport.popular': "Popular journeys",
-    'transport.suggestions': "Search suggestions, subject to published departures.",
-    'transport.withYou': "HERE TO HELP",
-    'transport.how': "How does it work?",
-    'transport.findStep': "Find your ride",
-    'transport.findBody': "Choose your cities and date, then discover the driver and available places.",
-    'transport.payStep': "Book and pay",
-    'transport.payBody': "Your simulated payment confirms an available place. An unpaid request does not guarantee a place.",
-    'transport.travelStep': "Travel with peace of mind",
-    'transport.travelBody': "Find your confirmation, upcoming journeys and history in your account.",
-    'transport.shareWheel': "Want to offer a ride?",
-    'transport.driverBody': "Authorized drivers offer public or invitation-only rides.",
-    'transport.myArea': "My passenger account",
-    'transport.footer': "Ridesharing between Belgian cities.",
-    'transport.admin': "Administration",
-    'transport.departure': "Departure city",
-    'transport.destination': "Destination",
-    'transport.allCities': "All cities",
-    'transport.travelDate': "Travel date",
-    'transport.search': "Search for a ride",
-    'transport.driver': "Driver",
-    'transport.remaining': "place(s) remaining out of",
-    'transport.perPerson': "/ person",
-    'transport.full': "Full",
+    'transport.eyebrow': 'RIDESHARING, THE BELGIAN WAY',
+    'transport.together': 'Travel together,',
+    'transport.simply': 'a new way.',
+    'transport.lead':
+      'Find your next shared ride between Brussels and Belgian cities in just a few clicks.',
+    'transport.driverKnown': 'An identified driver',
+    'transport.maximum': '4 clients maximum',
+    'transport.price': '€25 per person',
+    'transport.lessCars': 'Fewer cars.',
+    'transport.moreMeetings': 'More connections.',
+    'transport.startHere': 'Your next journey starts here.',
+    'transport.onRoad': 'HIT THE ROAD',
+    'transport.find': 'Find your next ride',
+    'transport.paymentDemo': '€25 / person · simulated payment',
+    'transport.searching': 'Searching for rides…',
+    'transport.retry': 'Try again',
+    'transport.noRides': 'No rides at the moment',
+    'transport.tryOther': 'Try another city or date. Published rides will appear here.',
+    'transport.belgium': 'BRINGING BELGIUM CLOSER',
+    'transport.popular': 'Popular journeys',
+    'transport.suggestions': 'Search suggestions, subject to published departures.',
+    'transport.withYou': 'HERE TO HELP',
+    'transport.how': 'How does it work?',
+    'transport.findStep': 'Find your ride',
+    'transport.findBody':
+      'Choose your cities and date, then discover the driver and available places.',
+    'transport.payStep': 'Book and pay',
+    'transport.payBody':
+      'Your simulated payment confirms an available place. An unpaid request does not guarantee a place.',
+    'transport.travelStep': 'Travel with peace of mind',
+    'transport.travelBody':
+      'Find your confirmation, upcoming journeys and history in your account.',
+    'transport.shareWheel': 'Want to offer a ride?',
+    'transport.driverBody': 'Authorized drivers offer public or invitation-only rides.',
+    'transport.myArea': 'My passenger account',
+    'transport.footer': 'Ridesharing between Belgian cities.',
+    'transport.admin': 'Administration',
+    'transport.departure': 'Departure city',
+    'transport.destination': 'Destination',
+    'transport.allCities': 'All cities',
+    'transport.travelDate': 'Travel date',
+    'transport.search': 'Search for a ride',
+    'transport.driver': 'Your driver',
+    'transport.remaining': 'Passenger seats available: {count} of {maximum}',
+    'transport.perPerson': '/ person',
+    'transport.full': 'Full',
     'common.back': 'Back',
     'common.save': 'Save',
     'common.create': 'Create',
@@ -998,7 +1320,8 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'landing.feature3.title': 'Payments',
     'landing.feature3.body': 'Clean view of payments, restrictions, and confirmations.',
     'landing.feature4.title': 'Administration',
-    'landing.feature4.body': 'Metrics, passengers, agencies, vehicles, and service unavailability in one place.',
+    'landing.feature4.body':
+      'Metrics, passengers, agencies, vehicles, and service unavailability in one place.',
     'landing.trajetPublic': 'Public trip',
     'landing.trajetAvailable': 'trips available',
     'landing.reservation': 'Reservation',
@@ -1016,7 +1339,8 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'admin.login.error': 'Login failed. Check the email and password.',
     'admin.home.eyebrow': 'Dashboard',
     'admin.home.title': 'GestionTransport administration',
-    'admin.home.subtitle': '{scope} view of network trips, reservations, passengers, and resources.',
+    'admin.home.subtitle':
+      '{scope} view of network trips, reservations, passengers, and resources.',
     'admin.home.loading': 'Loading dashboard...',
     'admin.home.trajets': 'Trips',
     'admin.home.reservations': 'Reservations',
@@ -1037,7 +1361,7 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'admin.voyageurs.title': 'Passenger management',
     'admin.voyageurs.subtitle': 'Create, edit, and delete network passengers',
     'admin.voyageurs.matricule': 'Passenger ID',
-    'admin.voyageurs.matriculeHint': 'VIP: G+4 chars · LOCAL: S+5 chars · LIBRE: L+5 chars',
+    'admin.voyageurs.matriculeHint': 'VIP: V+4 chars · LOCAL: L+5 chars · LIBRE: F+5 chars',
     'admin.voyageurs.type': 'Passenger type',
     'admin.voyageurs.typeGlobal': 'VIP - All agencies',
     'admin.voyageurs.typeAgence': 'Local - Dedicated agency',
@@ -1074,8 +1398,8 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.home.password': 'Password',
     'voyageur.home.cta': 'Open my area',
     'voyageur.home.invalid': 'Invalid credentials. Check the passenger ID and password.',
-    'voyageur.home.global': 'Global',
-    'voyageur.home.agence': 'Dedicated agency',
+    'voyageur.home.global': 'VIP',
+    'voyageur.home.agence': 'Local',
     'voyageur.home.livre': 'Free access',
     'voyageur.home.tousAgences': 'All agencies',
     'voyageur.create.title': 'Create a trip',
@@ -1105,11 +1429,13 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.create.ruleLibre': 'LIBRE: up to 5 days ahead',
     'voyageur.create.noAgenceLoaded': 'No agency loaded.',
     'voyageur.create.noVehiculeLoaded': 'No vehicle loaded.',
-    'voyageur.create.success': 'Trip created with four client places. The driver does not reserve a place.',
-    'voyageur.create.successPrivate': 'Private trip created. Invitations are pending passenger payments.',
+    'voyageur.create.success':
+      'Trip created: the driver is assigned and four passenger seats are offered.',
+    'voyageur.create.successPrivate':
+      'Private trip created. Invitations are pending passenger payments.',
     'voyageur.create.partialSuccess': 'Trip created, but some passengers could not be added.',
-    'voyageur.public.title': 'Public trips',
-    'voyageur.public.subtitle': 'Join an available public trip. First paid, first served.',
+    'voyageur.public.title': 'Find your next ride',
+    'voyageur.public.subtitle': 'Compare departures and book your place easily.',
     'voyageur.public.filter': 'Filter by agency',
     'voyageur.public.search': 'Search',
     'voyageur.public.create': 'Create a trip',
@@ -1128,10 +1454,11 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.public.price': 'Price per passenger',
     'voyageur.public.registering': 'Booking...',
     'voyageur.public.editTitle': 'Edit trip',
-    'voyageur.public.editHint': 'Editing unavailable: a trip cannot be edited less than 24 hours before start.',
+    'voyageur.public.editHint':
+      'Editing unavailable: a trip cannot be edited less than 24 hours before start.',
     'voyageur.public.noTrajets': 'No public trip trips the filters.',
     'voyageur.public.searchPlaceholder': 'Vehicle, agency, organizer',
-    'voyageur.public.noTrajetPrompt': 'Can\'t find a trip?',
+    'voyageur.public.noTrajetPrompt': "Can't find a trip?",
     'voyageur.public.createBody': 'Public or private, with agency and vehicle choice.',
     'voyageur.public.date': 'Date',
     'voyageur.public.time': 'Start time',
@@ -1143,7 +1470,8 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.reservations.trajets': 'Public trips',
     'voyageur.reservations.select': 'Select an organized trip',
     'voyageur.reservations.addPassager': 'Add passenger',
-    'voyageur.reservations.noOrganized': 'No organized trip yet. Create a PUBLIC or PRIVATE trip using the buttons above.',
+    'voyageur.reservations.noOrganized':
+      'No organized trip yet. Create a PUBLIC or PRIVATE trip using the buttons above.',
     'voyageur.reservations.edit': 'Edit trip',
     'voyageur.reservations.confirmation': 'Confirmation required',
     'voyageur.reservations.passagers': 'Registered passengers:',
@@ -1163,7 +1491,8 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.reservations.reservationLabel': 'Reservation',
     'voyageur.reservations.paymentLabel': 'Payment',
     'voyageur.reservations.removePassager': 'Remove',
-    'voyageur.reservations.emptyBody': 'Create a trip or join a public trip to see your reservations here.',
+    'voyageur.reservations.emptyBody':
+      'Create a trip or join a public trip to see your reservations here.',
     'voyageur.payments.title': 'My payments',
     'voyageur.payments.subtitle': 'Payment and refund history',
     'voyageur.payments.reservations': 'My reservations',
@@ -1185,8 +1514,10 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.profile.privateTrajet': 'Invitation trip',
     'voyageur.profile.quickPublic': 'Create a PUBLIC trip',
     'voyageur.profile.quickPrivate': 'Create a PRIVATE trip',
-    'voyageur.profile.quickPublicBody': 'Eligible passengers · EUR 25/client · four client places maximum',
-    'voyageur.profile.quickPrivateBody': 'Invite up to four clients · Public release at H-24 only with your consent',
+    'voyageur.profile.quickPublicBody':
+      'Eligible passengers · EUR 25/client · four client places maximum',
+    'voyageur.profile.quickPrivateBody':
+      'Invite up to four clients · Public release at H-24 only with your consent',
     'voyageur.profile.explore': 'Explore',
     'voyageur.profile.followup': 'Follow-up',
     'voyageur.profile.finance': 'Finance',
@@ -1288,20 +1619,23 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'admin.indisponibilites.deleteSuccess': 'Indisponibilite day deleted.',
     'admin.indisponibilites.deleteError': 'Unable to delete indisponibilite day.',
     'voyageur.home.matricule': 'Passenger ID',
-    'voyageur.home.matriculePlaceholder': 'Ex: G1234, S12345, L12345',
+    'voyageur.home.matriculePlaceholder': 'Ex: V1234, L12345, F12345',
     'voyageur.home.showPassword': 'Show passenger password',
     'voyageur.home.hidePassword': 'Hide passenger password',
-    'voyageur.home.globalHint': 'G + 4 digits · All agencies',
-    'voyageur.home.agenceHint': 'S + 5 digits · Dedicated agency',
-    'voyageur.home.livreHint': 'L + 5 digits · Open access',
+    'voyageur.home.globalHint': 'V + 4 digits · All agencies',
+    'voyageur.home.agenceHint': 'L + 5 digits · Dedicated agency',
+    'voyageur.home.livreHint': 'F + 5 digits · Open access',
     'voyageur.home.allAgences': 'All agencies',
     'voyageur.profile.loadError': 'Unable to load passenger profile.',
     'voyageur.create.bookingLimitError': 'Latest allowed date: {date}.',
-    'voyageur.create.bookingLimitProfileError': 'The {type} profile cannot book more than {days} days ahead. Deadline: {date}.',
+    'voyageur.create.bookingLimitProfileError':
+      'The {type} profile cannot book more than {days} days ahead. Deadline: {date}.',
     'voyageur.create.invalidType': 'Invalid trip type.',
     'voyageur.create.createError': 'Unable to create trip.',
-    'voyageur.create.outstandingBalance': 'You have an outstanding balance. Settle your debts before creating a trip.',
-    'voyageur.create.activeRestriction': 'You have an active restriction. Wait before creating a trip.',
+    'voyageur.create.outstandingBalance':
+      'You have an outstanding balance. Settle your debts before creating a trip.',
+    'voyageur.create.activeRestriction':
+      'You have an active restriction. Wait before creating a trip.',
     'voyageur.create.slotTaken': 'This slot is already booked. Pick another time.',
     'voyageur.create.agenceClosed': 'The agency is closed on this date.',
     'voyageur.create.outOfHours': "This time is outside the agency's opening hours.",
@@ -1313,7 +1647,8 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.public.joinBlocked': 'This trip cannot be joined (full, canceled, or not allowed).',
     'voyageur.public.joinSuccess': 'Request created. Your spot will be confirmed after payment.',
     'voyageur.public.joinError': 'Unable to reserve this trip.',
-    'voyageur.public.modifyTooLate': 'Modification unavailable less than 24 hours before trip start.',
+    'voyageur.public.modifyTooLate':
+      'Modification unavailable less than 24 hours before trip start.',
     'voyageur.public.updateSuccess': 'Trip updated successfully.',
     'voyageur.public.updateError': 'Unable to update trip.',
     'voyageur.public.deleteConfirm': 'Confirm deletion (cancellation) of trip #{id}?',
@@ -1332,9 +1667,30 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.reservations.passagerAddError': 'Unable to add passenger.',
     'voyageur.reservations.passagerRemoved': 'Passenger removed from trip.',
     'voyageur.reservations.passagerRemoveError': 'Unable to remove passenger.',
-    'voyageur.reservations.paymentSuccess': 'Payment completed successfully.',
+    'voyageur.reservations.paymentSuccess': 'Payment validated: your booking is confirmed.',
     'voyageur.reservations.paymentError': 'Unable to process payment.',
     'voyageur.reservations.reservationCanceled': 'Reservation canceled.',
-    'voyageur.reservations.reservationCancelError': 'Unable to cancel reservation.'
-  }
+    'voyageur.reservations.reservationCancelError': 'Unable to cancel reservation.',
+    'studio.adminEyebrow': 'Administration workspace',
+    'studio.adminTitle': 'Network dashboard',
+    'studio.adminLead': 'Oversee network trips, bookings, and agencies.',
+    'studio.overview': 'Overview',
+    'studio.adminLoginTitle': 'Centralized transport management',
+    'studio.adminLoginLead': 'Access intercity trip monitoring and real-time operations.',
+    'studio.adminLoginNote': 'Agency network connected across Belgium.',
+    'studio.travellerEyebrow': 'Intercity carpooling',
+    'studio.travellerTitle': 'Hit the road with confidence',
+    'studio.travellerLead': 'Travel comfortably between cities with an identified driver and up to 4 passengers.',
+    'studio.travellerNote': '€25 per person · Secure payment',
+    'studio.yourSpace': 'Your personal space',
+    'studio.hello': 'Hello, {name}',
+    'studio.whereNext': 'Where to next?',
+    'studio.profileLead': 'Search for an available ride or offer your own trip.',
+    'studio.upcoming': 'Upcoming',
+    'studio.history': 'History',
+    'studio.paid': 'Validated payments',
+    'studio.nextStep': 'What would you like to do?',
+    'studio.propose': 'Offer a ride',
+    'studio.personal': 'Account details',
+  },
 };

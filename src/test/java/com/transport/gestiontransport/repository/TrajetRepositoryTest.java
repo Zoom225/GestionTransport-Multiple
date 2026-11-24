@@ -34,10 +34,24 @@ class TrajetRepositoryTest {
     private VoyageurRepository voyageurRepository;
 
     @Test
+    void listeLesTrajetsDuVraiOrganisateurEtConserveLeRepliHistorique() {
+        Vehicule voiture = vehiculeRepository.save(Vehicule.builder().nom("Demo")
+                .agence(agenceRepository.save(agence())).build());
+        Voyageur chauffeur = voyageurRepository.save(voyageur("V1001"));
+        Voyageur client = voyageurRepository.save(voyageur("F10002"));
+        Trajet nouveau = trajet(voiture, chauffeur, LocalDateTime.now().plusDays(1), StatutTrajet.PLANIFIE);
+        nouveau.setOrganisateur(client);
+        trajetRepository.save(nouveau);
+        Trajet historique = trajetRepository.save(trajet(voiture, chauffeur, LocalDateTime.now().plusDays(2), StatutTrajet.PLANIFIE));
+        assertThat(trajetRepository.findOrganisesPar(client.getId())).containsExactly(nouveau);
+        assertThat(trajetRepository.findOrganisesPar(chauffeur.getId())).containsExactly(historique);
+    }
+
+    @Test
     @DisplayName("findOverlappingTrajets retourne les trajets planifiés qui chevauchent le créneau")
     void shouldFindOverlappingTrajets() {
         Vehicule vehicule = vehiculeRepository.save(Vehicule.builder()
-                .nom("Court A")
+                .nom("Peugeot 308")
                 .agence(agenceRepository.save(agence()))
                 .prix(60.0)
                 .build());
@@ -58,7 +72,7 @@ class TrajetRepositoryTest {
     @DisplayName("findOverlappingTrajets ignore les trajets annulés")
     void shouldIgnoreCancelledTrajets() {
         Vehicule vehicule = vehiculeRepository.save(Vehicule.builder()
-                .nom("Court A")
+                .nom("Peugeot 308")
                 .agence(agenceRepository.save(agence()))
                 .prix(60.0)
                 .build());

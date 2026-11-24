@@ -16,12 +16,12 @@ import lombok.*;
 public class Reservation extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "match_id", nullable = false)
+    @JoinColumn(name = "trajet_id", nullable = false)
     @JsonBackReference("trajet-reservations")
     private Trajet trajet;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "membre_id", nullable = false)
+    @JoinColumn(name = "voyageur_id", nullable = false)
     private Voyageur voyageur;
 
     @Enumerated(EnumType.STRING)

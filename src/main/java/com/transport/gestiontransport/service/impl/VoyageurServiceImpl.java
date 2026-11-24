@@ -26,6 +26,9 @@ public class VoyageurServiceImpl implements VoyageurService {
     private final PasswordEncoder passwordEncoder; // Added PasswordEncoder
     @org.springframework.beans.factory.annotation.Value("${transport.restriction.duree-jours:7}")
     private int dureeRestrictionJours = 7;
+    private java.time.Clock clock = java.time.Clock.systemUTC();
+    @org.springframework.beans.factory.annotation.Autowired
+    void configurerHorloge(java.time.Clock clock) { this.clock = clock; }
 
     @Override
     public Voyageur create(Voyageur voyageur) {
@@ -86,7 +89,8 @@ public class VoyageurServiceImpl implements VoyageurService {
 
     @Override
     public boolean hasActiveRestriction(Long voyageurId) {
-        return restrictionRepository.existsByVoyageurIdAndDateFinAfter(voyageurId, LocalDate.now());
+        return restrictionRepository.existsByVoyageurIdAndDateFinAfter(voyageurId, LocalDate.now(clock))
+                || restrictionRepository.finSuspensionActive(voyageurId, clock.instant()) != null;
     }
 
     @Override
@@ -151,9 +155,9 @@ public class VoyageurServiceImpl implements VoyageurService {
 
     private void validateMatricule(String matricule, TypeVoyageur type) {
         boolean valid = switch (type) {
-            case VIP -> matricule.matches("^G\\d{4}$");
-            case LOCAL -> matricule.matches("^S\\d{5}$");
-            case LIBRE  -> matricule.matches("^L\\d{5}$");
+            case VIP -> matricule.matches("^[VG]\\d{4}$");
+            case LOCAL -> matricule.matches("^[LS]\\d{5}$");
+            case LIBRE  -> matricule.matches("^[FL]\\d{5}$");
         };
         // Regle metier : un matricule doit respecter le format du type de voyageur.
         if (!valid) {

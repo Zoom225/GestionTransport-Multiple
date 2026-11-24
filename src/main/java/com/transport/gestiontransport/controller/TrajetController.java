@@ -33,6 +33,12 @@ public class TrajetController {
     private final AdminAuthorizationService adminAuthorizationService;
     private final VoyageurCourantService currentVoyageurService;
 
+    @PostMapping("/{id}/penalite/pay")
+    public ResponseEntity<Void> payerPenalite(@PathVariable Long id) {
+        trajetService.payerPenalite(id, currentVoyageurService.currentVoyageurId());
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(
             summary = "Créer un trajet",
             description = "Crée un trajet PUBLIC ou PRIVÉ pour le voyageur connecté. " +

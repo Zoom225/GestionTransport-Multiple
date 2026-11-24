@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "sites")
+@Table(name = "agences")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -29,10 +29,10 @@ public class Agence extends BaseEntity {
     @Column(nullable = false)
     private LocalTime heureFermeture;
 
-    @Column(name = "duree_match_minutes", nullable = false)
+    @Column(name = "duree_trajet_minutes", nullable = false)
     private Integer dureeTrajetMinutes;
 
-    @Column(name = "duree_entre_match_minutes", nullable = false)
+    @Column(name = "duree_entre_trajet_minutes", nullable = false)
     private Integer dureeEntreTrajetMinutes;
 
     @Column(nullable = false)

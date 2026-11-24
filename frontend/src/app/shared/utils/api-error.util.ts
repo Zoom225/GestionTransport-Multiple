@@ -1,3 +1,5 @@
+import type { TranslationKey } from '../../core/i18n/translations';
+
 export interface ApiErrorResponse {
   status?: number;
   message?: string;
@@ -7,12 +9,14 @@ export interface ApiErrorResponse {
 
 const isTechnicalHttpMessage = (message: string): boolean => {
   const normalized = message.trim().toLowerCase();
-  return normalized === 'bad request'
-    || normalized === 'forbidden'
-    || normalized === 'unauthorized'
-    || normalized === 'not found'
-    || normalized === 'internal server error'
-    || normalized.startsWith('http failure response');
+  return (
+    normalized === 'bad request' ||
+    normalized === 'forbidden' ||
+    normalized === 'unauthorized' ||
+    normalized === 'not found' ||
+    normalized === 'internal server error' ||
+    normalized.startsWith('http failure response')
+  );
 };
 
 const toUserMessage = (value: unknown): string | null => {
@@ -24,12 +28,24 @@ const toUserMessage = (value: unknown): string | null => {
   return isTechnicalHttpMessage(message) ? null : message;
 };
 
-export const extractApiErrorMessage = (error: unknown, fallback = 'Une erreur est survenue.'): string => {
+export const extractApiErrorMessage = (
+  error: unknown,
+  fallback = 'Une erreur est survenue.',
+  translate?: (key: TranslationKey) => string,
+): string => {
   if (!error) {
     return fallback;
   }
 
   const candidate = error as any;
+
+  if (translate) {
+    if (candidate.status === 401 && !String(candidate.url ?? '').includes('/login')) {
+      return translate('ui.sessionExpired');
+    }
+    if (candidate.status === 403) return translate('ui.accessDenied');
+    if (candidate.status === 0) return translate('ui.networkError');
+  }
 
   if (candidate?.error?.errors && typeof candidate.error.errors === 'object') {
     const firstFieldMessage = Object.values(candidate.error.errors)[0];

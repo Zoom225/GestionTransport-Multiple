@@ -1,22 +1,28 @@
 import { LanguageService } from '../../core/i18n/language.service';
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { TrajetDetailComponent } from './trajet-detail.component';
 import { MatButtonModule } from '@angular/material/button';
 import { TrajetResponse } from '../models/trajet.model';
+import { RevealOnScrollDirective } from '../directives/reveal-on-scroll.directive';
 
 @Component({
   selector: 'app-trajet-card',
   standalone: true,
-  imports: [CommonModule, MatButtonModule],
+  imports: [CommonModule, MatButtonModule, MatDialogModule, RevealOnScrollDirective],
   template: `
-    <article class="trip-card" [attr.data-trajet-id]="trajet.id">
+    <article appReveal class="trip-card" [attr.data-trajet-id]="trajet.id">
+      <div class="trip-visual"><img src="images/car-famille-640.webp" width="640" height="360" alt="" loading="lazy" decoding="async" /><span>{{ language.t('carousel.illustration') }}</span></div>
       <div class="trip-top">
-        <span class="type">{{ trajet.typeTrajet }}</span
-        ><span>{{ trajet.date | date: 'dd/MM/yyyy' }} · {{ trajet.heureDebut.slice(0, 5) }}</span>
+        <span class="type">{{ trajet.typeTrajet }}</span><span
+          >{{ trajet.date | date: 'dd/MM/yyyy' }} · {{ trajet.heureDebut.slice(0, 5) }}</span
+        >
       </div>
       <h3>
-        {{ nomVille(trajet.villeDepart) }} <span aria-label="vers">→</span>
-        {{ nomVille(trajet.villeArrivee) }}
+        <span class="trip-city">{{ nomVille(trajet.villeDepart) }}</span>
+        <span class="trip-direction" aria-label="vers">→</span>
+        <span class="trip-city">{{ nomVille(trajet.villeArrivee) }}</span>
       </h3>
       <p class="driver">
         {{ language.t('transport.driver') }} ·
@@ -25,8 +31,7 @@ import { TrajetResponse } from '../models/trajet.model';
       <p>{{ trajet.vehiculeNom }} · {{ trajet.agenceNom }}</p>
       <div class="trip-bottom">
         <span
-          >{{ restantes() }} {{ language.t('transport.remaining') }}
-          {{ trajet.placesMaximum ?? 4 }}</span
+          >{{ language.t('transport.remaining', { count: restantes(), maximum: trajet.placesMaximum ?? 4 }) }}</span
         ><strong
           >{{ trajet.prixParPassager | currency: 'EUR' : 'symbol' : '1.0-2' }}
           <small>{{ language.t('transport.perPerson') }}</small></strong
@@ -43,7 +48,8 @@ import { TrajetResponse } from '../models/trajet.model';
             restantes() === 0
               ? language.t('transport.full')
               : labelAction || language.t('transport.reserve')
-          }}</button
+          }}</button><button mat-stroked-button type="button" (click)="openDetails()">
+          {{ language.t('ui.details') }}</button
         ><ng-content />
       </div>
     </article>
@@ -53,82 +59,124 @@ import { TrajetResponse } from '../models/trajet.model';
       :host {
         display: block;
         min-width: 0;
+        height: 100%;
       }
       .trip-card {
+        display: flex;
+        flex-direction: column;
         height: 100%;
-        padding: 1.5rem;
-        background: white;
-        border: 1px solid #dce7e6;
-        border-radius: 20px;
-        box-shadow: 0 8px 28px #0f4e3e08;
-        transition: transform 0.2s;
+        padding: var(--trip-padding);
+        --trip-padding: clamp(1rem, 2vw, 1.45rem);
+        background: var(--ui-surface);
+        border: 1px solid var(--ui-border);
+        border-radius: var(--ui-radius);
+        box-shadow: var(--ui-shadow);
+        transition: box-shadow var(--ui-motion), border-color var(--ui-motion), transform var(--ui-motion);
       }
-      .trip-card:hover {
-        transform: translateY(-3px);
+      .trip-card:focus-within {
+        box-shadow: var(--ui-shadow-raised);
+        border-color: var(--color-focus);
       }
+      .trip-visual { position: relative; aspect-ratio: 2.4; margin: calc(-1 * var(--trip-padding)) calc(-1 * var(--trip-padding)) 1.2rem; overflow: hidden; border-radius: calc(var(--ui-radius) - 1px) calc(var(--ui-radius) - 1px) 0 0; background: var(--ui-primary-soft); }
+      .trip-visual img { width: 100%; height: 100%; object-fit: cover; }
+      .trip-visual span { position: absolute; bottom: .55rem; inset-inline-start: .55rem; max-width: calc(100% - 1.1rem); border-radius: 6px; padding: .2rem .5rem; background: rgb(16 36 58 / 90%); color: var(--color-surface); font-size: .68rem; }
+      @media (hover: hover) {
+        .trip-card:hover { transform: translateY(-3px); border-color: var(--color-accent); box-shadow: var(--ui-shadow-raised); }
+      }
+      @media (prefers-reduced-motion: reduce) { .trip-card:hover { transform: none; } }
       .trip-top,
       .trip-bottom,
       .actions {
         display: flex;
-        align-items: center;
         justify-content: space-between;
+        align-items: center;
         gap: 0.75rem;
         flex-wrap: wrap;
       }
       .trip-top {
-        font-size: 0.8rem;
-        color: #526662;
+        font-size: 0.78rem;
+        color: var(--ui-text-secondary);
       }
       .type {
-        background: #e0f4eb;
-        color: #145a42;
         padding: 0.25rem 0.6rem;
-        border-radius: 30px;
-        font-weight: 700;
+        font-size: 0.7rem;
+        font-weight: 750;
+        border-radius: 999px;
+        background: var(--ui-primary-soft);
+        color: var(--ui-primary-strong);
       }
       h3 {
-        font-size: 1.45rem;
-        color: #173f36;
+        font-size: clamp(1.125rem, 1.8vw, 1.375rem);
+        color: var(--ui-navy);
+        margin: 1.1rem 0 .65rem;
         line-height: 1.4;
-        margin: 1.3rem 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: .35rem;
+        text-wrap: wrap;
+      }
+      .trip-direction {
+        color: var(--ui-teal-strong);
       }
       p {
-        font-size: 0.9rem;
-        color: #526662;
-        margin: 0.5rem 0;
+        font-size: 0.85rem;
+        color: var(--ui-text-secondary);
+        margin: 0.25rem 0;
+      }
+      .driver strong {
+        color: var(--ui-navy);
+        font-weight: 650;
       }
       .trip-bottom {
-        border-top: 1px solid #e6eeeb;
-        margin-top: 1.25rem;
-        padding-top: 1rem;
-        font-size: 0.85rem;
+        border-top: 1px solid var(--ui-border);
+        margin-top: 1.2rem;
+        padding-top: 1.25rem;
+        font-size: 0.8rem;
       }
       .trip-bottom strong {
-        font-size: 1.5rem;
-        color: #173f36;
+        color: var(--ui-navy);
+        font-size: 1.65rem;
+        font-weight: 750;
+        font-variant-numeric: tabular-nums;
       }
       .trip-bottom small {
-        font-weight: 400;
-        font-size: 0.75rem;
+        display: block;
+        text-align: right;
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: var(--ui-text-secondary);
       }
       .actions {
+        margin-top: auto;
+        padding-top: 1.25rem;
         justify-content: flex-start;
-        margin-top: 1.2rem;
       }
-      button {
-        min-height: 44px;
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .trip-card {
-          transition: none;
-          transform: none;
-        }
+      .actions button {
+        flex: 1 1 auto;
       }
     `,
   ],
 })
 export class TrajetCardComponent {
   readonly language = inject(LanguageService);
+  private readonly dialog = inject(MatDialog);
+  openDetails(): void {
+    this.dialog
+      .open(TrajetDetailComponent, {
+        width: '680px',
+        maxWidth: 'calc(100vw - 32px)',
+        autoFocus: 'first-heading',
+        data: {
+          trajet: this.trajet,
+          disabled: this.disabled || this.restantes() === 0 || this.trajet.statut !== 'PLANIFIE',
+        },
+      })
+      .afterClosed()
+      .subscribe((reserver) => {
+        if (reserver === true) this.reservationDemandee.emit(this.trajet);
+      });
+  }
   @Input({ required: true }) trajet!: TrajetResponse;
   @Input() disabled = false;
   @Input() labelAction = '';
@@ -139,6 +187,6 @@ export class TrajetCardComponent {
   nomVille(code?: string | null): string {
     return code
       ? (code.charAt(0) + code.slice(1).toLowerCase()).replace('Liege', 'Liège')
-      : 'Ville à préciser';
+      : this.language.t('ui.cityMissing');
   }
 }

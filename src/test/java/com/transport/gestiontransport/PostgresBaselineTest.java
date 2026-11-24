@@ -6,6 +6,7 @@ import com.transport.gestiontransport.exception.BusinessException;
 import com.transport.gestiontransport.repository.*;
 import com.transport.gestiontransport.service.ReservationService;
 import com.transport.gestiontransport.service.PaiementService;
+import com.transport.gestiontransport.service.TrajetService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -53,6 +54,8 @@ class PostgresBaselineTest {
     @Autowired ReservationRepository reservations;
     @Autowired ReservationService reservationService;
     @Autowired PaiementService paiementService;
+    @Autowired TrajetService trajetService;
+    @Autowired com.transport.gestiontransport.service.impl.VoyageurEligibilityService eligibility;
     @Autowired com.transport.gestiontransport.service.VoyageurService voyageurService;
     @Autowired RestrictionRepository restrictions;
     @Autowired PlatformTransactionManager transactionManager;
@@ -61,20 +64,103 @@ class PostgresBaselineTest {
 
     @org.junit.jupiter.api.BeforeAll
     void appliquerLesInvariantsSurLaBasePostgresIsolee() throws java.io.IOException {
-        jdbc.execute(java.nio.file.Files.readString(java.nio.file.Path.of("scripts/migrations/issue-4-reservation-expiration.sql")));
-        jdbc.execute(java.nio.file.Files.readString(java.nio.file.Path.of("scripts/migrations/issue-7-invariants-covoiturage.sql")));
-        jdbc.execute(java.nio.file.Files.readString(java.nio.file.Path.of("scripts/migrations/issue-4-restrictions-soutenance.sql")));
+        jdbc.execute(java.nio.file.Files.readString(java.nio.file.Path.of("scripts/migrations/issue-3-invariants-transport.sql")));
     }
 
     @Test
     void postgresRefuseUneCinquiemePlaceEtUneSecondeDemandeActiveMemeHorsService() {
         Trajet trajet = trajetVide();
         Reservation demande = demande(trajet);
-        assertThatThrownBy(() -> jdbc.update("UPDATE matches SET nb_joueurs_actuels = 5 WHERE id = ?", trajet.getId()))
+        assertThatThrownBy(() -> jdbc.update("UPDATE trajets SET nb_passagers_actuels = 5 WHERE id = ?", trajet.getId()))
                 .isInstanceOf(DataIntegrityViolationException.class);
-        assertThatThrownBy(() -> jdbc.update("INSERT INTO reservations(match_id,membre_id,statut) VALUES (?,?,'EN_ATTENTE')",
+        assertThatThrownBy(() -> jdbc.update("INSERT INTO reservations(trajet_id,voyageur_id,statut) VALUES (?,?,'EN_ATTENTE')",
                 trajet.getId(), demande.getVoyageur().getId())).isInstanceOf(DataIntegrityViolationException.class);
         assertThat(trajets.findById(trajet.getId()).orElseThrow().getNbPassagersActuels()).isZero();
+    }
+
+    @Test
+    void penaliteConcurrenteEtPaiementNeDebitentQueOrganisateurUneSeuleFois() throws Exception {
+        Trajet trajet = trajetVide();
+        Voyageur organisateur = voyageur();
+        trajet.setOrganisateur(organisateur);
+        trajet.setTypeTrajet(TypeTrajet.PRIVE);
+        trajet.setDateDebut(LocalDateTime.now().plusHours(12));
+        trajet.setDateFin(trajet.getDateDebut().plusMinutes(90));
+        trajets.saveAndFlush(trajet);
+        Long trajetId = trajet.getId();
+        Long organisateurId = organisateur.getId();
+        Long chauffeurId = trajet.getChauffeur().getId();
+        assertThat(organisateurId).isNotEqualTo(chauffeurId);
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        try {
+            executerSimultanement(pool, () -> trajetService.imputerPenaliteTrajetPriveIncomplet(trajetId));
+            assertThat(voyageurs.findById(organisateurId).orElseThrow().getSolde()).isEqualTo(100.0);
+            assertThat(voyageurs.findById(chauffeurId).orElseThrow().getSolde()).isZero();
+            assertThat(trajets.findById(trajetId).orElseThrow().getPenaliteIncompletImputeeLe()).isNotNull();
+
+            executerSimultanement(pool, () -> trajetService.payerPenalite(trajetId, organisateurId));
+            assertThat(voyageurs.findById(organisateurId).orElseThrow().getSolde()).isZero();
+            assertThat(voyageurs.findById(chauffeurId).orElseThrow().getSolde()).isZero();
+            assertThat(trajets.findById(trajetId).orElseThrow().getPenaliteIncompletPayeeLe()).isNotNull();
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    private void executerSimultanement(ExecutorService pool, Runnable action) throws Exception {
+        CyclicBarrier depart = new CyclicBarrier(2);
+        Callable<Void> travail = () -> {
+            depart.await(10, TimeUnit.SECONDS);
+            action.run();
+            return null;
+        };
+        Future<Void> premier = pool.submit(travail);
+        Future<Void> second = pool.submit(travail);
+        premier.get(30, TimeUnit.SECONDS);
+        second.get(30, TimeUnit.SECONDS);
+    }
+
+    @Test
+    void T17_sanctionPaiementEtInscriptionConcurrentsRespectentLaSuspension() throws Exception {
+        Trajet prive = trajetVide();
+        Voyageur client = voyageur();
+        prive.setOrganisateur(client);
+        prive.setTypeTrajet(TypeTrajet.PRIVE);
+        prive.setDateDebut(LocalDateTime.now().plusHours(12));
+        prive.setDateFin(prive.getDateDebut().plusMinutes(90));
+        trajets.saveAndFlush(prive);
+        Trajet publicTrajet = trajetVide();
+        CyclicBarrier depart = new CyclicBarrier(3);
+        ExecutorService pool = Executors.newFixedThreadPool(3);
+        try {
+            Future<?> sanction = pool.submit(() -> {
+                depart.await(10, TimeUnit.SECONDS);
+                trajetService.imputerPenaliteTrajetPriveIncomplet(prive.getId());
+                return null;
+            });
+            Future<Boolean> paiement = pool.submit(() -> {
+                depart.await(10, TimeUnit.SECONDS);
+                try { trajetService.payerPenalite(prive.getId(), client.getId()); return true; }
+                catch (BusinessException avantCreationSanction) { return false; }
+            });
+            Future<?> inscription = pool.submit(() -> {
+                depart.await(10, TimeUnit.SECONDS);
+                try { reservationService.create(publicTrajet.getId(), client.getId(), client.getId()); }
+                catch (BusinessException sanctionDejaCreee) { /* Allowed before the sanction, refused afterwards. */ }
+                return null;
+            });
+            sanction.get(30, TimeUnit.SECONDS);
+            boolean reglee = paiement.get(30, TimeUnit.SECONDS);
+            inscription.get(30, TimeUnit.SECONDS);
+            assertThat(voyageurs.findById(client.getId()).orElseThrow().getSolde()).isEqualTo(reglee ? 0.0 : 100.0);
+            var historique = restrictions.findByVoyageurIdOrderByDateFinDescIdDesc(client.getId());
+            assertThat(historique).hasSize(1);
+            assertThat(java.time.Duration.between(historique.getFirst().getDebutSuspension(), historique.getFirst().getFinSuspension()))
+                    .isEqualTo(java.time.Duration.ofHours(168));
+            assertThat(eligibility.statut(client.getId()).suspensionActive()).isTrue();
+            assertThatThrownBy(() -> reservationService.create(publicTrajet.getId(), client.getId(), client.getId()))
+                    .isInstanceOf(com.transport.gestiontransport.exception.ParticipationException.class);
+        } finally { pool.shutdownNow(); }
     }
 
     @Test
@@ -82,7 +168,7 @@ class PostgresBaselineTest {
         Voyageur voyageur = voyageur();
         voyageur.setTypeVoyageur(TypeVoyageur.LOCAL);
         voyageurs.saveAndFlush(voyageur);
-        assertThat(jdbc.queryForObject("SELECT type_membre FROM membres WHERE id = ?", String.class, voyageur.getId()))
+        assertThat(jdbc.queryForObject("SELECT type_voyageur FROM voyageurs WHERE id = ?", String.class, voyageur.getId()))
                 .isEqualTo("SITE");
         assertThat(voyageurs.findById(voyageur.getId()).orElseThrow().getTypeVoyageur()).isEqualTo(TypeVoyageur.LOCAL);
         Administrateur admin = administrateurs.saveAndFlush(Administrateur.builder()
@@ -130,7 +216,7 @@ class PostgresBaselineTest {
         voyageurService.addRestriction(voyageur.getId());
         voyageurService.addRestriction(voyageur.getId());
         assertThat(voyageurService.hasActiveRestriction(voyageur.getId())).isTrue();
-        assertThat(jdbc.queryForObject("SELECT count(*) FROM penalites WHERE membre_id = ?", Long.class, voyageur.getId())).isEqualTo(2L);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM restrictions WHERE voyageur_id = ?", Long.class, voyageur.getId())).isEqualTo(2L);
     }
 
     @Test
@@ -204,7 +290,7 @@ class PostgresBaselineTest {
                 .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(admin.getEmail()).roles("ADMIN"))
                 .contentType("application/json").content("{\"motif\":\"Absence vérifiée\"}"))
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isBadRequest());
-        jdbc.update("UPDATE matches SET date_debut = ?, date_fin = ? WHERE id = ?",
+        jdbc.update("UPDATE trajets SET date_debut = ?, date_fin = ? WHERE id = ?",
                 java.sql.Timestamp.valueOf(LocalDateTime.now().minusHours(2)), java.sql.Timestamp.valueOf(LocalDateTime.now().minusMinutes(30)), trajet.getId());
         for (int i = 0; i < 2; i++) {
             mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(endpoint)
@@ -233,7 +319,7 @@ class PostgresBaselineTest {
         Reservation demande = demande(trajet);
         Long clientId = demande.getVoyageur().getId();
         assertThat(voyageurService.hasOutstandingBalance(clientId)).isFalse();
-        jdbc.update("UPDATE membres SET solde = 25 WHERE id = ?", clientId);
+        jdbc.update("UPDATE voyageurs SET solde = 25 WHERE id = ?", clientId);
         assertThatThrownBy(() -> paiementService.pay(demande.getId(), clientId)).isInstanceOf(BusinessException.class).hasMessageContaining("impayé");
         assertThat(jdbc.queryForObject("SELECT statut FROM paiements WHERE reservation_id = ?", String.class, demande.getId())).isEqualTo("EN_ATTENTE");
         assertThat(voyageurService.getRestrictions(clientId)).isEmpty();
@@ -246,7 +332,7 @@ class PostgresBaselineTest {
         assertThat(trajets.findById(trajet.getId()).orElseThrow().getNbPassagersActuels()).isZero();
         for (int i = 0; i < 4; i++) paiementService.pay(demandes.get(i).getId(), demandes.get(i).getVoyageur().getId());
         assertThat(trajets.findById(trajet.getId()).orElseThrow().getNbPassagersActuels()).isEqualTo(4);
-        assertThat(jdbc.queryForObject("SELECT sum(p.montant) FROM paiements p JOIN reservations r ON r.id = p.reservation_id WHERE r.match_id = ? AND p.statut = 'PAYE'",
+        assertThat(jdbc.queryForObject("SELECT sum(p.montant) FROM paiements p JOIN reservations r ON r.id = p.reservation_id WHERE r.trajet_id = ? AND p.statut = 'PAYE'",
                 java.math.BigDecimal.class, trajet.getId())).isEqualByComparingTo("100.00");
         Reservation cinquieme = demandes.get(4);
         assertThatThrownBy(() -> paiementService.pay(cinquieme.getId(), cinquieme.getVoyageur().getId()))
@@ -326,9 +412,23 @@ class PostgresBaselineTest {
     @Test
     void uneRessourceHistoriqueNestPasMiseEnServiceAutomatiquement() {
         Trajet trajet = trajetVide();
-        Long id = jdbc.queryForObject("INSERT INTO terrains(nom, site_id) VALUES ('Ressource historique à qualifier', ?) RETURNING id",
+        Long id = jdbc.queryForObject("INSERT INTO vehicules(nom, agence_id) VALUES ('Ressource historique à qualifier', ?) RETURNING id",
                 Long.class, trajet.getVehicule().getAgence().getId());
-        assertThat(jdbc.queryForObject("SELECT disponible FROM terrains WHERE id = ?", Boolean.class, id)).isFalse();
+        assertThat(jdbc.queryForObject("SELECT disponible FROM vehicules WHERE id = ?", Boolean.class, id)).isFalse();
+    }
+
+    @Test
+    void organisateurDistinctConsulteSonTrajetPriveAvecLeBonChauffeur() throws Exception {
+        Trajet trajet = trajetVide();
+        Voyageur client = voyageur();
+        trajet.setOrganisateur(client);
+        trajet.setTypeTrajet(TypeTrajet.PRIVE);
+        trajets.saveAndFlush(trajet);
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/trajets/" + trajet.getId())
+                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(client.getMatricule()).roles("VOYAGEUR")))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.organisateurId").value(client.getId()))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.chauffeurId").value(trajet.getChauffeur().getId()));
     }
 
     @Test

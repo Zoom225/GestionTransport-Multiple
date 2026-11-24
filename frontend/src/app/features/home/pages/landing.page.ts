@@ -8,6 +8,8 @@ import { VoyageurSessionService } from '../../../core/auth/voyageur-session.serv
 import { TrajetSearchComponent } from '../../../shared/components/trajet-search.component';
 import { TrajetCardComponent } from '../../../shared/components/trajet-card.component';
 import { RechercheTrajet, TrajetResponse } from '../../../shared/models/trajet.model';
+import { CarHeroCarouselComponent } from '../../../shared/components/car-hero-carousel.component';
+import { AnimatedRouteBannerComponent } from '../../../shared/components/animated-route-banner.component';
 
 @Component({
   selector: 'app-landing-page',
@@ -18,36 +20,19 @@ import { RechercheTrajet, TrajetResponse } from '../../../shared/models/trajet.m
     MatProgressSpinnerModule,
     TrajetSearchComponent,
     TrajetCardComponent,
+    CarHeroCarouselComponent,
+    AnimatedRouteBannerComponent,
   ],
   template: `
-    <section class="welcome">
-      <div class="welcome-inner">
-        <div class="hero-copy">
-          <p class="eyebrow">{{ language.t('transport.eyebrow') }}</p>
-          <h1>
-            {{ language.t('transport.together') }}<br /><em>{{
-              language.t('transport.simply')
-            }}</em>
-          </h1>
-          <p class="lead">{{ language.t('transport.lead') }}</p>
-          <div class="trust">
-            <span>✓ {{ language.t('transport.driverKnown') }}</span
-            ><span>✓ {{ language.t('transport.maximum') }}</span
-            ><span>✓ {{ language.t('transport.price') }}</span>
-          </div>
-        </div>
-        <aside class="hero-note" aria-label="Notre engagement">
-          <span class="route-icon" aria-hidden="true">↗</span>
-          <p>
-            {{ language.t('transport.lessCars') }}<br />{{ language.t('transport.moreMeetings') }}
-          </p>
-          <span>{{ language.t('transport.startHere') }}</span>
-        </aside>
-      </div>
-    </section>
+    <app-car-hero-carousel />
     <div class="content">
-      <div class="search-panel"><app-trajet-search (recherche)="rechercher($event)" /></div>
-      <section class="available" aria-labelledby="available-title">
+      <div id="recherche" tabindex="-1" class="search-panel"><app-trajet-search (recherche)="rechercher($event)" /></div>
+      <section class="benefits" [attr.aria-label]="language.t('benefits.label')">
+        <article><span aria-hidden="true">✓</span><div><h2>{{ language.t('benefits.driverTitle') }}</h2><p>{{ language.t('benefits.driverBody') }}</p></div></article>
+        <article><span aria-hidden="true">€</span><div><h2>{{ language.t('benefits.priceTitle') }}</h2><p>{{ language.t('benefits.priceBody') }}</p></div></article>
+        <article><span aria-hidden="true">↗</span><div><h2>{{ language.t('benefits.simpleTitle') }}</h2><p>{{ language.t('benefits.simpleBody') }}</p></div></article>
+      </section>
+      <section id="trajets" class="available" aria-labelledby="available-title">
         <div class="section-title">
           <div>
             <p class="eyebrow">{{ language.t('transport.onRoad') }}</p>
@@ -57,7 +42,10 @@ import { RechercheTrajet, TrajetResponse } from '../../../shared/models/trajet.m
         </div>
         @if (loading()) {
           <div class="loading" role="status">
-            <mat-spinner diameter="28" /><span>{{ language.t('transport.searching') }}</span>
+            <mat-spinner
+              [attr.aria-label]="language.t('transport.searching')"
+              diameter="28"
+            /><span>{{ language.t('transport.searching') }}</span>
           </div>
         }
         @if (erreur()) {
@@ -78,6 +66,10 @@ import { RechercheTrajet, TrajetResponse } from '../../../shared/models/trajet.m
           </div>
         }
       </section>
+
+      <!-- Bannière animée ultra-légère SVG / CSS pur -->
+      <app-animated-route-banner />
+
       <section class="popular">
         <p class="eyebrow">{{ language.t('transport.belgium') }}</p>
         <h2>{{ language.t('transport.popular') }}</h2>
@@ -95,24 +87,27 @@ import { RechercheTrajet, TrajetResponse } from '../../../shared/models/trajet.m
           <button (click)="rechercher({ depart: 'BRUXELLES', arrivee: 'LIEGE' })">
             Bruxelles <span>→</span> Liège
           </button>
+          <button (click)="rechercher({ depart: 'LIEGE', arrivee: 'BRUXELLES' })">
+            Liège <span>→</span> Bruxelles
+          </button>
+          <button (click)="rechercher({ depart: 'BRUXELLES', arrivee: 'ANVERS' })">
+            Bruxelles <span>→</span> {{ language.t('ui.antwerp') }}
+          </button>
         </div>
       </section>
-      <section class="how">
+      <section id="fonctionnement" class="how">
         <p class="eyebrow">{{ language.t('transport.withYou') }}</p>
         <h2>{{ language.t('transport.how') }}</h2>
         <div class="steps">
           <article>
-            <b>01</b>
             <h3>{{ language.t('transport.findStep') }}</h3>
             <p>{{ language.t('transport.findBody') }}</p>
           </article>
           <article>
-            <b>02</b>
             <h3>{{ language.t('transport.payStep') }}</h3>
             <p>{{ language.t('transport.payBody') }}</p>
           </article>
           <article>
-            <b>03</b>
             <h3>{{ language.t('transport.travelStep') }}</h3>
             <p>{{ language.t('transport.travelBody') }}</p>
           </article>
@@ -126,130 +121,76 @@ import { RechercheTrajet, TrajetResponse } from '../../../shared/models/trajet.m
         <a mat-flat-button routerLink="/voyageur">{{ language.t('transport.myArea') }}</a>
       </section>
     </div>
-    <footer>
-      <strong>GestionTransport-Multiple</strong><span>{{ language.t('transport.footer') }}</span
-      ><a routerLink="/admin/login">{{ language.t('transport.admin') }}</a>
-    </footer>
   `,
   styles: [
     `
       :host {
         display: block;
-        color: #173f36;
       }
-      .welcome {
-        background: #e7f1eb;
-        padding: 4rem 1.5rem 6rem;
-      }
-      .welcome-inner,
-      .content,
-      footer {
-        max-width: 1180px;
-        margin: auto;
-      }
-      .welcome-inner {
-        display: grid;
-        grid-template-columns: 1.5fr 1fr;
-        align-items: center;
-        gap: 3rem;
-      }
+      .content { width: min(1312px, calc(100% - var(--space-gutter) * 2)); margin-inline: auto; }
       .eyebrow {
         font-size: 0.72rem;
-        font-weight: 800;
-        letter-spacing: 0.15em;
-        color: #33765d;
+        font-weight: 750;
+        letter-spacing: 0.13em;
+        color: var(--ui-teal-strong);
+        text-transform: uppercase;
         margin: 0 0 1rem;
-      }
-      h1 {
-        font-size: clamp(2.8rem, 5vw, 5rem);
-        line-height: 1.08;
-        letter-spacing: -0.04em;
-        margin: 0;
-      }
-      h1 em {
-        color: #327658;
-        font-style: normal;
-      }
-      .lead {
-        max-width: 590px;
-        font-size: 1.08rem;
-        line-height: 1.8;
-        color: #47665b;
-        margin: 1.5rem 0;
-      }
-      .trust {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        font-size: 0.82rem;
-        font-weight: 600;
-      }
-      .hero-note {
-        background: #173f36;
-        border-radius: 42% 42% 20px 20px;
-        min-height: 330px;
-        padding: 3rem;
-        text-align: center;
-        color: #f4f4df;
-      }
-      .hero-note p {
-        font-size: 1.8rem;
-        line-height: 1.4;
-        font-weight: 700;
-      }
-      .hero-note > span:last-child {
-        font-size: 0.8rem;
-        color: #d7e4d9;
-      }
-      .route-icon {
-        font-size: 4rem;
-        color: #bfd894;
-      }
-      .content {
-        padding: 0 1.5rem;
       }
       .search-panel {
         position: relative;
-        margin-top: -2.5rem;
-        padding: 1.5rem;
-        background: white;
-        border: 1px solid #dce7e0;
-        border-radius: 20px;
-        box-shadow: 0 15px 50px #173f3610;
+        z-index: 1;
+        padding: clamp(1rem, 2.8vw, 2rem);
+        margin-top: -2.55rem;
+        border: 1px solid var(--ui-border);
+        background: var(--ui-surface);
+        border-radius: var(--ui-radius-large);
+        box-shadow: var(--ui-shadow-raised);
       }
       .available,
       .popular,
       .how {
-        padding-top: 4rem;
+        padding-top: var(--ui-space-section);
       }
-      h2 {
-        font-size: clamp(1.6rem, 3vw, 2.1rem);
-        margin: 0.5rem 0 1rem;
-        letter-spacing: -0.025em;
-      }
+      .benefits { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1.5rem; padding-block: 2.3rem; border-bottom: 1px solid var(--ui-border); }
+      .benefits article { display: flex; gap: 1rem; align-items: start; }
+      .benefits article > span { display: grid; place-items: center; width: 44px; min-width: 44px; height: 44px; border-radius: 14px; background: var(--ui-teal-soft); color: var(--ui-teal-strong); font-weight: 750; }
+      .benefits h2 { font-size: 1rem; margin: 0 0 .5rem; letter-spacing: -.015em; }
+      .benefits p { font-size: .9rem; color: var(--ui-text-secondary); margin: 0; }
       .section-title {
         display: flex;
-        justify-content: space-between;
         align-items: end;
-        gap: 1rem;
+        justify-content: space-between;
         flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+      .section-title h2 {
+        margin: 0;
       }
       .section-title > span {
         font-size: 0.8rem;
-        color: #526662;
-        margin-bottom: 1rem;
+        color: var(--ui-text-secondary);
+      }
+      .section-title .eyebrow {
+        margin-bottom: 0.5rem;
       }
       .trip-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 1.2rem;
+        gap: 1.25rem;
       }
       .empty {
-        padding: 2.5rem;
-        border: 1px dashed #c8d8cf;
-        border-radius: 20px;
+        padding: 3rem 1.5rem;
+        border: 1px dashed var(--ui-border);
+        border-radius: var(--ui-radius);
+        background: var(--ui-surface);
         text-align: center;
-        background: #fafcf9;
+      }
+      .empty p,
+      .steps p,
+      .popular > p {
+        color: var(--ui-text-secondary);
+        line-height: 1.8;
       }
       .loading {
         display: flex;
@@ -257,107 +198,96 @@ import { RechercheTrajet, TrajetResponse } from '../../../shared/models/trajet.m
         gap: 1rem;
         padding: 2rem;
       }
-      .popular > p,
-      .steps p {
-        color: #526662;
-        line-height: 1.7;
-      }
       .popular-grid {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 1rem;
       }
       .popular-grid button {
-        background: #f0f5ed;
-        border: 1px solid #dce7d8;
-        border-radius: 14px;
-        padding: 1.3rem 1rem;
-        color: #173f36;
-        font-weight: 700;
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        align-items: center;
+        padding: 1.15rem;
+        min-height: 64px;
+        border: 1px solid var(--ui-border);
+        border-radius: var(--ui-radius-button);
+        background: var(--ui-surface);
+        color: var(--ui-navy);
+        font-weight: 650;
         cursor: pointer;
-        min-height: 60px;
+        text-align: left;
+        transition: background var(--ui-motion), border-color var(--ui-motion);
+      }
+      .popular-grid button:hover:not(:disabled) {
+        border-color: var(--ui-primary);
+        color: var(--ui-primary-strong);
+        background: var(--ui-primary-soft);
       }
       .popular-grid span {
-        padding: 0 0.3rem;
+        color: var(--ui-teal-strong);
       }
       .steps {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 2rem;
-        padding-top: 1rem;
+        gap: 1.25rem;
       }
-      .steps b {
-        display: grid;
-        place-items: center;
-        border-radius: 50%;
-        width: 44px;
-        height: 44px;
-        background: #e7f1eb;
-        color: #327658;
+      .steps article {
+        padding: 1.75rem;
+        background: var(--ui-surface);
+        border: 1px solid var(--ui-border);
+        border-top: 3px solid var(--color-accent);
+        border-radius: var(--ui-radius);
       }
       .steps h3 {
-        font-size: 1.15rem;
-        margin: 1.2rem 0 0.4rem;
+        font-size: 1.1rem;
+        margin: 0 0 0.75rem;
+      }
+      .steps p {
+        font-size: 0.9rem;
+        margin: 0;
       }
       .driver-call {
-        background: #173f36;
-        color: white;
-        border-radius: 20px;
-        margin: 4rem 0;
-        padding: 2.3rem;
         display: flex;
-        align-items: center;
         justify-content: space-between;
-        gap: 1rem;
+        align-items: center;
         flex-wrap: wrap;
+        gap: 1.5rem;
+        margin: 4rem 0 1rem;
+        padding: 2.5rem;
+        border-radius: 20px;
+        color: var(--ui-surface);
+        background: var(--ui-navy);
+      }
+      .driver-call h2 {
+        margin-top: 0;
       }
       .driver-call p {
-        color: #cddcd4;
-      }
-      footer {
-        padding: 1.5rem;
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        font-size: 0.85rem;
-        border-top: 1px solid #dce7e0;
-      }
-      footer a {
-        color: #327658;
+        color: var(--ui-surface);
+        margin-bottom: 0;
       }
       @media (max-width: 1000px) {
         .trip-grid,
         .popular-grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
-        .welcome-inner {
-          gap: 1.5rem;
+
+        .steps {
+          gap: 1rem;
         }
-        .hero-note {
-          padding: 2rem;
-          min-height: 280px;
+        .steps article {
+          padding: 1.25rem;
         }
       }
-      @media (max-width: 650px) {
-        .welcome {
-          padding: 2.5rem 1.25rem 5rem;
-        }
-        .welcome-inner {
-          grid-template-columns: 1fr;
-        }
-        .hero-note {
-          display: none;
-        }
-        .content {
-          padding: 0 1rem;
-        }
+      @media (max-width: 720px) {
         .search-panel {
           padding: 1rem;
+          margin-top: -1.35rem;
         }
         .trip-grid,
         .popular-grid,
-        .steps {
+        .steps,
+        .benefits {
           grid-template-columns: 1fr;
         }
         .available,
@@ -367,13 +297,7 @@ import { RechercheTrajet, TrajetResponse } from '../../../shared/models/trajet.m
         }
         .driver-call {
           padding: 1.5rem;
-        }
-        .trust {
-          font-size: 0.75rem;
-          gap: 0.5rem;
-        }
-        footer {
-          flex-direction: column;
+          margin-top: 2.5rem;
         }
       }
     `,
@@ -402,7 +326,7 @@ export class LandingPage {
         this.loading.set(false);
       },
       error: () => {
-        this.erreur.set('Les trajets ne sont pas disponibles pour le moment.');
+        this.erreur.set(this.language.t('ui.loadError'));
         this.loading.set(false);
       },
     });

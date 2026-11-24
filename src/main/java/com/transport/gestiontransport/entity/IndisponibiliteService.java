@@ -7,7 +7,7 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "jours_fermeture")
+@Table(name = "indisponibilites_service")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,7 +24,7 @@ public class IndisponibiliteService extends BaseEntity {
     private Boolean global;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "site_id")
+    @JoinColumn(name = "agence_id")
     @JsonBackReference("agence-indisponibilitesService")
     private Agence agence;
 }
