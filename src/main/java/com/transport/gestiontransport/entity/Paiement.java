@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.entity;
 
+import java.math.BigDecimal;
+
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.transport.gestiontransport.entity.enums.StatutPaiement;
@@ -22,8 +24,8 @@ public class Paiement extends BaseEntity {
     @JsonBackReference("reservation-paiement")
     private Reservation reservation;
 
-    @Column(nullable = false)
-    private Double montant;
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal montant;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

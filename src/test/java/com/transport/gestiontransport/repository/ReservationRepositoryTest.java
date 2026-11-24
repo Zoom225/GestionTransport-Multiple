@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.repository;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.entity.*;
 import com.transport.gestiontransport.entity.enums.StatutTrajet;
 import com.transport.gestiontransport.entity.enums.StatutReservation;
@@ -38,7 +40,7 @@ class ReservationRepositoryTest {
     @DisplayName("existsByTrajetIdAndVoyageurId détecte un voyageur déjà inscrit")
     void shouldFindExistingReservationForVoyageurAndTrajet() {
         Agence agence = agenceRepository.save(agence());
-        Vehicule vehicule = vehiculeRepository.save(Vehicule.builder().nom("Peugeot 308").agence(agence).prix(60.0).build());
+        Vehicule vehicule = vehiculeRepository.save(Vehicule.builder().nom("Peugeot 308").agence(agence).prix(new BigDecimal("60.00")).build());
         Voyageur organisateur = voyageurRepository.save(voyageur("G1001"));
         Voyageur passager = voyageurRepository.save(voyageur("G1002"));
         Trajet trajet = trajetRepository.save(trajet(vehicule, organisateur));
@@ -71,7 +73,7 @@ class ReservationRepositoryTest {
                 .prenom("Lucas")
                 .email(matricule.toLowerCase() + "@example.com")
                 .typeVoyageur(TypeVoyageur.VIP)
-                .solde(0.0)
+                .solde(new BigDecimal("0.00"))
                 .build();
     }
 
@@ -85,8 +87,8 @@ class ReservationRepositoryTest {
                 .typeTrajet(TypeTrajet.PUBLIC)
                 .statut(StatutTrajet.PLANIFIE)
                 .nbPassagersActuels(1)
-                .prixTotal(60.0)
-                .prixParPassager(15.0)
+                .prixTotal(new BigDecimal("60.00"))
+                .prixParPassager(new BigDecimal("15.00"))
                 .build();
     }
 }

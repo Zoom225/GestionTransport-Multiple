@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.service;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.entity.*;
 import com.transport.gestiontransport.entity.enums.*;
 import com.transport.gestiontransport.exception.BusinessException;
@@ -30,9 +32,9 @@ class AnnulationTrajetTest {
     Trajet trajet;
 
     @BeforeEach void preparer() {
-        organisateur = Voyageur.builder().solde(100.0).build(); organisateur.setId(1L);
-        chauffeur = Voyageur.builder().solde(0.0).build(); chauffeur.setId(2L);
-        client = Voyageur.builder().solde(0.0).build(); client.setId(3L);
+        organisateur = Voyageur.builder().solde(new BigDecimal("100.00")).build(); organisateur.setId(1L);
+        chauffeur = Voyageur.builder().solde(new BigDecimal("0.00")).build(); chauffeur.setId(2L);
+        client = Voyageur.builder().solde(new BigDecimal("0.00")).build(); client.setId(3L);
         trajet = Trajet.builder().organisateur(organisateur).chauffeur(chauffeur)
                 .dateDebut(LocalDateTime.now().plusHours(2)).statut(StatutTrajet.PLANIFIE)
                 .nbPassagersActuels(0).penaliteIncompletImputeeLe(LocalDateTime.now().minusHours(1)).build();
@@ -41,7 +43,7 @@ class AnnulationTrajetTest {
     }
     Reservation reservation(long id, StatutReservation statut, StatutPaiement statutPaiement) {
         Reservation r = Reservation.builder().trajet(trajet).voyageur(client).statut(statut)
-                .paiement(Paiement.builder().montant(25.0).statut(statutPaiement).build()).build();
+                .paiement(Paiement.builder().montant(new BigDecimal("25.00")).statut(statutPaiement).build()).build();
         r.setId(id); when(reservations.findById(id)).thenReturn(Optional.of(r));
         return r;
     }
@@ -52,7 +54,7 @@ class AnnulationTrajetTest {
         assertThat(trajet.getStatut()).isEqualTo(StatutTrajet.ANNULE);
         assertThat(trajet.getDateAnnulation()).isNotNull();
         assertThat(trajet.getAnnuleParVoyageurId()).isEqualTo(auteur);
-        assertThat(organisateur.getSolde()).isEqualTo(100.0);
+        assertThat(organisateur.getSolde()).isEqualByComparingTo("100.00");
         assertThat(trajet.getPenaliteIncompletImputeeLe()).isNotNull();
         verifyNoInteractions(voyageurs);
     }
@@ -77,7 +79,7 @@ class AnnulationTrajetTest {
         assertThat(attente.getStatut()).isEqualTo(StatutReservation.ANNULEE);
         assertThat(attente.getPaiement().getStatut()).isEqualTo(StatutPaiement.ANNULE);
         assertThat(trajet.getNbPassagersActuels()).isZero();
-        assertThat(organisateur.getSolde()).isEqualTo(100.0);
+        assertThat(organisateur.getSolde()).isEqualByComparingTo("100.00");
         verifyNoInteractions(voyageurs);
     }
     @Test void clientPeutAnnulerSaReservationAvantDepart() {

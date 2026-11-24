@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.service;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.entity.*;
 import com.transport.gestiontransport.entity.enums.*;
 import com.transport.gestiontransport.exception.BusinessException;
@@ -61,12 +63,12 @@ class PaiementServiceTest {
 
         organisateur = Voyageur.builder()
                 .matricule("G1001").nom("Martin").prenom("Lucas")
-                .typeVoyageur(TypeVoyageur.VIP).solde(0.0).build();
+                .typeVoyageur(TypeVoyageur.VIP).solde(new BigDecimal("0.00")).build();
         organisateur.setId(1L);
 
         passager = Voyageur.builder()
                 .matricule("G1002").nom("Dupont").prenom("Julie")
-                .typeVoyageur(TypeVoyageur.VIP).solde(0.0).build();
+                .typeVoyageur(TypeVoyageur.VIP).solde(new BigDecimal("0.00")).build();
         passager.setId(2L);
 
         // Correction : Utiliser uniquement dateDebut et dateFin
@@ -79,8 +81,8 @@ class PaiementServiceTest {
                 .typeTrajet(TypeTrajet.PUBLIC)
                 .statut(StatutTrajet.PLANIFIE)
                 .nbPassagersActuels(1)
-                .prixTotal(100.0)
-                .prixParPassager(25.0)
+                .prixTotal(new BigDecimal("100.00"))
+                .prixParPassager(new BigDecimal("25.00"))
                 .build();
         trajet.setId(10L);
 
@@ -89,7 +91,7 @@ class PaiementServiceTest {
         reservation.setId(1L);
 
         paiement = Paiement.builder()
-                .reservation(reservation).montant(25.0).statut(StatutPaiement.EN_ATTENTE).build();
+                .reservation(reservation).montant(new BigDecimal("25.00")).statut(StatutPaiement.EN_ATTENTE).build();
         paiement.setId(1L);
 
         reservation.setPaiement(paiement);
@@ -107,18 +109,18 @@ class PaiementServiceTest {
             Paiement result = paiementService.pay(1L, 2L);
 
             assertThat(result.getStatut()).isEqualTo(StatutPaiement.PAYE);
-            assertThat(result.getMontant()).isEqualTo(25.0);
+            assertThat(result.getMontant()).isEqualByComparingTo("25.00");
             verify(reservationService).confirm(1L);
         }
 
         @Test
         @DisplayName("✅ doit conserver une dette et refuser le paiement")
         void shouldAddOutstandingBalanceToPayment() {
-            passager.setSolde(15.0);
+            passager.setSolde(new BigDecimal("15.00"));
             when(reservationService.preparePaiement(1L, 2L)).thenThrow(new BusinessException("solde impayé"));
             assertThatThrownBy(() -> paiementService.pay(1L, 2L)).isInstanceOf(BusinessException.class);
-            assertThat(passager.getSolde()).isEqualTo(15.0);
-            assertThat(paiement.getMontant()).isEqualTo(25.0);
+            assertThat(passager.getSolde()).isEqualByComparingTo("15.00");
+            assertThat(paiement.getMontant()).isEqualByComparingTo("25.00");
             verifyNoInteractions(voyageurRepository, paiementRepository);
         }
 
@@ -168,7 +170,7 @@ class PaiementServiceTest {
         void shouldCancelUnpaidReservationAndAddBalanceToOrganizer() {
             paiementService.checkUnpaidBeforeTrajet();
             verify(reservationService).expirePendingReservations();
-            assertThat(organisateur.getSolde()).isEqualTo(0.0);
+            assertThat(organisateur.getSolde()).isEqualByComparingTo("0.00");
             verifyNoInteractions(voyageurRepository);
         }
 

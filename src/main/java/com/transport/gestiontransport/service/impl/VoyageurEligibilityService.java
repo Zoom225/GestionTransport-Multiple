@@ -81,7 +81,7 @@ public class VoyageurEligibilityService {
         Instant fin = restrictions.finSuspensionActive(voyageur.getId(), maintenant);
         boolean ancienneRestriction = restrictions.existsByVoyageurIdAndDateFinAfter(voyageur.getId(), LocalDate.now(clock));
         // A scalar query sees the current balance without cascading REFRESH into pending payments.
-        BigDecimal dette = BigDecimal.valueOf(voyageurs.soldeCourant(voyageur.getId()));
+        BigDecimal dette = voyageurs.soldeCourant(voyageur.getId());
         boolean impaye = dette.signum() > 0;
         Restriction derniere = restrictions
                 .findFirstByVoyageurIdAndDebutSuspensionLessThanEqualOrderByFinSuspensionDescIdDesc(voyageur.getId(), maintenant)

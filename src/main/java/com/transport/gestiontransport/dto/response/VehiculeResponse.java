@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.dto.response;
 
+import java.math.BigDecimal;
+
 import lombok.*;
 
 @Getter
@@ -12,6 +14,6 @@ public class VehiculeResponse {
     private String nom;
     private Long agenceId;
     private String agenceNom;
-    private Double prix;
+    private BigDecimal prix;
     private Boolean disponible;
 }

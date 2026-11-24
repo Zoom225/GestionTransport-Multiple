@@ -1,5 +1,7 @@
 package com.transport.gestiontransport;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.entity.*;
 import com.transport.gestiontransport.entity.enums.*;
 import com.transport.gestiontransport.exception.BusinessException;
@@ -94,7 +96,7 @@ class PostgresBaselineTest {
         ExecutorService pool = Executors.newFixedThreadPool(2);
         try {
             executerSimultanement(pool, () -> trajetService.imputerPenaliteTrajetPriveIncomplet(trajetId));
-            assertThat(voyageurs.findById(organisateurId).orElseThrow().getSolde()).isEqualTo(100.0);
+            assertThat(voyageurs.findById(organisateurId).orElseThrow().getSolde()).isEqualByComparingTo("100.00");
             assertThat(voyageurs.findById(chauffeurId).orElseThrow().getSolde()).isZero();
             assertThat(trajets.findById(trajetId).orElseThrow().getPenaliteIncompletImputeeLe()).isNotNull();
 
@@ -152,7 +154,7 @@ class PostgresBaselineTest {
             sanction.get(30, TimeUnit.SECONDS);
             boolean reglee = paiement.get(30, TimeUnit.SECONDS);
             inscription.get(30, TimeUnit.SECONDS);
-            assertThat(voyageurs.findById(client.getId()).orElseThrow().getSolde()).isEqualTo(reglee ? 0.0 : 100.0);
+            assertThat(voyageurs.findById(client.getId()).orElseThrow().getSolde()).isEqualByComparingTo(reglee ? "0.00" : "100.00");
             var historique = restrictions.findByVoyageurIdOrderByDateFinDescIdDesc(client.getId());
             assertThat(historique).hasSize(1);
             assertThat(java.time.Duration.between(historique.getFirst().getDebutSuspension(), historique.getFirst().getFinSuspension()))
@@ -183,7 +185,7 @@ class PostgresBaselineTest {
 
     private Voyageur voyageur() {
         return voyageurs.saveAndFlush(Voyageur.builder().matricule(UUID.randomUUID().toString())
-                .nom("Baseline").prenom("Test").typeVoyageur(TypeVoyageur.VIP).solde(0.0).build());
+                .nom("Baseline").prenom("Test").typeVoyageur(TypeVoyageur.VIP).solde(new BigDecimal("0.00")).build());
     }
 
     @Test
@@ -223,7 +225,7 @@ class PostgresBaselineTest {
     void postgresEnforcesUniqueVoyageurAndReservationForeignKeys() {
         Voyageur first = voyageur();
         assertThatThrownBy(() -> voyageurs.saveAndFlush(Voyageur.builder().matricule(first.getMatricule())
-                .nom("Duplicate").prenom("Test").typeVoyageur(TypeVoyageur.VIP).solde(0.0).build()))
+                .nom("Duplicate").prenom("Test").typeVoyageur(TypeVoyageur.VIP).solde(new BigDecimal("0.00")).build()))
                 .isInstanceOf(DataIntegrityViolationException.class);
         assertThatThrownBy(() -> new TransactionTemplate(transactionManager).execute(status -> {
             Reservation invalid = Reservation.builder().voyageur(first)
@@ -244,7 +246,7 @@ class PostgresBaselineTest {
         return trajets.saveAndFlush(Trajet.builder().vehicule(vehicule).chauffeur(chauffeur)
                 .villeDepart(VilleBelge.MONS).villeArrivee(VilleBelge.BRUXELLES)
                 .dateDebut(debut).dateFin(debut.plusMinutes(90)).typeTrajet(TypeTrajet.PUBLIC)
-                .statut(StatutTrajet.PLANIFIE).nbPassagersActuels(0).prixTotal(100.0).prixParPassager(25.0).build());
+                .statut(StatutTrajet.PLANIFIE).nbPassagersActuels(0).prixTotal(new BigDecimal("100.00")).prixParPassager(new BigDecimal("25.00")).build());
     }
 
     private Reservation demande(Trajet trajet) {

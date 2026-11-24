@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -76,7 +75,7 @@ public class ReservationServiceImpl implements ReservationService {
         Reservation reservation = reservationRepository.save(Reservation.builder()
                 .trajet(trajet).voyageur(voyageur).statut(StatutReservation.EN_ATTENTE).build());
         Paiement paiement = paiementRepository.save(Paiement.builder().reservation(reservation)
-                .montant(TrajetService.PRIX_CLIENT_EUROS.doubleValue()).statut(StatutPaiement.EN_ATTENTE).build());
+                .montant(TrajetService.PRIX_CLIENT_EUROS).statut(StatutPaiement.EN_ATTENTE).build());
         reservation.setPaiement(paiement);
         return reservation;
     }
@@ -159,7 +158,7 @@ public class ReservationServiceImpl implements ReservationService {
         eligibilityService.verifier(voyageurId, false);
         verifierConditionsTrajet(trajet, reservation.getVoyageur());
         if (estExpiree(reservation)) throw new BusinessException("Le délai de paiement de cette réservation est expiré.");
-        if (BigDecimal.valueOf(paiement.getMontant()).compareTo(TrajetService.PRIX_CLIENT_EUROS) != 0) {
+        if (paiement.getMontant().compareTo(TrajetService.PRIX_CLIENT_EUROS) != 0) {
             throw new BusinessException("Ce montant historique nécessite une régularisation ; il ne sera pas modifié automatiquement.");
         }
         return reservation;

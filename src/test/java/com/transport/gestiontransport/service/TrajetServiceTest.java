@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.service;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.entity.*;
 import com.transport.gestiontransport.entity.enums.StatutTrajet;
 import com.transport.gestiontransport.entity.enums.TypeTrajet;
@@ -76,7 +78,7 @@ class TrajetServiceTest {
         when(trajetRepository.findByChauffeurId(1L)).thenReturn(java.util.List.of(organise, conduit));
         when(trajetMapper.toTrajetDto(organise)).thenReturn(trajetDto);
         when(trajetMapper.toTrajetDto(conduit)).thenReturn(new TrajetDto(2L, null, null, null,
-                9L, null, null, null, null, TypeTrajet.PRIVE, StatutTrajet.PLANIFIE, 0, 25.0, null));
+                9L, null, null, null, null, TypeTrajet.PRIVE, StatutTrajet.PLANIFIE, 0, new BigDecimal("25.0"), null));
         assertEquals(java.util.List.of(1L, 2L), trajetService.findByOrganisateur(1L).stream().map(TrajetDto::id).toList());
         verify(trajetMapper).toTrajetDto(organise);
         verify(trajetMapper).toTrajetDto(conduit);
@@ -103,7 +105,7 @@ class TrajetServiceTest {
         vehicule.setId(1L);
         vehicule.setNom("Renault Clio");
         vehicule.setDisponible(true);
-        vehicule.setPrix(20.0);
+        vehicule.setPrix(new BigDecimal("20.00"));
         vehicule.setAgence(agence);
 
         createTrajetRequest = new CreateTrajetRequest(
@@ -126,7 +128,7 @@ class TrajetServiceTest {
                 TypeTrajet.PUBLIC,
                 StatutTrajet.PLANIFIE,
                 0,
-                25.0,
+                new BigDecimal("25.0"),
                 null  // dateConversionPublic
         );
     }
@@ -241,10 +243,10 @@ class TrajetServiceTest {
         assertNotNull(result);
         assertEquals(0, result.nbPassagersActuels());
         assertEquals(TypeTrajet.PUBLIC, result.typeTrajet());
-        assertEquals(25.0, result.prixParPassager());
+        assertEquals(0, new BigDecimal("25.00").compareTo(result.prixParPassager()));
         verify(trajetRepository, times(1)).save(argThat(trajet ->
-                Double.valueOf(100.0).equals(trajet.getPrixTotal())
-                        && Double.valueOf(25.0).equals(trajet.getPrixParPassager())));
+                new BigDecimal("100.00").compareTo(trajet.getPrixTotal()) == 0
+                        && new BigDecimal("25.00").compareTo(trajet.getPrixParPassager()) == 0));
         verifyNoInteractions(reservationRepository, paiementRepository);
     }
 

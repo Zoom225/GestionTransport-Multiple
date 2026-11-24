@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.service;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.entity.*;
 import com.transport.gestiontransport.entity.enums.*;
 import com.transport.gestiontransport.exception.BusinessException;
@@ -66,7 +68,7 @@ class ReservationServiceTest {
         private Reservation reservationPayee() {
             Reservation reservation = Reservation.builder().trajet(trajetPublic).voyageur(passager)
                     .statut(StatutReservation.CONFIRMEE).paiement(com.transport.gestiontransport.entity.Paiement.builder()
-                            .montant(25.0).statut(com.transport.gestiontransport.entity.enums.StatutPaiement.PAYE).build()).build();
+                            .montant(new BigDecimal("25.00")).statut(com.transport.gestiontransport.entity.enums.StatutPaiement.PAYE).build()).build();
             reservation.setId(90L);
             when(reservationRepository.findById(90L)).thenReturn(Optional.of(reservation));
             lenient().when(trajetRepository.findById(trajetPublic.getId())).thenReturn(Optional.of(trajetPublic));
@@ -180,7 +182,7 @@ class ReservationServiceTest {
                 .nom("Martin")
                 .prenom("Lucas")
                 .typeVoyageur(TypeVoyageur.VIP)
-                .solde(0.0)
+                .solde(new BigDecimal("0.00"))
                 .agence(null)
                 .build();
         organisateur.setId(1L);
@@ -190,7 +192,7 @@ class ReservationServiceTest {
                 .nom("Dupont")
                 .prenom("Julie")
                 .typeVoyageur(TypeVoyageur.VIP)
-                .solde(0.0)
+                .solde(new BigDecimal("0.00"))
                 .agence(null)
                 .build();
         passager.setId(2L);
@@ -201,7 +203,7 @@ class ReservationServiceTest {
                 .nom("Leclerc")
                 .prenom("Paul")
                 .typeVoyageur(TypeVoyageur.LOCAL)
-                .solde(0.0)
+                .solde(new BigDecimal("0.00"))
                 .agence(agenceB)
                 .build();
         passagerAgenceB.setId(3L);
@@ -215,8 +217,8 @@ class ReservationServiceTest {
                 .typeTrajet(TypeTrajet.PRIVE)
                 .statut(StatutTrajet.PLANIFIE)
                 .nbPassagersActuels(1)
-                .prixTotal(100.0)
-                .prixParPassager(25.0)
+                .prixTotal(new BigDecimal("100.00"))
+                .prixParPassager(new BigDecimal("25.00"))
                 .build();
         trajetPrive.setId(10L);
 
@@ -229,8 +231,8 @@ class ReservationServiceTest {
                 .typeTrajet(TypeTrajet.PUBLIC)
                 .statut(StatutTrajet.PLANIFIE)
                 .nbPassagersActuels(1)
-                .prixTotal(100.0)
-                .prixParPassager(25.0)
+                .prixTotal(new BigDecimal("100.00"))
+                .prixParPassager(new BigDecimal("25.00"))
                 .build();
         trajetPublic.setId(11L);
 
@@ -243,8 +245,8 @@ class ReservationServiceTest {
                 .typeTrajet(TypeTrajet.PUBLIC)
                 .statut(StatutTrajet.COMPLET)
                 .nbPassagersActuels(4)
-                .prixTotal(100.0)
-                .prixParPassager(25.0)
+                .prixTotal(new BigDecimal("100.00"))
+                .prixParPassager(new BigDecimal("25.00"))
                 .build();
         trajetComplet.setId(12L);
     }
@@ -280,20 +282,20 @@ class ReservationServiceTest {
 
     @Test
     void unAncienTarifNestPasRevenduAutomatiquementAuNouveauPrix() {
-        trajetPublic.setPrixParPassager(15.0);
+        trajetPublic.setPrixParPassager(new BigDecimal("15.00"));
         when(trajetRepository.findById(11L)).thenReturn(Optional.of(trajetPublic));
         when(voyageurService.getById(2L)).thenReturn(passager);
         assertThatThrownBy(() -> reservationService.create(11L, 2L, 2L))
                 .isInstanceOf(BusinessException.class).hasMessageContaining("historique");
         verifyNoInteractions(reservationRepository, paiementRepository);
-        assertThat(trajetPublic.getPrixParPassager()).isEqualTo(15.0);
+        assertThat(trajetPublic.getPrixParPassager()).isEqualByComparingTo("15.00");
     }
 
     @Test
     void uneDemandeExpireSansDetteEtSansModifierLesPlacesConfirmees() {
         Reservation demande = Reservation.builder().trajet(trajetPublic).voyageur(passager)
                 .statut(StatutReservation.EN_ATTENTE)
-                .paiement(Paiement.builder().montant(25.0).statut(StatutPaiement.EN_ATTENTE).build()).build();
+                .paiement(Paiement.builder().montant(new BigDecimal("25.00")).statut(StatutPaiement.EN_ATTENTE).build()).build();
         demande.setCreatedAt(java.time.LocalDateTime.now().minusHours(1));
         when(reservationRepository.findByStatutOrderByTrajetIdAscIdAsc(StatutReservation.EN_ATTENTE))
                 .thenReturn(java.util.List.of(demande));
@@ -329,7 +331,7 @@ class ReservationServiceTest {
 
             // vérifier que le paiement EN_ATTENTE est créé automatiquement
             verify(paiementRepository, times(1)).save(argThat(paiement ->
-                    paiement.getMontant().equals(25.0) &&
+                    paiement.getMontant().compareTo(new BigDecimal("25.00")) == 0 &&
                             paiement.getStatut() == StatutPaiement.EN_ATTENTE
             ));
             verify(trajetRepository, never()).save(any());
@@ -477,7 +479,7 @@ class ReservationServiceTest {
 
             // prixParPassager = 60€ / 4 = 15€
             verify(paiementRepository).save(argThat(p ->
-                    p.getMontant().equals(25.0) &&
+                    p.getMontant().compareTo(new BigDecimal("25.00")) == 0 &&
                             p.getStatut() == StatutPaiement.EN_ATTENTE
             ));
             verify(trajetRepository, never()).save(any());
@@ -495,7 +497,7 @@ class ReservationServiceTest {
         @DisplayName("✅ doit annuler la réservation en attente et décrémenter le nombre de passagers")
         void shouldCancelReservation() {
             Paiement paiement = Paiement.builder()
-                    .montant(25.0)
+                    .montant(new BigDecimal("25.00"))
                     .statut(StatutPaiement.EN_ATTENTE)
                     .build();
 
@@ -521,7 +523,7 @@ class ReservationServiceTest {
         @DisplayName("✅ doit rembourser le paiement quand la réservation est annulée après paiement")
         void shouldRefundPaymentWhenCancelledAfterPayment() {
             Paiement paiement = Paiement.builder()
-                    .montant(25.0)
+                    .montant(new BigDecimal("25.00"))
                     .statut(StatutPaiement.PAYE) // déjà payé
                     .build();
 
@@ -549,7 +551,7 @@ class ReservationServiceTest {
         @DisplayName("✅ doit annuler le paiement quand la réservation est annulée avant paiement")
         void shouldCancelPaymentWhenNotYetPaid() {
             Paiement paiement = Paiement.builder()
-                    .montant(25.0)
+                    .montant(new BigDecimal("25.00"))
                     .statut(StatutPaiement.EN_ATTENTE) // pas encore payé
                     .build();
 
@@ -617,7 +619,7 @@ class ReservationServiceTest {
                     .trajet(trajetPublic)
                     .voyageur(passager)
                     .statut(StatutReservation.EN_ATTENTE)
-                    .paiement(Paiement.builder().statut(StatutPaiement.PAYE).montant(25.0).build())
+                    .paiement(Paiement.builder().statut(StatutPaiement.PAYE).montant(new BigDecimal("25.00")).build())
                     .build();
             reservation.setId(1L);
 

@@ -20,8 +20,8 @@ public interface TrajetService {
     static boolean estQualifiePourCovoiturage(Trajet trajet) {
         return trajet.getChauffeur() != null && trajet.getVilleDepart() != null
                 && trajet.getVilleArrivee() != null && trajet.getVilleDepart() != trajet.getVilleArrivee()
-                && Double.valueOf(PRIX_CLIENT_EUROS.doubleValue()).equals(trajet.getPrixParPassager())
-                && Double.valueOf(PRIX_TRAJET_EUROS.doubleValue()).equals(trajet.getPrixTotal());
+                && trajet.getPrixParPassager() != null && PRIX_CLIENT_EUROS.compareTo(trajet.getPrixParPassager()) == 0
+                && trajet.getPrixTotal() != null && PRIX_TRAJET_EUROS.compareTo(trajet.getPrixTotal()) == 0;
     }
 
     TrajetDto createTrajet(CreateTrajetRequest request, String username);

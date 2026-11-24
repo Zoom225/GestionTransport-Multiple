@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.entity;
 
+import java.math.BigDecimal;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -23,8 +25,8 @@ public class Vehicule extends BaseEntity {
     @Column(nullable = false, columnDefinition = "boolean default false")
     private Boolean disponible = false;
 
-    @Column(nullable = true)
-    private Double prix;
+    @Column(nullable = true, precision = 19, scale = 2)
+    private BigDecimal prix;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "agence_id", nullable = false)
@@ -35,7 +37,7 @@ public class Vehicule extends BaseEntity {
     @JsonManagedReference("vehicule-trajets")
     private List<Trajet> trajets;
 
-    public Double getPrix() {
+    public BigDecimal getPrix() {
         return prix;
     }
 }

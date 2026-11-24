@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.service;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.entity.*;
 import com.transport.gestiontransport.entity.enums.*;
 import com.transport.gestiontransport.repository.*;
@@ -27,9 +29,9 @@ class PenaliteOrganisateurTest {
     Trajet trajet;
 
     @BeforeEach void preparer() {
-        organisateur = Voyageur.builder().solde(25.0).build();
+        organisateur = Voyageur.builder().solde(new BigDecimal("25.00")).build();
         organisateur.setId(1L);
-        chauffeur = Voyageur.builder().solde(0.0).build();
+        chauffeur = Voyageur.builder().solde(new BigDecimal("0.00")).build();
         chauffeur.setId(2L);
         trajet = Trajet.builder().organisateur(organisateur).chauffeur(chauffeur)
                 .typeTrajet(TypeTrajet.PRIVE).statut(StatutTrajet.PLANIFIE)
@@ -42,7 +44,7 @@ class PenaliteOrganisateurTest {
     @Test void factureCentEurosAOrganisateurSansEffacerDetteExistanteNiDebiterChauffeur() {
         service.imputerPenaliteTrajetPriveIncomplet(10L);
         service.imputerPenaliteTrajetPriveIncomplet(10L);
-        assertThat(organisateur.getSolde()).isEqualTo(125.0);
+        assertThat(organisateur.getSolde()).isEqualByComparingTo("125.00");
         assertThat(chauffeur.getSolde()).isZero();
         assertThat(trajet.getPenaliteIncompletImputeeLe()).isNotNull();
         verify(voyageurs, times(1)).save(organisateur);
@@ -74,18 +76,18 @@ class PenaliteOrganisateurTest {
         service.imputerPenaliteTrajetPriveIncomplet(10L);
         service.payerPenalite(10L, organisateur.getId());
         service.payerPenalite(10L, organisateur.getId());
-        assertThat(organisateur.getSolde()).isEqualTo(25.0);
+        assertThat(organisateur.getSolde()).isEqualByComparingTo("25.00");
         assertThat(chauffeur.getSolde()).isZero();
         assertThat(trajet.getPenaliteIncompletPayeeLe()).isNotNull();
         service.imputerPenaliteTrajetPriveIncomplet(10L);
-        assertThat(organisateur.getSolde()).isEqualTo(25.0);
+        assertThat(organisateur.getSolde()).isEqualByComparingTo("25.00");
     }
 
     @Test void chauffeurNePeutPasPayerLaPenaliteDUnAutreVoyageur() {
         service.imputerPenaliteTrajetPriveIncomplet(10L);
         assertThatThrownBy(() -> service.payerPenalite(10L, chauffeur.getId()))
                 .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
-        assertThat(organisateur.getSolde()).isEqualTo(125.0);
+        assertThat(organisateur.getSolde()).isEqualByComparingTo("125.00");
     }
 
     @Test void neFactureNiTrajetCompletNiPublicNiAnnuleNiTropTotNiPasseNiPublicationConsentante() {

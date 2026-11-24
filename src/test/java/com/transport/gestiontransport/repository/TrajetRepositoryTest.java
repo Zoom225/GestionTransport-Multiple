@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.repository;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.entity.Trajet;
 import com.transport.gestiontransport.entity.Voyageur;
 import com.transport.gestiontransport.entity.Agence;
@@ -53,7 +55,7 @@ class TrajetRepositoryTest {
         Vehicule vehicule = vehiculeRepository.save(Vehicule.builder()
                 .nom("Peugeot 308")
                 .agence(agenceRepository.save(agence()))
-                .prix(60.0)
+                .prix(new BigDecimal("60.00"))
                 .build());
         Voyageur organisateur = voyageurRepository.save(voyageur("G1001"));
 
@@ -74,7 +76,7 @@ class TrajetRepositoryTest {
         Vehicule vehicule = vehiculeRepository.save(Vehicule.builder()
                 .nom("Peugeot 308")
                 .agence(agenceRepository.save(agence()))
-                .prix(60.0)
+                .prix(new BigDecimal("60.00"))
                 .build());
         Voyageur organisateur = voyageurRepository.save(voyageur("G1001"));
 
@@ -108,7 +110,7 @@ class TrajetRepositoryTest {
                 .prenom("Lucas")
                 .email(matricule.toLowerCase() + "@example.com")
                 .typeVoyageur(TypeVoyageur.VIP)
-                .solde(0.0)
+                .solde(new BigDecimal("0.00"))
                 .build();
     }
 
@@ -121,8 +123,8 @@ class TrajetRepositoryTest {
                 .typeTrajet(TypeTrajet.PUBLIC)
                 .statut(statut)
                 .nbPassagersActuels(1)
-                .prixTotal(60.0)
-                .prixParPassager(15.0)
+                .prixTotal(new BigDecimal("60.00"))
+                .prixParPassager(new BigDecimal("15.00"))
                 .build();
     }
 }

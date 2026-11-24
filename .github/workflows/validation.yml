@@ -70,6 +70,20 @@ jobs:
                            scripts/migrations/issue-10-auteur-annulation.sql; do
             pg15 psql -U transport -d transport_schema_copy_ci -v ON_ERROR_STOP=1 < "$migration"
           done
+          # Vérifier une conversion réelle de flottants sur une fixture synthétique.
+          pg15 createdb -U transport transport_decimal_ci
+          decimal_psql() { pg15 psql -X -U transport -d transport_decimal_ci -v ON_ERROR_STOP=1 "$@"; }
+          decimal_psql < src/test/resources/montants-historiques-fixture.sql
+          if decimal_psql < scripts/migrations/issue-45-montants-bigdecimal.sql; then
+            echo "La migration devait refuser la valeur avec une fraction de centime"; exit 1
+          fi
+          test "$(decimal_psql -Atc "SELECT pg_typeof(montant) FROM paiements")" = "double precision"
+          decimal_psql -c 'UPDATE voyageurs SET solde = 0 WHERE id = 2'
+          for tentative in 1 2; do
+            decimal_psql < scripts/migrations/issue-45-montants-bigdecimal.sql
+            decimal_psql < src/test/resources/verification-montants.sql
+          done
+          pg15 psql -X -U transport -d transport_schema_copy_ci -v ON_ERROR_STOP=1 < scripts/migrations/issue-45-montants-bigdecimal.sql
           mvn -B -ntp -Dtest=TransportSchemaValidationTest test
 
   frontend:

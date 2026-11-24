@@ -1,5 +1,7 @@
 package com.transport.gestiontransport;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.entity.*;
 import com.transport.gestiontransport.entity.enums.*;
 import com.transport.gestiontransport.repository.*;
@@ -121,19 +123,19 @@ public class DataInitializer implements CommandLineRunner {
         String adminHash = passwordEncoder.encode(adminPassword);
         Voyageur chauffeur = voyageurRepository.save(Voyageur.builder().matricule("V1001").nom("Démo").prenom("Alice")
                 .email("chauffeur@example.test").passwordHash(hash).typeVoyageur(TypeVoyageur.VIP)
-                .solde(0.0).peutProposerTrajet(true).agence(agence).build());
+                .solde(BigDecimal.ZERO.setScale(2)).peutProposerTrajet(true).agence(agence).build());
         Voyageur organisateurDemo = voyageurRepository.save(Voyageur.builder().matricule("V1002").nom("Démo").prenom("Client VIP")
                 .email("vip@example.test").passwordHash(hash).typeVoyageur(TypeVoyageur.VIP)
-                .solde(0.0).peutProposerTrajet(true).agence(agence).build());
+                .solde(BigDecimal.ZERO.setScale(2)).peutProposerTrajet(true).agence(agence).build());
         voyageurRepository.save(Voyageur.builder().matricule("L10001").nom("Démo").prenom("Client local")
                 .email("local@example.test").passwordHash(hash).typeVoyageur(TypeVoyageur.LOCAL)
-                .solde(0.0).agence(agence).build());
+                .solde(BigDecimal.ZERO.setScale(2)).agence(agence).build());
         voyageurRepository.save(Voyageur.builder().matricule("F10001").nom("Démo").prenom("Client libre")
                 .email("libre@example.test").passwordHash(hash).typeVoyageur(TypeVoyageur.LIBRE)
-                .solde(0.0).agence(agence).build());
+                .solde(BigDecimal.ZERO.setScale(2)).agence(agence).build());
         Voyageur penalise = voyageurRepository.save(Voyageur.builder().matricule("F10002").nom("Démo").prenom("Client pénalisé")
                 .email("penalise@example.test").passwordHash(hash).typeVoyageur(TypeVoyageur.LIBRE)
-                .solde(TrajetService.PRIX_TRAJET_EUROS.doubleValue()).peutProposerTrajet(true).agence(agence).build());
+                .solde(TrajetService.PRIX_TRAJET_EUROS).peutProposerTrajet(true).agence(agence).build());
         restrictionRepository.save(Restriction.builder().voyageur(penalise)
                 .motif("Suspension de réservation : trajet privé resté incomplet (solde débiteur de 100€)")
                 .dateDebut(LocalDate.now())
@@ -158,8 +160,8 @@ public class DataInitializer implements CommandLineRunner {
                 .villeDepart(parcours[i][0]).villeArrivee(parcours[i][1])
                 .dateDebut(depart).dateFin(depart.plusMinutes(90)).typeTrajet(i == 1 || i == 7 ? TypeTrajet.PRIVE : TypeTrajet.PUBLIC)
                 .statut(StatutTrajet.PLANIFIE).nbPassagersActuels(0)
-                .prixTotal(TrajetService.PRIX_TRAJET_EUROS.doubleValue())
-                .prixParPassager(TrajetService.PRIX_CLIENT_EUROS.doubleValue()).build());
+                .prixTotal(TrajetService.PRIX_TRAJET_EUROS)
+                .prixParPassager(TrajetService.PRIX_CLIENT_EUROS).build());
         }
         // Historical demo debt: the organiser owes 100 EUR, the assigned driver owes nothing.
         java.time.LocalDateTime departPriveIncomplet = LocalDate.now().minusDays(1).atTime(10, 0);
@@ -169,8 +171,8 @@ public class DataInitializer implements CommandLineRunner {
                 .typeTrajet(TypeTrajet.PRIVE).statut(StatutTrajet.PLANIFIE).nbPassagersActuels(0)
                 .publicationAutomatiqueAutorisee(false)
                 .penaliteIncompletImputeeLe(departPriveIncomplet.minusHours(24))
-                .prixTotal(TrajetService.PRIX_TRAJET_EUROS.doubleValue())
-                .prixParPassager(TrajetService.PRIX_CLIENT_EUROS.doubleValue()).build());
+                .prixTotal(TrajetService.PRIX_TRAJET_EUROS)
+                .prixParPassager(TrajetService.PRIX_CLIENT_EUROS).build());
 
         log.info("Démonstration créée sur base isolée vide : voyageur pénalisé F10002 créé avec solde impayé de 100€ et restriction active.");
     }

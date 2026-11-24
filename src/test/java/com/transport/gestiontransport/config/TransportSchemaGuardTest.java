@@ -12,14 +12,21 @@ import static org.mockito.Mockito.*;
 class TransportSchemaGuardTest {
     @Test
     void refuseUnSchemaHistoriqueAvantTouteGenerationHibernate() throws Exception {
-        assertThatThrownBy(() -> TransportSchemaGuard.verify(postgres(1)))
+        assertThatThrownBy(() -> TransportSchemaGuard.verify(postgres(1, 0)))
                 .isInstanceOf(IllegalStateException.class).hasMessageContaining("avant Hibernate");
     }
 
     @Test
     void accepteUneBasePostgresNeuveOuMigree() throws Exception {
-        assertThatCode(() -> TransportSchemaGuard.verify(postgres(0))).doesNotThrowAnyException();
+        assertThatCode(() -> TransportSchemaGuard.verify(postgres(0, 0))).doesNotThrowAnyException();
     }
+
+    @Test
+    void refuseLesMontantsFlottantsAvantHibernate() throws Exception {
+        assertThatThrownBy(() -> TransportSchemaGuard.verify(postgres(0, 1)))
+                .isInstanceOf(IllegalStateException.class).hasMessageContaining("issue-45-montants-bigdecimal.sql");
+    }
+
 
     @Test
     void preserveLesTestsH2Existants() throws Exception {
@@ -33,7 +40,7 @@ class TransportSchemaGuardTest {
         verify(connection, never()).createStatement();
     }
 
-    private DataSource postgres(long tablesHistoriques) throws Exception {
+    private DataSource postgres(long tablesHistoriques, long colonnesMonetairesIncompatibles) throws Exception {
         DataSource source = mock(DataSource.class);
         Connection connection = mock(Connection.class);
         DatabaseMetaData metadata = mock(DatabaseMetaData.class);
@@ -44,7 +51,7 @@ class TransportSchemaGuardTest {
         when(metadata.getDatabaseProductName()).thenReturn("PostgreSQL");
         when(connection.createStatement()).thenReturn(statement);
         when(statement.executeQuery(anyString())).thenReturn(result);
-        when(result.getLong(1)).thenReturn(tablesHistoriques);
+        when(result.getLong(1)).thenReturn(tablesHistoriques, colonnesMonetairesIncompatibles);
         return source;
     }
 }
