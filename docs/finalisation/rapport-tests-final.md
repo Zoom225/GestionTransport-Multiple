@@ -12,7 +12,11 @@ Contrôles du 24 novembre 2026 sur le candidat intégré `67128d5accbf04ad71ca12
 | Build Angular intégré | `npm run build` | — | — | — | — | 87,905 s, réussi |
 | Contrôle de restauration PostgreSQL | `TransportSchemaValidationTest` sur la nouvelle restauration | 2 | 0 | 0 | 0 | 5 min 30 s Maven |
 
-Le passage local combiné a rencontré une expiration de lecture sur PostgreSQL au démarrage de `PostgresBaselineTest`. Les dix-huit tests étaient exécutés avec succès lors de la préparation précédente. Le compteur du passage interrompu contient une erreur d’initialisation et ne constitue pas un passage complet. La relance isolée et la CI de cette PR doivent confirmer la suite complète.
+Le passage local combiné a rencontré une expiration de lecture sur PostgreSQL au démarrage de `PostgresBaselineTest`. Les dix-huit tests étaient exécutés avec succès lors de la préparation précédente. Le compteur du passage interrompu contient une erreur d’initialisation et ne constitue pas un passage complet. La CI a confirmé la suite complète sur son instance isolée.
+
+## Confirmation sur GitHub Actions
+
+Sur `eadf7185e7e3fe1059a5840d38987588366bec1e`, [les deux tâches CI ont réussi](https://github.com/Zoom225/GestionTransport-Multiple/actions/runs/45473540246). Le premier passage Maven compte 225 réussis, 0 échec, 0 erreur et 2 ignorés en 30,957 s. Les 18 tests de référence PostgreSQL font partie des 225 réussis. Les deux tests de schéma, conditionnels, ont ensuite été rejoués sur la copie migrée et ont réussi sans échec, erreur ou ignoré en 7,203 s. Le build Angular de CI a réussi en 7,992 s.
 
 Les vérifications demandées portent sur la distinction 401 et 403, le JWT invalidé par rotation, les périmètres d’agence, les invitations, la dernière place, les paiements, l’expiration, les annulations, la pénalité et la suspension jusqu’à l’échéance. [Preuves métier](https://github.com/Zoom225/GestionTransport-Multiple/pull/62) · [Tests JWT](https://github.com/Zoom225/GestionTransport-Multiple/pull/46) · [Migration décimale](https://github.com/Zoom225/GestionTransport-Multiple/pull/47) · [Restauration](https://github.com/Zoom225/GestionTransport-Multiple/pull/64).
 
