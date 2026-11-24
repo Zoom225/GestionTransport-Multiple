@@ -6,7 +6,7 @@ RUN mvn -B -ntp -DskipTests package
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY --from=build /build/target/*-SNAPSHOT.jar /app/gestiontransport.jar
+COPY --from=build /build/target/*.jar /app/gestiontransport.jar
 USER 10001:10001
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app/gestiontransport.jar"]
