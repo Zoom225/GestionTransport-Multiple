@@ -27,7 +27,9 @@ for ($attempt = 0; $attempt -lt 30; $attempt++) {
     Start-Sleep -Seconds 1
 }
 if (!$ready) { throw 'PostgreSQL de test indisponible.' }
-$stamp = Get-Date -Format 'yyyyMMddHHmmssfff'
+$stamp = "$(Get-Date -Format 'yyyyMMddHHmmssfff')_$([Guid]::NewGuid().ToString('N').Substring(0, 8))"
+$dumpPath = "/tmp/transport-baseline-$stamp.dump"
+$sqlPath = "/tmp/transport-migration-$stamp.sql"
 $baseline = "issue1_validation_$stamp"
 $schema = "transport_schema_copy_$stamp"
 Docker-Checked @('exec',$container,'createdb','-U','transport_test',$baseline) | Out-Null
@@ -40,20 +42,20 @@ try {
     $env:DB_PASSWORD = 'transport_test_local_only'
     & .\mvnw.cmd -B '-Dtest=PostgresBaselineTest' test
     if ($LASTEXITCODE -ne 0) { throw 'Tests PostgreSQL echoues ; preparation interrompue.' }
-    Docker-Checked @('exec',$container,'pg_dump','-U','transport_test','-Fc','-f','/tmp/test-baseline.dump',$baseline) | Out-Null
+    Docker-Checked @('exec',$container,'pg_dump','-U','transport_test','-Fc','-f',$dumpPath,$baseline) | Out-Null
     Docker-Checked @('exec',$container,'createdb','-U','transport_test',$schema) | Out-Null
-    Docker-Checked @('exec',$container,'pg_restore','-U','transport_test','--no-owner','--exit-on-error','-d',$schema,'/tmp/test-baseline.dump') | Out-Null
+    Docker-Checked @('exec',$container,'pg_restore','-U','transport_test','--no-owner','--exit-on-error','-d',$schema,$dumpPath) | Out-Null
     foreach ($file in @('src/test/resources/schema-historique-fixture.sql','scripts/migrations/issue-3-schema-transport.sql')) {
-        Docker-Checked @('cp',$file,"${container}:/tmp/test-migration.sql") | Out-Null
-        Docker-Checked @('exec',$container,'psql','-X','-U','transport_test','-d',$schema,'-v','ON_ERROR_STOP=1','-f','/tmp/test-migration.sql') | Out-Null
+        Docker-Checked @('cp',$file,"${container}:$sqlPath") | Out-Null
+        Docker-Checked @('exec',$container,'psql','-X','-U','transport_test','-d',$schema,'-v','ON_ERROR_STOP=1','-f',$sqlPath) | Out-Null
     }
     foreach ($file in @('scripts/migrations/issue-8-organisateur-penalite.sql',
                         'scripts/migrations/issue-9-suspension-168h.sql',
                         'scripts/migrations/issue-10-auteur-annulation.sql',
                         'scripts/migrations/issue-45-montants-bigdecimal.sql')) {
-        Docker-Checked @('cp',$file,"${container}:/tmp/test-migration.sql") | Out-Null
+        Docker-Checked @('cp',$file,"${container}:$sqlPath") | Out-Null
         foreach ($database in @($baseline, $schema)) {
-            Docker-Checked @('exec',$container,'psql','-X','-U','transport_test','-d',$database,'-v','ON_ERROR_STOP=1','-f','/tmp/test-migration.sql') | Out-Null
+            Docker-Checked @('exec',$container,'psql','-X','-U','transport_test','-d',$database,'-v','ON_ERROR_STOP=1','-f',$sqlPath) | Out-Null
         }
     }
     $env:TRANSPORT_SCHEMA_URL = "jdbc:postgresql://127.0.0.1:$port/$schema"
