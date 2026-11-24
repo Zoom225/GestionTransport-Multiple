@@ -10,7 +10,7 @@ module.exports = async function validateCarousel(page, report, output) {
   await page.goto('http://127.0.0.1:4201/',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.querySelector('.carousel-photo.active img')?.naturalWidth>0);
   await page.waitForFunction(()=>document.querySelectorAll('.carousel-dots button')[0]?.getAttribute('aria-current')!=='true',{},{timeout:12000});
-  report.carousel=['Rotation automatique réelle après quatre secondes'];
+  report.carousel=['Rotation automatique observée dans Chromium'];
   await page.locator('.carousel-next').click();await unchanged();
   report.carousel.push('Interaction : pause persistante jusqu’à une reprise explicite');
   await page.locator('.carousel-dots button').last().click();
@@ -25,6 +25,7 @@ module.exports = async function validateCarousel(page, report, output) {
   report.carousel.push('Flèches, pagination, clavier Début/Fin et focus conservé');
   await page.locator('.carousel-pause').click();
   await page.waitForFunction(()=>document.querySelector('.carousel-pause')?.getAttribute('aria-label')==='Mettre le carrousel en pause');
+  await page.mouse.move(0,0);
   const before=await index();await page.waitForFunction(previous=>document.querySelectorAll('.carousel-dots button')[previous]?.getAttribute('aria-current')!=='true',before,{timeout:12000});
   await page.locator('.carousel-pause').click();await unchanged();
   report.carousel.push('Bouton pause puis reprise explicite');

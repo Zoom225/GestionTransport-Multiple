@@ -408,7 +408,7 @@ class PostgresBaselineTest {
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isForbidden());
         mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/trajets")
                 .contentType("application/json").content(json.writeValueAsString(request)))
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isForbidden());
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isUnauthorized());
     }
 
     @Test

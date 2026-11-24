@@ -64,7 +64,7 @@ try {
     $configuration = @"
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="GestionTransport - Tous les tests PostgreSQL" type="JUnit" factoryName="JUnit">
-    <module name="industri" />
+    <module name="gestiontransport-multiple" />
     <option name="PACKAGE_NAME" value="com.transport.gestiontransport" />
     <option name="TEST_OBJECT" value="package" />
     <option name="WORKING_DIRECTORY" value="`$PROJECT_DIR`$" />
@@ -83,7 +83,7 @@ try {
     if (Test-Path $workspace) {
         [xml]$idea = Get-Content -Raw $workspace
         $module = $idea.SelectSingleNode('//configuration[@type="JUnit"]/module')
-        if ($module) { $configuration = $configuration.Replace('name="industri"', ('name="' + $module.GetAttribute('name') + '"')) }
+        if ($module) { $configuration = $configuration.Replace('name="gestiontransport-multiple"', ('name="' + $module.GetAttribute('name') + '"')) }
     }
     [IO.File]::WriteAllText((Join-Path $directory 'GestionTransport_Tests_PostgreSQL.xml'), $configuration, (New-Object System.Text.UTF8Encoding($false)))
     }

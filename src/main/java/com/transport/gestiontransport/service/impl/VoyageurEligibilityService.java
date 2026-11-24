@@ -22,7 +22,7 @@ public class VoyageurEligibilityService {
 
     public record Statut(boolean peutParticiper, boolean suspensionActive, Instant finSuspension,
                          BigDecimal soldeDu, String code, String message, Instant debutSuspension,
-                         boolean detteBloquante, boolean peutCreerMatch, boolean peutRejoindreMatch,
+                         boolean detteBloquante, boolean peutCreerTrajet, boolean peutRejoindreTrajet,
                          String motifRestriction) {}
     public record Sanction(Long id, Long trajetId, String motif, Instant debut, Instant fin,
                            BigDecimal montant, boolean payee, boolean active, LocalDateTime dateReglement) {}

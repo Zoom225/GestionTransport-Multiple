@@ -92,7 +92,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         <p role="status" aria-live="polite" class="status-success">{{ message() }}</p>
       }
 
-      @if (participation()?.peutRejoindreMatch === false) {
+      @if (participation()?.peutRejoindreTrajet === false) {
         <p role="status" class="status-error">{{ participation()?.message }}</p>
       }
       @if (errorMessage()) {
@@ -350,7 +350,7 @@ export class VoyageurPublicTrajetsPage {
   }
 
   canJoin(trajet: TrajetResponse): boolean {
-    if (this.participation()?.peutRejoindreMatch === false) return false;
+    if (this.participation()?.peutRejoindreTrajet === false) return false;
     if (this.isOrganizer(trajet)) {
       return false;
     }

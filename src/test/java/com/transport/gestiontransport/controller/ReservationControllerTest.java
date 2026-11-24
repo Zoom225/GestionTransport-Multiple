@@ -109,12 +109,12 @@ class ReservationControllerTest {
 
     @Test
     @DisplayName("POST /api/reservations - Doit retourner 401 si non authentifié")
-    void createReservation_WithoutAuthentication_ShouldReturnForbidden() throws Exception {
+    void createReservation_WithoutAuthentication_ShouldReturnUnauthorized() throws Exception {
         mockMvc.perform(post("/api/reservations")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reservationRequest)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -133,9 +133,9 @@ class ReservationControllerTest {
 
     @Test
     @DisplayName("PATCH /api/reservations/{id}/cancel - Doit retourner 401 si non authentifié")
-    void cancelReservation_WithoutAuthentication_ShouldReturnForbidden() throws Exception {
+    void cancelReservation_WithoutAuthentication_ShouldReturnUnauthorized() throws Exception {
         mockMvc.perform(patch("/api/reservations/1/cancel")
                         .with(csrf()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }

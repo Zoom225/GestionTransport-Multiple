@@ -130,8 +130,7 @@ frontend/src/app/
 
 Backend monolithique Spring Boot 3.5.0, Spring Security/JWT, JPA, validation et exceptions centralisées.
 Frontend Angular 21, Angular Material, Tailwind CSS et formulaires réactifs.
-Les versions du `pom.xml` et du verrou npm sont conservées. Le diff local de `pom.xml`,
-notamment l'artifactId `industri`, reste préservé hors commit.
+Les versions du backend et du frontend sont définies dans `pom.xml` et le verrou npm.
 
 ## Prérequis
 
@@ -320,9 +319,9 @@ Pour reconstruire entièrement les fichiers générés, backend et compilation I
 .\mvnw.cmd -B clean verify
 ```
 
-Le JAR est généré dans `target/`. Son nom dépend de l'`artifactId` du `pom.xml` ;
-la valeur locale `industri` reste préservée. Les rapports de tests sont dans
-`target/surefire-reports/`.
+Le build génère `target/gestiontransport-multiple-0.0.1-SNAPSHOT.jar`. Les rapports de tests
+sont dans `target/surefire-reports/`. Les [exceptions de compatibilité](docs/finalisation/exceptions-compatibilite.md)
+répertorient les anciens identifiants de schéma nécessaires aux migrations.
 
 Sans `POSTGRES_BASELINE_URL`, les tests usuels utilisent H2 et les tests PostgreSQL opt-in sont ignorés.
 La compilation ne prouve pas le démarrage HTTP : ce dernier fait l'objet des vérifications décrites plus bas.
@@ -375,7 +374,7 @@ au démarrage. Aucun secret par défaut n'est ajouté à `application.properties
 
 | Variable                | Usage                                                         | Défaut                                 |
 | ----------------------- | ------------------------------------------------------------- | -------------------------------------- |
-| JWT_SECRET              | Clé JWT, au moins 32 octets, obligatoire                      | Aucun                                  |
+| JWT_SECRET              | Clé JWT obligatoire : au moins 32 octets et 16 caractères distincts| Aucun                                  |
 | DB_URL                  | Connexion PostgreSQL                                          | localhost:5440/transportService        |
 | DB_USER / DB_PASSWORD   | Identifiants du serveur                                       | transport / transport en développement |
 | DEMO_DATA_ENABLED       | Activation explicite de la démonstration                      | false                                  |
@@ -383,6 +382,12 @@ au démarrage. Aucun secret par défaut n'est ajouté à `application.properties
 | RESERVATION_PAYMENT_TTL | Délai ISO-8601 de paiement                                    | PT30M                                  |
 | RESTRICTION_DAYS        | Durée d'une restriction validée                               | 7                                      |
 | SERVER_PORT             | Port HTTP Spring Boot                                         | 8080                                   |
+
+La vérification au démarrage écarte les clés manifestement faibles. Pour un environnement
+déployé, générer au moins 32 octets avec un générateur cryptographique et conserver la valeur
+dans le gestionnaire de secrets. Lors d’une rotation, mettre à jour la variable pour toutes
+les instances et redémarrer avec la nouvelle clé. Les jetons émis avec l’ancienne clé ne sont
+plus acceptés après le redémarrage. Les utilisateurs doivent se reconnecter.
 
 ## 4. Installer, tester et lancer Angular
 

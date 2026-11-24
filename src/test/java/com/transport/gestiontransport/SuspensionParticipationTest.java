@@ -2,6 +2,7 @@ package com.transport.gestiontransport;
 
 import java.math.BigDecimal;
 
+import com.transport.gestiontransport.config.JwtConfig;
 import com.transport.gestiontransport.entity.*;
 import com.transport.gestiontransport.entity.enums.*;
 import com.transport.gestiontransport.repository.*;
@@ -49,6 +50,7 @@ class SuspensionParticipationTest {
     @Autowired PaiementService paiementService;
     @Autowired VoyageurEligibilityService eligibility;
     @Autowired MockMvc mvc;
+    @Autowired JwtConfig jwtConfig;
     @Autowired ObjectMapper json;
     Voyageur client, chauffeur;
     Vehicule voiture;
@@ -81,6 +83,20 @@ class SuspensionParticipationTest {
     CreateTrajetRequest demandeCreation(String type) {
         return new CreateTrajetRequest(voiture.getId(), LocalDateTime.now().plusDays(10).withHour(10), type,
                 VilleBelge.MONS, VilleBelge.BRUXELLES, false, null);
+    }
+
+    @Test
+    void jwtAuthentifieLeVoyageurEtDistingueLesRefus() throws Exception {
+        String tokenVoyageur = jwtConfig.generateToken(client.getMatricule(), "VIP");
+        mvc.perform(get("/api/voyageurs/me").header("Authorization", "Bearer " + tokenVoyageur))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/trajets").header("Authorization", "Bearer " + tokenVoyageur))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/api/voyageurs/me").header("Authorization", "Bearer format-invalide"))
+                .andExpect(status().isUnauthorized());
+        String tokenRoleIncoherent = jwtConfig.generateToken(client.getMatricule(), "LOCAL");
+        mvc.perform(get("/api/voyageurs/me").header("Authorization", "Bearer " + tokenRoleIncoherent))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test void T01_detteCreee() { sanctionner(); assertThat(voyageurs.findById(client.getId()).orElseThrow().getSolde()).isEqualByComparingTo("100.00"); }
@@ -169,8 +185,8 @@ class SuspensionParticipationTest {
                 .andExpect(jsonPath("$.participation.finSuspension").value(debut.plus(Duration.ofHours(168)).toString()))
                 .andExpect(jsonPath("$.participation.soldeDu").value(100))
                 .andExpect(jsonPath("$.participation.detteBloquante").value(true))
-                .andExpect(jsonPath("$.participation.peutCreerMatch").value(false))
-                .andExpect(jsonPath("$.participation.peutRejoindreMatch").value(false))
+                .andExpect(jsonPath("$.participation.peutCreerTrajet").value(false))
+                .andExpect(jsonPath("$.participation.peutRejoindreTrajet").value(false))
                 .andExpect(jsonPath("$.participation.motifRestriction").isNotEmpty());
         mvc.perform(get("/api/voyageurs/me/sanctions").with(user(client.getMatricule()).roles("VOYAGEUR")))
                 .andExpect(status().isOk())
@@ -186,14 +202,14 @@ class SuspensionParticipationTest {
         mvc.perform(get("/api/voyageurs/me").with(user(client.getMatricule()).roles("VOYAGEUR")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.participation.suspensionActive").value(false))
-                .andExpect(jsonPath("$.participation.peutRejoindreMatch").value(true));
+                .andExpect(jsonPath("$.participation.peutRejoindreTrajet").value(true));
     }
     @Test void T18_paiementHTTPReserveAuProprietaireEtHistoriquePrive() throws Exception {
         sanctionner(); Voyageur autre = voyageur();
         String url = "/api/trajets/" + prive.getId() + "/penalite/pay";
         mvc.perform(post(url).with(user(autre.getMatricule()).roles("VOYAGEUR"))).andExpect(status().isForbidden());
         mvc.perform(post(url).with(user("admin").roles("ADMIN"))).andExpect(status().isForbidden());
-        mvc.perform(post(url)).andExpect(status().isForbidden());
+        mvc.perform(post(url)).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/voyageurs/me/sanctions").with(user(autre.getMatricule()).roles("VOYAGEUR")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
     }
@@ -249,7 +265,7 @@ class SuspensionParticipationTest {
         clock.instant = imputation.plus(Duration.ofHours(168));
         mvc.perform(get("/api/voyageurs/me").with(principal))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.participation.peutCreerMatch").value(true));
+                .andExpect(jsonPath("$.participation.peutCreerTrajet").value(true));
         mvc.perform(post("/api/reservations").with(principal).contentType("application/json").content(inscription))
                 .andExpect(status().isCreated());
     }
