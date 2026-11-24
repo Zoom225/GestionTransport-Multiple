@@ -17,6 +17,7 @@ export interface VoyageurRequest {
 }
 
 export interface VoyageurResponse {
+  participation?: ParticipationStatus;
   peutProposerTrajet?: boolean;
   id: number;
   matricule: string;
@@ -32,6 +33,31 @@ export interface VoyageurResponse {
 
 export interface LoginResponse extends VoyageurResponse {
   token: string;
+}
+
+export interface ParticipationStatus {
+  peutParticiper: boolean;
+  suspensionActive: boolean;
+  finSuspension: string | null;
+  debutSuspension: string | null;
+  soldeDu: number;
+  detteBloquante: boolean;
+  peutCreerMatch: boolean;
+  peutRejoindreMatch: boolean;
+  motifRestriction: string | null;
+  code: string | null;
+  message: string;
+}
+
+export interface SanctionResponse {
+  id: number;
+  trajetId: number | null;
+  motif: string;
+  debut: string | null;
+  fin: string | null;
+  montant: number | null;
+  payee: boolean;
+  active: boolean;
 }
 export interface RestrictionResponse {
   id: number;

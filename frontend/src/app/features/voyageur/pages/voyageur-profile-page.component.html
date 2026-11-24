@@ -1,0 +1,214 @@
+<section class="travel-space">
+  <header class="travel-welcome">
+    <div>
+      <p class="travel-eyebrow">{{ language.t('studio.yourSpace') }}</p>
+      <h1>{{ language.t('studio.hello', { name: profile()?.prenom || '' }) }}</h1>
+    </div>
+    @if (profile()) {
+      <span class="travel-member"
+        ><span class="member-avatar" aria-hidden="true"
+          >{{ profile()!.prenom.slice(0, 1) }}{{ profile()!.nom.slice(0, 1) }}</span
+        >{{ profile()!.typeVoyageur }} · {{ profile()!.matricule }}</span
+      >
+    }
+  </header>
+
+  <div class="travel-feature">
+    <div class="travel-feature-copy">
+      <p class="travel-eyebrow">{{ language.t('studio.travellerEyebrow') }}</p>
+      <h2>{{ language.t('studio.whereNext') }}</h2>
+      <p>{{ language.t('studio.profileLead') }}</p>
+      <a routerLink="/voyageur/trajets" class="travel-primary"
+        >{{ language.t('transport.search') }} <span aria-hidden="true">↗</span></a
+      >
+    </div>
+    <img src="images/car-route-1024.webp" width="1024" height="576" alt="" fetchpriority="high" />
+    <span class="travel-photo-caption">{{ language.t('transport.eyebrow') }}</span>
+  </div>
+
+  @if (loading()) {
+    <div class="travel-loading" role="status">
+      <mat-spinner diameter="28" [attr.aria-label]="language.t('transport.searching')" />
+    </div>
+  }
+  @if (errorMessage()) {
+    <p role="alert" class="status-error">{{ errorMessage() }}</p>
+  }
+
+  <nav class="travel-stats" [attr.aria-label]="language.t('studio.yourSpace')">
+    <a routerLink="/voyageur/reservations"
+      ><svg class="ui-icon" aria-hidden="true"><use href="images/ui-icons.svg#calendar" /></svg
+      ><strong>{{ prochainsVoyages().length }}</strong
+      ><span>{{ language.t('studio.upcoming') }}</span
+      ><span class="stat-arrow" aria-hidden="true">↗</span></a
+    >
+    <a routerLink="/voyageur/reservations"
+      ><svg class="ui-icon" aria-hidden="true"><use href="images/ui-icons.svg#car" /></svg
+      ><strong>{{ historique().length }}</strong
+      ><span>{{ language.t('studio.history') }}</span
+      ><span class="stat-arrow" aria-hidden="true">↗</span></a
+    >
+    <a routerLink="/voyageur/payments"
+      ><svg class="ui-icon" aria-hidden="true"><use href="images/ui-icons.svg#payment" /></svg
+      ><strong>{{ paiementsValides() }}</strong
+      ><span>{{ language.t('studio.paid') }}</span
+      ><span class="stat-arrow" aria-hidden="true">↗</span></a
+    >
+  </nav>
+
+  <div class="travel-section-heading">
+    <h2>{{ language.t('studio.nextStep') }}</h2>
+    <span aria-hidden="true">↘</span>
+  </div>
+  <div class="travel-actions">
+    <a routerLink="/voyageur/reservations" class="travel-action">
+      <span class="action-icon"
+        ><svg class="ui-icon" aria-hidden="true"><use href="images/ui-icons.svg#calendar" /></svg
+      ></span>
+      <h3>{{ language.t('voyageur.reservations.title') }}</h3>
+      <p>{{ language.t('voyageur.profile.followupBody') }}</p>
+      <span class="action-link"
+        >{{ language.t('voyageur.profile.followup') }} <span aria-hidden="true">→</span></span
+      >
+    </a>
+    <a routerLink="/voyageur/payments" class="travel-action travel-action-sand">
+      <span class="action-icon"
+        ><svg class="ui-icon" aria-hidden="true"><use href="images/ui-icons.svg#payment" /></svg
+      ></span>
+      <h3>{{ language.t('voyageur.payments.title') }}</h3>
+      <p>{{ language.t('voyageur.profile.financeBody') }}</p>
+      <span class="action-link"
+        >{{ language.t('voyageur.profile.finance') }} <span aria-hidden="true">→</span></span
+      >
+    </a>
+    @if (profile()?.peutProposerTrajet && participation()?.peutCreerMatch !== false) {
+      <a routerLink="/voyageur/trajets/new" class="travel-action travel-action-dark">
+        <span class="action-icon"
+          ><svg class="ui-icon" aria-hidden="true"><use href="images/ui-icons.svg#car" /></svg
+        ></span>
+        <h3>{{ language.t('studio.propose') }}</h3>
+        <p>{{ language.t('voyageur.profile.quickPublicBody') }}</p>
+        <span class="action-link"
+          >{{ language.t('nav.create') }} <span aria-hidden="true">→</span></span
+        >
+      </a>
+    } @else {
+      <a routerLink="/voyageur/trajets" class="travel-action travel-action-dark">
+        <span class="action-icon"
+          ><svg class="ui-icon" aria-hidden="true"><use href="images/ui-icons.svg#car" /></svg
+        ></span>
+        <h3>{{ language.t('voyageur.public.title') }}</h3>
+        <p>{{ language.t('voyageur.profile.exploreBody') }}</p>
+        <span class="action-link"
+          >{{ language.t('voyageur.profile.explore') }} <span aria-hidden="true">→</span></span
+        >
+      </a>
+    }
+  </div>
+
+  @if (participation(); as etat) {
+    @if (etat.code || sanctions().length) {
+      <section class="travel-details p-5" aria-labelledby="participation-title">
+        <h2 id="participation-title">Participation et pénalités</h2>
+        <p role="status">{{ etat.message }}</p>
+        <p>Solde dû {{ etat.soldeDu | currency:'EUR' }}</p>
+        @if (etat.debutSuspension && etat.finSuspension) {
+          <p>Suspension du {{ etat.debutSuspension | date:'dd/MM/yyyy HH:mm:ss' }}
+            au {{ etat.finSuspension | date:'dd/MM/yyyy HH:mm:ss' }}</p>
+        }
+        @for (sanction of sanctions(); track sanction.id) {
+          <div class="mt-4">
+            <p>{{ sanction.motif }}</p>
+            @if (sanction.debut && sanction.fin) {
+              <p>Du {{ sanction.debut | date:'dd/MM/yyyy HH:mm:ss' }}
+                au {{ sanction.fin | date:'dd/MM/yyyy HH:mm:ss' }}</p>
+            }
+            @if (sanction.montant) {
+              <p>{{ sanction.montant | currency:'EUR' }}
+                · {{ sanction.payee ? 'Réglée' : 'À régler' }}</p>
+              @if (!sanction.payee && sanction.trajetId !== null) {
+                <button mat-stroked-button type="button" [disabled]="reglementEnCours() !== null"
+                  (click)="payerPenalite(sanction)">Enregistrer le règlement interne</button>
+              }
+            }
+          </div>
+        }
+        @if (reglementMessage()) {
+          <p role="status">{{ reglementMessage() }}</p>
+        }
+      </section>
+    }
+  }
+
+  @if (profile(); as person) {
+    <details class="travel-details">
+      <summary>
+        {{ language.t('studio.personal') }} <span>{{ person.prenom }} {{ person.nom }}</span>
+      </summary>
+      <dl class="travel-personal-grid">
+        <div>
+          <dt>{{ language.t('voyageur.profile.email') }}</dt>
+          <dd>{{ person.email || language.t('common.notProvided') }}</dd>
+        </div>
+        <div>
+          <dt>{{ language.t('voyageur.profile.agence') }}</dt>
+          <dd>{{ person.agenceNom || language.t('voyageur.home.tousAgences') }}</dd>
+        </div>
+        <div>
+          <dt>{{ language.t('voyageur.profile.solde') }}</dt>
+          <dd>{{ participation()?.soldeDu ?? person.solde }} EUR</dd>
+        </div>
+        <div>
+          <dt>{{ language.t('voyageur.profile.restrictionActive') }}</dt>
+          <dd>
+            {{ language.t(participation()?.suspensionActive ? 'voyageur.profile.yes' : 'voyageur.profile.no') }}
+          </dd>
+        </div>
+        <div>
+          <dt>{{ language.t('voyageur.profile.balancePending') }}</dt>
+          <dd>{{ language.t(participation()?.detteBloquante ? 'voyageur.profile.yes' : 'voyageur.profile.no') }}</dd>
+        </div>
+      </dl>
+      <div class="toolbar-actions">
+        <button mat-stroked-button type="button" (click)="reload()">
+          {{ language.t('voyageur.profile.refresh') }}</button
+        ><button mat-stroked-button type="button" (click)="logout()">
+          {{ language.t('voyageur.profile.logout') }}
+        </button>
+      </div>
+    </details>
+  }
+  <!-- Les trajets proposés et leur annulation sont conservés ci-dessous. -->
+  @if (trajetsProposes().length) {
+    <mat-card class="card-soft mt-6"
+      ><mat-card-header><mat-card-title>Mes trajets</mat-card-title></mat-card-header
+      ><mat-card-content>
+        @for (trajet of trajetsProposes(); track trajet.id) {
+          <div class="flex flex-wrap justify-between gap-3 border-b border-slate-100 py-4">
+            <span
+              >{{ trajet.villeDepart || 'Ville à préciser' }} →
+              {{ trajet.villeArrivee || 'Ville à préciser' }} · {{ trajet.date }}
+              {{ trajet.heureDebut }}</span
+            >
+            <strong
+              >{{ trajet.statut }} · {{ trajet.placesRestantes ?? 4 - trajet.nbPassagersActuels }}/4
+              places restantes</strong
+            >
+            @if (peutAnnuler(trajet)) {
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="annulerTrajet(trajet)"
+                [attr.aria-label]="'Annuler le trajet #' + trajet.id"
+                [disabled]="annulationId() === trajet.id"
+              >
+                Annuler le trajet
+              </button>
+            }
+          </div>
+        }
+        <a mat-stroked-button routerLink="/voyageur/reservations">Gérer mes invitations privées</a>
+      </mat-card-content></mat-card
+    >
+  }
+</section>

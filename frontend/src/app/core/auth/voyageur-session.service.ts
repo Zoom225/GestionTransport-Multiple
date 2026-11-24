@@ -1,7 +1,8 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, Injector, computed, effect, inject, signal } from '@angular/core';
 import { AuthApiService } from '../api/auth-api.service';
 import { LoginRequest, VoyageurResponse } from '../../shared/models/voyageur.model';
-import { Observable, tap } from 'rxjs';
+import { EMPTY, Observable, catchError, filter, switchMap, tap, timer } from 'rxjs';
+import { VoyageursApiService } from '../api/voyageurs-api.service';
 import { AdminSessionService } from './admin-session.service';
 
 export const VOYAGEUR_SESSION_KEY = 'gestiontransport_voyageur_session';
@@ -16,12 +17,40 @@ export class VoyageurSessionService {
   private readonly sessionState = signal<VoyageurSessionState | null>(this.loadFromStorage());
   private readonly authApi = inject(AuthApiService);
   private readonly adminSession = inject(AdminSessionService);
+  private readonly injector = inject(Injector);
 
   readonly voyageur = computed(() => this.sessionState()?.voyageur ?? null);
   readonly voyageurId = computed(() => this.sessionState()?.voyageur.id ?? null);
   readonly matricule = computed(() => this.sessionState()?.voyageur.matricule ?? null);
   readonly token = computed(() => this.sessionState()?.token ?? null);
   readonly isAuthenticated = computed(() => !!this.sessionState()?.voyageur.id);
+  readonly participation = computed(() => this.voyageur()?.participation);
+
+  constructor() {
+    effect((onCleanup) => {
+      const id = this.voyageurId();
+      const token = this.token();
+      const participation = this.participation();
+      if (!id || !token) return;
+
+      const fin = participation?.suspensionActive && participation.finSuspension;
+      const attente = fin ? Math.min(60_000, Math.max(1_000, Date.parse(fin) - Date.now())) : 60_000;
+      const abonnement = timer(attente, 60_000).pipe(
+        switchMap(() => {
+          const session = this.sessionState();
+          return this.injector.get(VoyageursApiService).getCurrent().pipe(
+            filter(() => this.sessionState() === session),
+            catchError(() => EMPTY),
+          );
+        }),
+      ).subscribe((profil) => {
+        if (profil.id === id && this.voyageurId() === id && this.token() === token) {
+          this.setVoyageur(profil, token);
+        }
+      });
+      onCleanup(() => abonnement.unsubscribe());
+    });
+  }
 
   setVoyageur(voyageur: VoyageurResponse, token?: string): void {
     const state: VoyageurSessionState = { voyageur, token: token ?? voyageur.token ?? null };

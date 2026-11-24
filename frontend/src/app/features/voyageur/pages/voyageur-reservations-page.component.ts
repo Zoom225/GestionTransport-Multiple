@@ -80,6 +80,9 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         <p role="status" aria-live="polite" class="status-success">{{ message() }}</p>
       }
 
+      @if (participation()?.peutRejoindreMatch === false) {
+        <p role="status" class="status-error">{{ participation()?.message }}</p>
+      }
       @if (errorMessage()) {
         <p role="alert" class="status-error">{{ errorMessage() }}</p>
       }
@@ -193,9 +196,9 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
                     color="warn"
                     type="button"
                     (click)="requestDeleteManagedTrajet()"
-                    [disabled]="actionId() !== null"
+                    [disabled]="actionId() !== null || !peutAnnulerTrajet(selectedManagedTrajet())"
                   >
-                    {{ language.t('common.delete') }}
+                    {{ language.t('voyageur.reservations.cancel') }}
                   </button>
                 </div>
               </form>
@@ -214,7 +217,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
                       color="warn"
                       type="button"
                       (click)="deleteManagedTrajet()"
-                      [disabled]="actionId() !== null"
+                      [disabled]="actionId() !== null || !peutAnnulerTrajet(selectedManagedTrajet())"
                     >
                       {{ language.t('common.confirm') }}
                     </button>
@@ -345,6 +348,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
                 [disabled]="
                   reservation.statut === 'ANNULEE' ||
                   reservation.paiement?.statut !== 'EN_ATTENTE' ||
+                  participation()?.peutRejoindreMatch === false ||
                   actionId() === reservation.id
                 "
               >
@@ -421,6 +425,7 @@ export class VoyageurReservationsPage {
     validators: [Validators.required, Validators.pattern(/^([VG]\d{4}|[SLF]\d{5})$/)],
   });
   readonly voyageurId = computed(() => this.voyageurSession.voyageurId());
+  readonly participation = this.voyageurSession.participation;
 
   constructor() {
     this.loadReservations();
@@ -568,13 +573,20 @@ export class VoyageurReservationsPage {
 
   requestDeleteManagedTrajet(): void {
     const selectedTrajet = this.selectedManagedTrajet();
-    if (!selectedTrajet) {
+    if (!selectedTrajet || !this.peutAnnulerTrajet(selectedTrajet)) {
       return;
     }
 
     this.pendingDeleteTrajetId.set(selectedTrajet.id);
     this.message.set('');
     this.errorMessage.set('');
+  }
+
+  peutAnnulerTrajet(trajet: TrajetResponse | null): boolean {
+    const id = this.voyageurId();
+    return !!trajet && !!id && (trajet.organisateurId === id || trajet.chauffeurId === id)
+      && trajet.statut !== 'ANNULE'
+      && new Date(trajet.date + 'T' + trajet.heureDebut).getTime() > Date.now();
   }
 
   cancelDeleteManagedTrajet(): void {
@@ -584,7 +596,7 @@ export class VoyageurReservationsPage {
   deleteManagedTrajet(): void {
     const selectedTrajet = this.selectedManagedTrajet();
     const requesterId = this.voyageurId();
-    if (!selectedTrajet || !requesterId || this.actionId() !== null) {
+    if (!selectedTrajet || !requesterId || this.actionId() !== null || !this.peutAnnulerTrajet(selectedTrajet)) {
       return;
     }
     // Sécurité : on ne supprime qu'un trajet PRIVÉ
@@ -717,6 +729,7 @@ export class VoyageurReservationsPage {
   }
 
   pay(reservation: ReservationResponse): void {
+    if (this.participation()?.peutRejoindreMatch === false) return;
     const voyageurId = this.voyageurId();
     if (!voyageurId) {
       return;

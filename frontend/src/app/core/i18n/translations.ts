@@ -16,6 +16,10 @@ export type TranslationKey =
   | 'carousel.goTo'
   | 'carousel.subtitle'
   | 'carousel.discover'
+  | 'carousel.propose'
+  | 'carousel.generated'
+  | 'carousel.suvAlt'
+  | 'carousel.electricAlt'
   | 'carousel.illustration'
   | 'carousel.roadAlt'
   | 'carousel.familyAlt'
@@ -520,7 +524,28 @@ export type TranslationKey =
   | 'voyageur.reservations.paymentSuccess'
   | 'voyageur.reservations.paymentError'
   | 'voyageur.reservations.reservationCanceled'
-  | 'voyageur.reservations.reservationCancelError';
+  | 'voyageur.reservations.reservationCancelError'
+  | 'studio.adminEyebrow'
+  | 'studio.adminTitle'
+  | 'studio.adminLead'
+  | 'studio.overview'
+  | 'studio.adminLoginTitle'
+  | 'studio.adminLoginLead'
+  | 'studio.adminLoginNote'
+  | 'studio.travellerEyebrow'
+  | 'studio.travellerTitle'
+  | 'studio.travellerLead'
+  | 'studio.travellerNote'
+  | 'studio.yourSpace'
+  | 'studio.hello'
+  | 'studio.whereNext'
+  | 'studio.profileLead'
+  | 'studio.upcoming'
+  | 'studio.history'
+  | 'studio.paid'
+  | 'studio.nextStep'
+  | 'studio.propose'
+  | 'studio.personal';
 
 export type TranslationParams = Record<string, string | number>;
 
@@ -539,8 +564,12 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'carousel.controls': 'Commandes du carrousel',
     'carousel.pagination': 'Choisir une photographie',
     'carousel.goTo': 'Afficher la photographie {current} sur {total}',
-    'carousel.subtitle': 'Découvrez une nouvelle façon de voyager entre les villes belges.',
+    'carousel.subtitle': 'Voyagez entre les villes belges en covoiturage privé ou public. Trouvez une place ou partagez votre trajet.',
     'carousel.discover': 'Découvrir le fonctionnement',
+    'carousel.propose': 'Proposer un trajet',
+    'carousel.generated': 'Visuel généré',
+    'carousel.suvAlt': 'SUV gris sur une route bordée de sapins',
+    'carousel.electricAlt': 'Voiture électrique bleu glacier sur une route côtière',
     'carousel.illustration': 'Photos d’illustration · hors flotte réelle',
     'carousel.roadAlt': 'Berline compacte sur une route à la campagne',
     'carousel.familyAlt': 'Famille près d’une voiture compacte pendant un voyage',
@@ -608,7 +637,7 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'transport.reserve': 'Réserver',
     'transport.eyebrow': 'LE COVOITURAGE, À LA BELGE',
     'transport.together': 'Voyagez ensemble,',
-    'transport.simply': 'simplement.',
+    'transport.simply': 'autrement.',
     'transport.lead':
       'Trouvez votre prochain covoiturage entre Bruxelles et les villes belges, en quelques clics.',
     'transport.driverKnown': 'Un chauffeur identifié',
@@ -1073,10 +1102,31 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.reservations.passagerAddError': 'Ajout du passager impossible.',
     'voyageur.reservations.passagerRemoved': 'Passager retire du trajet.',
     'voyageur.reservations.passagerRemoveError': 'Suppression du passager impossible.',
-    'voyageur.reservations.paymentSuccess': 'Paiement effectue avec succes.',
+    'voyageur.reservations.paymentSuccess': 'Paiement validé : votre réservation est confirmée.',
     'voyageur.reservations.paymentError': 'Paiement impossible.',
     'voyageur.reservations.reservationCanceled': 'Reservation annulee.',
     'voyageur.reservations.reservationCancelError': 'Annulation impossible.',
+    'studio.adminEyebrow': "Espace d'administration",
+    'studio.adminTitle': 'Tableau de bord réseau',
+    'studio.adminLead': 'Supervisez les trajets, réservations et agences du réseau.',
+    'studio.overview': "Vue d'ensemble",
+    'studio.adminLoginTitle': 'Gestion centralisée du transport',
+    'studio.adminLoginLead': 'Accédez au pilotage des trajets interurbains et au suivi en temps réel.',
+    'studio.adminLoginNote': "Réseau d'agences connecté à travers toute la Belgique.",
+    'studio.travellerEyebrow': 'Covoiturage interurbain',
+    'studio.travellerTitle': 'Partagez la route en toute confiance',
+    'studio.travellerLead': "Voyagez confortablement entre villes avec un chauffeur vérifié et jusqu'à 4 passagers.",
+    'studio.travellerNote': '25 € par personne · Paiement sécurisé',
+    'studio.yourSpace': 'Votre espace personnel',
+    'studio.hello': 'Bonjour, {name}',
+    'studio.whereNext': 'Où souhaitez-vous aller ?',
+    'studio.profileLead': 'Recherchez un trajet disponible ou proposez votre propre itinéraire.',
+    'studio.upcoming': 'À venir',
+    'studio.history': 'Historique',
+    'studio.paid': 'Paiements validés',
+    'studio.nextStep': 'Que souhaitez-vous faire ?',
+    'studio.propose': 'Proposer un trajet',
+    'studio.personal': 'Informations du compte',
   },
   en: {
     'seo.description': 'Carpooling between Belgian cities: an identified driver, up to four passengers and €25 per person. Simulated payments in this academic version.',
@@ -1092,8 +1142,12 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'carousel.controls': 'Carousel controls',
     'carousel.pagination': 'Choose a photograph',
     'carousel.goTo': 'Show photograph {current} of {total}',
-    'carousel.subtitle': 'Discover a new way to travel between Belgian cities.',
+    'carousel.subtitle': 'Travel between Belgian cities with private or public ridesharing. Find a seat or share your ride.',
     'carousel.discover': 'See how it works',
+    'carousel.propose': 'Offer a ride',
+    'carousel.generated': 'Generated visual',
+    'carousel.suvAlt': 'Grey SUV on a road lined with fir trees',
+    'carousel.electricAlt': 'Ice-blue electric car on a coastal road',
     'carousel.illustration': 'Illustrative photos · not the actual fleet',
     'carousel.roadAlt': 'Compact saloon on a country road',
     'carousel.familyAlt': 'Family beside a compact car during a journey',
@@ -1160,7 +1214,7 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'transport.reserve': 'Book',
     'transport.eyebrow': 'RIDESHARING, THE BELGIAN WAY',
     'transport.together': 'Travel together,',
-    'transport.simply': 'simply.',
+    'transport.simply': 'a new way.',
     'transport.lead':
       'Find your next shared ride between Brussels and Belgian cities in just a few clicks.',
     'transport.driverKnown': 'An identified driver',
@@ -1613,9 +1667,30 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'voyageur.reservations.passagerAddError': 'Unable to add passenger.',
     'voyageur.reservations.passagerRemoved': 'Passenger removed from trip.',
     'voyageur.reservations.passagerRemoveError': 'Unable to remove passenger.',
-    'voyageur.reservations.paymentSuccess': 'Payment completed successfully.',
+    'voyageur.reservations.paymentSuccess': 'Payment validated: your booking is confirmed.',
     'voyageur.reservations.paymentError': 'Unable to process payment.',
     'voyageur.reservations.reservationCanceled': 'Reservation canceled.',
     'voyageur.reservations.reservationCancelError': 'Unable to cancel reservation.',
+    'studio.adminEyebrow': 'Administration workspace',
+    'studio.adminTitle': 'Network dashboard',
+    'studio.adminLead': 'Oversee network trips, bookings, and agencies.',
+    'studio.overview': 'Overview',
+    'studio.adminLoginTitle': 'Centralized transport management',
+    'studio.adminLoginLead': 'Access intercity trip monitoring and real-time operations.',
+    'studio.adminLoginNote': 'Agency network connected across Belgium.',
+    'studio.travellerEyebrow': 'Intercity carpooling',
+    'studio.travellerTitle': 'Hit the road with confidence',
+    'studio.travellerLead': 'Travel comfortably between cities with an identified driver and up to 4 passengers.',
+    'studio.travellerNote': '€25 per person · Secure payment',
+    'studio.yourSpace': 'Your personal space',
+    'studio.hello': 'Hello, {name}',
+    'studio.whereNext': 'Where to next?',
+    'studio.profileLead': 'Search for an available ride or offer your own trip.',
+    'studio.upcoming': 'Upcoming',
+    'studio.history': 'History',
+    'studio.paid': 'Validated payments',
+    'studio.nextStep': 'What would you like to do?',
+    'studio.propose': 'Offer a ride',
+    'studio.personal': 'Account details',
   },
 };

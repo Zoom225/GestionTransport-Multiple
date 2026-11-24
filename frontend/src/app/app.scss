@@ -3,6 +3,37 @@ app-root {
   flex-direction: column;
   min-height: 100dvh;
 }
+.admin-workspace {
+  background: var(--color-surface);
+}
+.traveller-workspace {
+  background: var(--color-surface);
+}
+.admin-workspace .admin-navigation {
+  background: var(--color-primary);
+  border-radius: 20px;
+  padding: 1.25rem 1rem;
+  box-shadow: none;
+}
+.admin-workspace .admin-navigation strong {
+  padding: .5rem .5rem 1.25rem;
+  color: var(--color-surface);
+  font-size: .75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.admin-workspace .admin-navigation a {
+  border-color: transparent;
+  color: var(--color-surface);
+  font-size: .85rem;
+  border-radius: 10px;
+  padding: .85rem 1rem;
+}
+.admin-workspace .admin-navigation a:hover { background: var(--ui-primary-strong); color: var(--color-surface); }
+.admin-workspace .admin-navigation .selected { background: var(--ui-primary-soft); color: var(--color-primary); font-weight: 700; }
+.admin-navigation :focus-visible { outline-color: var(--ui-hero-accent); }
+.admin-workspace .journey-banner { box-shadow: none; }
 .journey-banner {
   width: min(1220px, calc(100% - 2rem));
   margin: 1.5rem auto 0;
@@ -85,13 +116,13 @@ app-root {
   position: sticky;
   top: 0;
   z-index: 30;
-  background: var(--ui-surface);
+  background: var(--color-surface);
   border-bottom: 1px solid var(--ui-border);
 }
 .app-header-inner {
-  max-width: 1440px;
+  max-width: 1392px;
   margin: auto;
-  padding: 0.9rem 1.5rem;
+  padding: .75rem var(--space-gutter);
   display: flex;
   align-items: center;
   gap: 1.5rem;
@@ -111,8 +142,8 @@ app-root {
   width: 38px;
   height: 38px;
   border-radius: 12px;
-  color: var(--ui-surface);
-  background: var(--ui-primary);
+  color: var(--color-accent);
+  background: var(--color-primary);
   flex-shrink: 0;
   font-size: 1.4rem;
   font-weight: 700;
@@ -146,6 +177,7 @@ app-root {
   border: 1px solid transparent;
   background: transparent;
   white-space: nowrap;
+  transition: background var(--ui-motion), color var(--ui-motion), border-color var(--ui-motion);
 }
 .nav-link:hover,
 .nav-active {
@@ -153,13 +185,15 @@ app-root {
   color: var(--ui-primary-strong);
 }
 .nav-btn-outline {
-  border-color: var(--ui-border);
+  border-color: var(--color-focus);
   color: var(--ui-navy);
 }
+.nav-btn-outline:hover { background: var(--ui-primary-soft); }
 .nav-btn-create {
-  background: var(--ui-primary);
-  color: var(--ui-surface);
+  background: var(--color-accent);
+  color: var(--color-primary);
 }
+.nav-btn-create:hover { background: var(--color-accent-hover); }
 .nav-btn-logout {
   color: var(--ui-danger);
   cursor: pointer;
@@ -191,14 +225,15 @@ app-root {
   min-width: 0;
 }
 .app-footer {
-  background: var(--ui-surface);
-  border-top: 1px solid var(--ui-border);
-  margin-top: 2rem;
+  background: var(--color-primary);
+  border-top: 3px solid var(--color-accent);
+  margin-top: var(--ui-space-section);
 }
+.app-footer :focus-visible { outline-color: var(--ui-hero-accent); }
 .footer-inner {
-  max-width: 1280px;
+  max-width: 1392px;
   margin: auto;
-  padding: 2rem 1.5rem;
+  padding: clamp(1.8rem, 4vw, 3.2rem) var(--space-gutter);
   display: flex;
   gap: 1.5rem;
   align-items: center;
@@ -207,13 +242,13 @@ app-root {
 }
 .footer-inner strong {
   display: block;
-  color: var(--ui-navy);
+  color: var(--color-surface);
   font-weight: 750;
 }
 .footer-inner p,
 .footer-inner a {
   font-size: 0.82rem;
-  color: var(--ui-text-secondary);
+  color: var(--color-surface);
   margin: 0.3rem 0 0;
 }
 .footer-links {
@@ -221,6 +256,7 @@ app-root {
   flex-wrap: wrap;
   gap: 1.25rem;
 }
+.footer-links a:hover { color: var(--ui-hero-accent); }
 @media (max-width: 1240px) {
   .app-header-inner {
     gap: 0.75rem;
@@ -238,6 +274,9 @@ app-root {
     order: 4;
     padding-top: 0.75rem;
     border-top: 1px solid var(--ui-border);
+    max-height: min(65dvh, 36rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
   .app-nav.open {
     display: flex;
@@ -245,22 +284,23 @@ app-root {
 }
 @media (max-width: 600px) {
   .app-header-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     padding: 0.75rem 1rem;
     gap: 0.6rem;
   }
   .app-logo-text {
     font-size: 0.82rem;
     max-width: 20ch;
+    overflow-wrap: anywhere;
   }
   .app-logo-badge {
     width: 32px;
     height: 32px;
     border-radius: 10px;
   }
-  .app-lang-switcher {
-    flex-basis: 100%;
-  }
   .app-nav {
+    grid-column: 1 / -1;
     flex-direction: column;
     align-items: stretch;
   }
@@ -278,4 +318,7 @@ app-root {
     align-items: flex-start;
     flex-direction: column;
   }
+}
+@media (max-width: 365px) {
+  .app-logo-suffix { display: none; }
 }

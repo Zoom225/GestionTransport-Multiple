@@ -50,4 +50,8 @@ export class TrajetsApiService {
   convertToPublic(id: number): Observable<void> {
     return this.http.patch<void>(apiUrl(`/trajets/${id}/convert-public`), {});
   }
+
+  payerPenalite(id: number): Observable<void> {
+    return this.http.post<void>(apiUrl(`/trajets/${id}/penalite/pay`), {});
+  }
 }

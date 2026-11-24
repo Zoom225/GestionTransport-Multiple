@@ -1,75 +1,196 @@
 import { DOCUMENT } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, effect, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { LanguageService } from '../../core/i18n/language.service';
 
 @Component({
   selector: 'app-car-hero-carousel',
   standalone: true,
+  imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [`
 :host { display: block; }
-.car-hero { position: relative; isolation: isolate; background: var(--ui-navy); color: var(--ui-surface); min-height: 660px; overflow: clip; }
-.carousel-photo, .hero-shade, .carousel-photos { position: absolute; inset: 0; }
-.carousel-photo { opacity: 0; transition: opacity 850ms ease; pointer-events: none; }
+.car-hero {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  isolation: isolate;
+  background: var(--color-primary);
+  color: var(--color-surface);
+  min-height: clamp(39rem, 75svh, 49rem);
+  overflow: clip;
+  touch-action: pan-y pinch-zoom;
+}
+.carousel-photo, .hero-shade, .carousel-photos { position: absolute; inset: 0; pointer-events: none; }
+.carousel-photo {
+  opacity: 0;
+  transition: opacity 650ms cubic-bezier(.22, .61, .36, 1);
+}
 .carousel-photo.active { opacity: 1; }
 .carousel-photo picture, .carousel-photo img { display: block; width: 100%; height: 100%; }
-.carousel-photo img { object-fit: cover; object-position: center; }
-.hero-shade { background: linear-gradient(90deg, rgb(11 31 51 / 96%) 0%, rgb(11 31 51 / 88%) 36%, rgb(11 31 51 / 32%) 73%, rgb(11 31 51 / 12%)), linear-gradient(0deg, rgb(11 31 51 / 88%), transparent 45%); }
-.hero-inner, .hero-footer { position: relative; width: min(1200px, calc(100% - 3rem)); margin-inline: auto; }
-.hero-inner { padding: 5rem 0 13rem; }
-.hero-copy { max-width: 650px; }
-.hero-eyebrow { display: flex; gap: .65rem; align-items: center; color: var(--ui-hero-accent); text-transform: uppercase; letter-spacing: .15em; font-size: .8rem; font-weight: 700; margin: 0 0 1.5rem; }
-.hero-eyebrow > span { width: 8px; height: 8px; border-radius: 50%; background: var(--ui-warm); }
-h1 { font-size: clamp(2.75rem, 4.5vw, 3.75rem); font-weight: 800; line-height: 1.1; letter-spacing: -.045em; color: var(--ui-surface); margin: 0; }
-h1 em { font-style: normal; color: var(--ui-hero-accent); }
-.hero-lead { font-size: clamp(1rem, 1.5vw, 1.15rem); max-width: 440px; line-height: 1.8; color: var(--ui-surface); margin: 1.5rem 0 2rem; }
-.hero-actions, .hero-trust { display: flex; flex-wrap: wrap; gap: .85rem; }
-.hero-actions a { display: inline-flex; min-height: 50px; align-items: center; justify-content: center; gap: 1rem; padding: .85rem 1.3rem; border-radius: var(--ui-radius-button); font-weight: 700; font-size: .95rem; text-decoration: none; transition: background var(--ui-motion), box-shadow var(--ui-motion), transform var(--ui-motion); }
-.hero-primary { color: var(--ui-surface); background: var(--ui-primary); border: 1px solid var(--ui-primary); box-shadow: 0 8px 24px rgb(0 0 0 / 18%); }
-.hero-primary:hover { background: var(--ui-primary-strong); transform: translateY(-2px); }
-.hero-secondary { color: var(--ui-surface); border: 1px solid rgb(255 255 255 / 55%); background: rgb(11 31 51 / 65%); }
-.hero-secondary:hover { background: var(--ui-navy); border-color: var(--ui-surface); }
-.hero-trust { margin-top: 2rem; font-size: .85rem; gap: .65rem 1.4rem; color: var(--ui-surface); }
-.hero-footer { position: absolute; inset-inline: 0; bottom: 5rem; display: flex; align-items: end; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
-.photo-credit { margin: 0; display: grid; gap: .25rem; font-size: .75rem; line-height: 1.7; color: var(--ui-surface); }
-.photo-credit > span { color: var(--ui-hero-accent); font-weight: 650; }
-.photo-credit a { color: var(--ui-surface); text-decoration-color: rgb(255 255 255 / 50%); }
+.carousel-photo img { object-fit: cover; object-position: 64% 55%; }
+.hero-shade {
+  background:
+    linear-gradient(90deg, var(--color-primary), rgb(16 36 58 / 96%) 20%, rgb(16 36 58 / 71%) 43%, rgb(16 36 58 / 7%) 74%),
+    linear-gradient(0deg, rgb(16 36 58 / 96%), transparent 38%);
+}
+.hero-progress-track {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  z-index: 1;
+  background: rgb(245 247 250 / 14%);
+  overflow: hidden;
+}
+.hero-progress-bar {
+  height: 100%;
+  background: var(--color-accent);
+  transform-origin: left;
+  animation: progressTick var(--carousel-period) linear infinite;
+}
+.hero-progress-track.paused .hero-progress-bar { animation: none; transform: scaleX(0); }
+@keyframes progressTick { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.hero-inner, .hero-footer {
+  position: relative;
+  width: min(1312px, calc(100% - var(--space-gutter) * 2));
+  margin-inline: auto;
+}
+.hero-inner {
+  display: flex;
+  align-items: center;
+  padding-block: clamp(3rem, 9vw, 7.5rem) 2.5rem;
+}
+.hero-copy { max-width: 805px; }
+.hero-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  color: var(--ui-hero-accent);
+  text-transform: uppercase;
+  letter-spacing: .17em;
+  font-size: .74rem;
+  font-weight: 750;
+  margin: 0 0 1.35rem;
+}
+.hero-eyebrow::before { content: ''; width: 1.7rem; height: 2px; background: var(--color-accent); }
+h1 {
+  font-size: clamp(3rem, 5.55vw, 6.15rem);
+  font-weight: 770;
+  line-height: .99;
+  letter-spacing: -.07em;
+  margin: 0;
+  text-wrap: initial;
+}
+h1 em { display: block; font-style: normal; color: var(--ui-hero-accent); }
+.hero-lead {
+  font-size: clamp(1rem, 1.45vw, 1.19rem);
+  max-width: 40ch;
+  line-height: 1.6;
+  color: var(--color-surface);
+  margin: 1.45rem 0 1.85rem;
+}
+.hero-actions, .hero-trust { display: flex; flex-wrap: wrap; gap: .7rem; }
+.hero-actions a {
+  display: inline-flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;
+  padding: .7rem 1.2rem;
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-button);
+  font-weight: 750;
+  text-decoration: none;
+  transition: background var(--ui-motion), box-shadow var(--ui-motion), transform var(--ui-motion);
+}
+.hero-primary { color: var(--color-primary); background: var(--color-accent); box-shadow: var(--ui-shadow-action); }
+.hero-actions .hero-secondary { color: var(--color-surface); border-color: rgb(245 247 250 / 58%); background: rgb(16 36 58 / 36%); }
+.hero-trust {
+  margin: 1.55rem 0 0;
+  padding: 0;
+  gap: .5rem 1.1rem;
+  font-size: .8rem;
+  color: var(--color-surface);
+}
+.hero-trust span { display: inline-flex; gap: .35rem; align-items: center; }
+.hero-trust b { color: var(--ui-hero-accent); }
+.hero-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .7rem 1rem;
+  flex-wrap: wrap;
+  padding-bottom: 4.35rem;
+}
+.photo-credit { display: grid; gap: .12rem; font-size: .72rem; margin: 0; color: var(--color-surface); }
+.photo-credit a { color: inherit; text-decoration-color: rgb(245 247 250 / 55%); }
 .carousel-controls, .carousel-arrows, .carousel-dots { display: flex; align-items: center; }
-.carousel-controls { flex-wrap: wrap; gap: .75rem; }
-.carousel-arrows { gap: .3rem; }
-.carousel-controls button { display: grid; place-items: center; width: 44px; min-width: 44px; height: 44px; padding: 0; border-radius: 50%; cursor: pointer; color: var(--ui-surface); border: 1px solid rgb(255 255 255 / 45%); background: rgb(11 31 51 / 85%); transition: background var(--ui-motion), border-color var(--ui-motion); }
-.carousel-controls button:hover:not(:disabled) { border-color: var(--ui-surface); background: var(--ui-primary-strong); }
+.carousel-controls { flex-wrap: wrap; gap: .3rem .75rem; }
+.carousel-arrows { gap: .35rem; }
+.carousel-controls button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  color: var(--color-surface);
+  border: 1px solid rgb(245 247 250 / 54%);
+  background: rgb(16 36 58 / 78%);
+  cursor: pointer;
+  transition: background var(--ui-motion), border-color var(--ui-motion), transform var(--ui-motion);
+}
 .carousel-controls button:disabled { cursor: not-allowed; opacity: .65; }
 .carousel-dots button { background: transparent; border-color: transparent; border-radius: 10px; }
-.carousel-dots span { width: 7px; height: 7px; border-radius: 9px; background: var(--ui-surface); transition: width var(--ui-motion), background var(--ui-motion); }
-.carousel-dots [aria-current=true] span { width: 22px; background: var(--ui-hero-accent); }
-.car-hero :focus-visible { outline-color: var(--ui-hero-accent); outline-offset: 4px; }
+.carousel-dots span { width: 8px; height: 8px; border-radius: 9px; background: var(--color-surface); transition: width var(--ui-motion), background var(--ui-motion); }
+.carousel-dots [aria-current=true] span { width: 24px; background: var(--color-accent); }
+.car-hero :focus-visible { outline-color: var(--ui-hero-accent); outline-offset: 3px; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-@media(max-width: 700px) {
-  .hero-inner, .hero-footer { width: calc(100% - 2rem); }
-  .hero-inner { padding: 3rem 0 16rem; }
-  .car-hero { min-height: 720px; }
-  h1 { font-size: clamp(2.3rem, 8.5vw, 3.2rem); }
-  .hero-copy { max-width: 540px; }
-  .hero-shade { background: linear-gradient(180deg, rgb(11 31 51 / 95%), rgb(11 31 51 / 83%) 44%, rgb(11 31 51 / 48%) 73%, rgb(11 31 51 / 93%)); }
-  .hero-lead { max-width: 35ch; }
-  .hero-footer { bottom: 4.5rem; align-items: start; flex-direction: column; gap: .75rem; }
-  .hero-trust { gap: .5rem 1rem; font-size: .8rem; }
+@media (hover: hover) {
+  .hero-primary:hover { background: var(--color-accent-hover); }
+  .hero-secondary:hover, .carousel-controls button:hover:not(:disabled) { background: var(--ui-primary-strong); border-color: var(--color-surface); }
+  .hero-actions a:hover { transform: translateY(-2px); }
 }
-@media(max-width: 360px) {
-  .hero-inner { padding-bottom: 20rem; }
-  .hero-eyebrow { font-size: .72rem; letter-spacing: .08em; }
-  .hero-actions a { width: 100%; }
+.hero-actions a:active { transform: translateY(0); }
+@media (prefers-reduced-motion: no-preference) {
+  .hero-copy { animation: hero-enter 480ms var(--ease-ui) both; }
 }
-@media(prefers-reduced-motion: reduce) {
-  .carousel-photo, .hero-actions a, .carousel-controls button, .carousel-dots span { transition: none; transform: none; }
+@keyframes hero-enter { from { opacity: .84; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 720px) {
+  .car-hero { min-height: auto; }
+  .hero-inner { padding-block: 2.9rem clamp(11rem, 41vw, 17rem); align-items: start; }
+  .carousel-photos { inset: auto 0 5.8rem; height: min(64%, 27rem); }
+  .carousel-photo img { object-position: center 57%; }
+  .hero-shade { background: linear-gradient(180deg, var(--color-primary) 31%, rgb(16 36 58 / 84%) 47%, transparent 68%, var(--color-primary) 91%); }
+  h1 { font-size: clamp(2.63rem, 10vw, 4.3rem); }
+  .hero-eyebrow { margin-bottom: .95rem; font-size: .68rem; letter-spacing: .12em; }
+  .hero-lead { margin: 1rem 0 1.2rem; max-width: 36ch; }
+  .hero-actions { max-width: 29rem; }
+  .hero-actions a { flex: 1 0 min(100%, 14rem); }
+  .hero-trust { margin-top: 1rem; text-shadow: 0 1px 4px var(--color-primary); }
+  .hero-footer { padding-bottom: 2.65rem; }
 }
-
+@media (max-width: 365px) {
+  .carousel-controls { justify-content: space-between; width: 100%; gap: .15rem; }
+  .carousel-arrows { gap: .15rem; }
+  .carousel-dots button { width: 36px; min-width: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-actions a:hover { transform: none; }
+  .hero-progress-bar { animation: none; transform: scaleX(0); }
+}
   `],
   template: `
     <section class="car-hero" role="region" [attr.aria-label]="language.t('carousel.label')"
       [attr.aria-roledescription]="language.t('carousel.description')"
-      (pointerenter)="pause()" (focusin)="pause()" (keydown)="onKey($event)">
+      [style.--carousel-period]="rotationMs + 'ms'"
+      (pointerenter)="onHover($event)" (pointerleave)="hovered.set(false)"
+      (pointerdown)="beginSwipe($event)" (pointerup)="endSwipe($event)" (pointercancel)="cancelSwipe()"
+      (focusin)="onFocus($event)" (keydown)="onKey($event)">
+      <div class="hero-progress-track" [class.paused]="!canRotate()" aria-hidden="true">
+        <div class="hero-progress-bar"></div>
+      </div>
       <div class="carousel-photos" aria-live="off">
         @for (slide of slides; track slide.name; let i = $index) {
           @if (prepared().has(i)) {
@@ -93,31 +214,35 @@ h1 em { font-style: normal; color: var(--ui-hero-accent); }
       <div class="hero-shade" aria-hidden="true"></div>
       <div class="hero-inner">
         <div class="hero-copy">
-          <p class="hero-eyebrow"><span aria-hidden="true"></span>{{ language.t('transport.eyebrow') }}</p>
+          <p class="hero-eyebrow">{{ language.t('transport.eyebrow') }}</p>
           <h1>{{ language.t('transport.together') }} <em>{{ language.t('transport.simply') }}</em></h1>
           <p class="hero-lead">{{ language.t('carousel.subtitle') }}</p>
           <div class="hero-actions">
-            <a href="#recherche" class="hero-primary">{{ language.t('transport.search') }} <span aria-hidden="true">↗</span></a>
-            <a href="#fonctionnement" class="hero-secondary">{{ language.t('carousel.discover') }}</a>
+            <a href="#recherche" class="hero-primary">{{ language.t('transport.search') }} <span aria-hidden="true">↓</span></a>
+            <a routerLink="/voyageur/trajets/new" class="hero-secondary">{{ language.t('carousel.propose') }} <span aria-hidden="true">↗</span></a>
           </div>
           <div class="hero-trust">
-            <span>✓ {{ language.t('transport.driverKnown') }}</span>
-            <span>✓ {{ language.t('transport.maximum') }}</span>
-            <span>✓ {{ language.t('transport.price') }}</span>
+            <span><b aria-hidden="true">✓</b> {{ language.t('transport.driverKnown') }}</span>
+            <span><b aria-hidden="true">✓</b> {{ language.t('transport.maximum') }}</span>
+            <span><b aria-hidden="true">✓</b> {{ language.t('transport.price') }}</span>
           </div>
         </div>
       </div>
       <div class="hero-footer">
         <p class="photo-credit">
           <span>{{ language.t('carousel.illustration') }}</span>
-          <a [href]="slides[current()].url" target="_blank" rel="noopener noreferrer">{{ slides[current()].author }} · Pexels <span aria-hidden="true">↗</span></a>
+          @if (slides[current()].url; as url) {
+            <a [href]="url" target="_blank" rel="noopener noreferrer">{{ slides[current()].author }} · Pexels <span aria-hidden="true">↗</span></a>
+          } @else {
+            <span>{{ language.t('carousel.generated') }}</span>
+          }
         </p>
         <div class="carousel-controls" role="group" [attr.aria-label]="language.t('carousel.controls')">
           <div class="carousel-arrows">
             <button type="button" class="carousel-previous" (click)="select(current() - 1)" [attr.aria-label]="language.t('carousel.previous')"><span aria-hidden="true">←</span></button>
             <button type="button" class="carousel-pause" (click)="toggleRotation()" [disabled]="reducedMotion()"
-              [attr.aria-label]="language.t(reducedMotion() ? 'carousel.motionOff' : canRotate() ? 'carousel.pause' : 'carousel.play')">
-              <span aria-hidden="true">{{ canRotate() ? 'Ⅱ' : '▶' }}</span>
+              [attr.aria-label]="language.t(reducedMotion() ? 'carousel.motionOff' : paused() ? 'carousel.play' : 'carousel.pause')">
+              <span aria-hidden="true">{{ paused() || reducedMotion() ? '▶' : 'Ⅱ' }}</span>
             </button>
             <button type="button" class="carousel-next" (click)="select(current() + 1)" [attr.aria-label]="language.t('carousel.next')"><span aria-hidden="true">→</span></button>
           </div>
@@ -133,24 +258,31 @@ h1 em { font-style: normal; color: var(--ui-hero-accent); }
     </section>
   `,
 })
-export class CarHeroCarouselComponent {
+export class CarHeroCarouselComponent implements AfterViewInit {
   readonly language = inject(LanguageService);
   private readonly document = inject(DOCUMENT);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private swipeStart?: { pointerId: number; x: number; y: number };
+  readonly rotationMs = 3500;
   readonly slides = [
+    {name:'suv', alt:'carousel.suvAlt', author:'', url:null},
+    {name:'electrique', alt:'carousel.electricAlt', author:'', url:null},
     {name:'route', alt:'carousel.roadAlt', author:'Kelvin Linhares', url:'https://www.pexels.com/photo/sleek-silver-car-on-scenic-country-road-28502253/'},
     {name:'famille', alt:'carousel.familyAlt', author:'Mikhail Nilov', url:'https://www.pexels.com/photo/a-family-standing-near-parked-car-while-looking-at-the-camera-8323226/'},
-    {name:'partage', alt:'carousel.sharedAlt', author:'Clément Proust', url:'https://www.pexels.com/photo/people-traveling-on-a-road-18378381/'},
-    {name:'bruxelles', alt:'carousel.brusselsAlt', author:'Hakan Yasar', url:'https://www.pexels.com/photo/cars-parked-along-street-14599371/'},
   ] as const;
   readonly current = signal(0);
   readonly paused = signal(false);
+  readonly hovered = signal(false);
+  readonly inViewport = signal(true);
   readonly hidden = signal(this.document.hidden);
   readonly reducedMotion = signal(false);
   readonly prepared = signal<ReadonlySet<number>>(new Set([0]));
   readonly failed = signal<ReadonlySet<number>>(new Set());
   readonly announcement = signal('');
-  readonly canRotate = computed(() => !this.paused() && !this.hidden() && !this.reducedMotion());
+  readonly canRotate = computed(() =>
+    !this.paused() && !this.hovered() && this.inViewport() && !this.hidden() && !this.reducedMotion(),
+  );
 
   constructor() {
     const motion = typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
@@ -165,19 +297,57 @@ export class CarHeroCarouselComponent {
     });
     effect((onCleanup) => {
       if (!this.canRotate()) return;
-      const timer = window.setInterval(() => this.advance(this.current() + 1), 6000);
+      const timer = window.setInterval(() => this.advance(this.current() + 1), this.rotationMs);
       onCleanup(() => window.clearInterval(timer));
     });
   }
 
+  ngAfterViewInit(): void {
+    if (typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(([entry]) => {
+      this.inViewport.set(entry.isIntersecting && entry.intersectionRatio >= .25);
+    }, { threshold: .25 });
+    observer.observe(this.host.nativeElement);
+    this.destroyRef.onDestroy(() => observer.disconnect());
+  }
+
   imageSet(name: string): string {
-    return [640,1024,1920].map(width => `images/car-${name}-${width}.webp ${width}w`).join(', ');
+    const widths = name === 'suv' || name === 'electrique' ? [640, 1024, 1536] : [640, 1024, 1920];
+    return widths.map(width => `images/car-${name}-${width}.webp ${width}w`).join(', ');
   }
 
   pause(): void { this.paused.set(true); }
 
+  onHover(event: PointerEvent): void {
+    if (event.pointerType !== 'touch') this.hovered.set(true);
+  }
+
+  onFocus(event: FocusEvent): void {
+    if (!(event.relatedTarget instanceof Node) || !this.host.nativeElement.contains(event.relatedTarget)) {
+      this.pause();
+    }
+  }
+
+  beginSwipe(event: PointerEvent): void {
+    if (event.pointerType !== 'touch' || (event.target instanceof Element && event.target.closest('button, a'))) return;
+    this.swipeStart = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+  }
+
+  cancelSwipe(): void { this.swipeStart = undefined; }
+
+  endSwipe(event: PointerEvent): void {
+    const start = this.swipeStart;
+    this.cancelSwipe();
+    if (!start || start.pointerId !== event.pointerId) return;
+    const horizontal = event.clientX - start.x;
+    const vertical = event.clientY - start.y;
+    if (Math.abs(horizontal) >= 50 && Math.abs(horizontal) > Math.abs(vertical) * 1.35) {
+      this.select(this.current() + (horizontal < 0 ? 1 : -1));
+    }
+  }
+
   toggleRotation(): void {
-    if (!this.reducedMotion()) this.paused.set(this.canRotate());
+    if (!this.reducedMotion()) this.paused.update(paused => !paused);
   }
 
   select(index: number): void {

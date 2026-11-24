@@ -20,8 +20,9 @@ import { RevealOnScrollDirective } from '../directives/reveal-on-scroll.directiv
         >
       </div>
       <h3>
-        {{ nomVille(trajet.villeDepart) }} <span aria-label="vers">→</span>
-        {{ nomVille(trajet.villeArrivee) }}
+        <span class="trip-city">{{ nomVille(trajet.villeDepart) }}</span>
+        <span class="trip-direction" aria-label="vers">→</span>
+        <span class="trip-city">{{ nomVille(trajet.villeArrivee) }}</span>
       </h3>
       <p class="driver">
         {{ language.t('transport.driver') }} ·
@@ -64,23 +65,25 @@ import { RevealOnScrollDirective } from '../directives/reveal-on-scroll.directiv
         display: flex;
         flex-direction: column;
         height: 100%;
-        padding: 1.5rem;
+        padding: var(--trip-padding);
+        --trip-padding: clamp(1rem, 2vw, 1.45rem);
         background: var(--ui-surface);
         border: 1px solid var(--ui-border);
         border-radius: var(--ui-radius);
         box-shadow: var(--ui-shadow);
-        transition:
-          box-shadow 0.2s,
-          border-color 0.2s;
+        transition: box-shadow var(--ui-motion), border-color var(--ui-motion), transform var(--ui-motion);
       }
-      .trip-card:hover {
+      .trip-card:focus-within {
         box-shadow: var(--ui-shadow-raised);
-        border-color: var(--ui-primary);
+        border-color: var(--color-focus);
       }
-      .trip-visual { position: relative; height: 155px; margin: -1.5rem -1.5rem 1.25rem; overflow: hidden; border-radius: var(--ui-radius) var(--ui-radius) 0 0; background: var(--ui-primary-soft); }
+      .trip-visual { position: relative; aspect-ratio: 2.4; margin: calc(-1 * var(--trip-padding)) calc(-1 * var(--trip-padding)) 1.2rem; overflow: hidden; border-radius: calc(var(--ui-radius) - 1px) calc(var(--ui-radius) - 1px) 0 0; background: var(--ui-primary-soft); }
       .trip-visual img { width: 100%; height: 100%; object-fit: cover; }
-      .trip-visual span { position: absolute; bottom: .5rem; inset-inline: .5rem; border-radius: 6px; padding: .2rem .4rem; background: rgb(11 31 51 / 90%); color: var(--ui-surface); font-size: .65rem; }
-      @media(hover: hover) and (prefers-reduced-motion: no-preference) { .trip-card:hover { transform: translateY(-3px); } }
+      .trip-visual span { position: absolute; bottom: .55rem; inset-inline-start: .55rem; max-width: calc(100% - 1.1rem); border-radius: 6px; padding: .2rem .5rem; background: rgb(16 36 58 / 90%); color: var(--color-surface); font-size: .68rem; }
+      @media (hover: hover) {
+        .trip-card:hover { transform: translateY(-3px); border-color: var(--color-accent); box-shadow: var(--ui-shadow-raised); }
+      }
+      @media (prefers-reduced-motion: reduce) { .trip-card:hover { transform: none; } }
       .trip-top,
       .trip-bottom,
       .actions {
@@ -98,19 +101,23 @@ import { RevealOnScrollDirective } from '../directives/reveal-on-scroll.directiv
         padding: 0.25rem 0.6rem;
         font-size: 0.7rem;
         font-weight: 750;
-        border-radius: 7px;
+        border-radius: 999px;
         background: var(--ui-primary-soft);
         color: var(--ui-primary-strong);
       }
       h3 {
         font-size: clamp(1.125rem, 1.8vw, 1.375rem);
         color: var(--ui-navy);
-        margin: 1.5rem 0 1.25rem;
+        margin: 1.1rem 0 .65rem;
         line-height: 1.4;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: .35rem;
+        text-wrap: wrap;
       }
-      h3 span {
+      .trip-direction {
         color: var(--ui-teal-strong);
-        padding-inline: 0.2rem;
       }
       p {
         font-size: 0.85rem;
@@ -123,7 +130,7 @@ import { RevealOnScrollDirective } from '../directives/reveal-on-scroll.directiv
       }
       .trip-bottom {
         border-top: 1px solid var(--ui-border);
-        margin-top: 1.5rem;
+        margin-top: 1.2rem;
         padding-top: 1.25rem;
         font-size: 0.8rem;
       }
@@ -131,6 +138,7 @@ import { RevealOnScrollDirective } from '../directives/reveal-on-scroll.directiv
         color: var(--ui-navy);
         font-size: 1.65rem;
         font-weight: 750;
+        font-variant-numeric: tabular-nums;
       }
       .trip-bottom small {
         display: block;

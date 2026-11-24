@@ -21,9 +21,9 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
     <a class="skip-link" href="#main-content">{{ language.t('ui.skip') }}</a>
     <header class="app-header" (keydown.escape)="menuOuvert.set(false); menuButton.focus()">
       <div class="app-header-inner">
-        <a routerLink="/" class="app-logo">
-          <span class="app-logo-badge" aria-hidden="true">↗</span>
-          <span class="app-logo-text">GestionTransport-Multiple</span>
+        <a routerLink="/" class="app-logo" aria-label="GestionTransport-Multiple">
+          <span class="app-logo-badge" aria-hidden="true"><svg class="ui-icon"><use href="images/ui-icons.svg#car" /></svg></span>
+          <span class="app-logo-text">Gestion<wbr />Transport<span class="app-logo-suffix">-Multiple</span></span>
         </a>
 
         <button
@@ -175,7 +175,7 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
         <img src="images/car-bruxelles-640.webp" width="640" height="360" alt="" aria-hidden="true" loading="lazy" decoding="async" />
       </section>
     }
-    <main id="main-content" tabindex="-1" class="app-main-shell">
+    <main id="main-content" tabindex="-1" class="app-main-shell" [class.admin-workspace]="adminSession.isAuthenticated() && router.url.startsWith('/admin')" [class.traveller-workspace]="router.url.startsWith('/voyageur')">
       @if (adminSession.isAuthenticated() && router.url.startsWith('/admin') && !router.url.startsWith('/admin/login')) {
         <aside class="admin-navigation" [attr.aria-label]="language.t('premium.adminAccess')">
           <strong>{{ language.t(adminSession.isGlobalAdmin() ? 'premium.global' : 'premium.local') }}</strong>
@@ -198,19 +198,22 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
           <strong>GestionTransport-Multiple</strong>
           <p>{{ language.t('ui.footerTagline') }}</p>
         </div>
-        <div class="footer-links">
-          <a routerLink="/">{{ navText().home }}</a><a routerLink="/voyageur">{{
-            language.t('transport.myArea')
-          }}</a
-          ><a routerLink="/admin/login">{{ language.t('transport.admin') }}</a>
-        </div>
+        <nav class="footer-links" [attr.aria-label]="language.t('ui.mainNav')">
+          <a routerLink="/" fragment="trajets">{{ language.t('transport.search') }}</a>
+          <a routerLink="/" fragment="fonctionnement">{{ language.t('carousel.discover') }}</a>
+          <a routerLink="/voyageur">{{ language.t('transport.myArea') }}</a>
+          <a routerLink="/admin/login">{{ language.t('transport.admin') }}</a>
+        </nav>
       </div>
     </footer>
   `,
 })
 export class App {
   readonly adminMenuOpen = signal(false);
-  get showJourneyBanner(): boolean { return this.router.url.split(/[?#]/)[0] !== '/'; }
+  get showJourneyBanner(): boolean {
+    const path = this.router.url.split(/[?#]/)[0];
+    return !['/', '/admin', '/admin/login', '/voyageur', '/voyageur/profile'].includes(path);
+  }
   readonly menuOuvert = signal(false);
   readonly adminSession = inject(AdminSessionService);
   readonly voyageurSession = inject(VoyageurSessionService);

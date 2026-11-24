@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CarHeroCarouselComponent } from './car-hero-carousel.component';
 import { LanguageService } from '../../core/i18n/language.service';
@@ -12,7 +13,7 @@ describe('CarHeroCarouselComponent', () => {
     Object.defineProperty(document,'hidden',{configurable:true,value:false});
     motion={matches:false,addEventListener:vi.fn(),removeEventListener:vi.fn()};
     vi.stubGlobal('matchMedia',vi.fn(()=>motion));
-    await TestBed.configureTestingModule({imports:[CarHeroCarouselComponent]}).compileComponents();
+    await TestBed.configureTestingModule({imports:[CarHeroCarouselComponent],providers:[provideRouter([])]}).compileComponents();
     vi.useFakeTimers();
   });
 
@@ -25,16 +26,16 @@ describe('CarHeroCarouselComponent', () => {
     fixture=TestBed.createComponent(CarHeroCarouselComponent); fixture.detectChanges();
     return fixture.componentInstance;
   }
-  function advance(ms=6000): void { vi.advanceTimersByTime(ms); fixture.detectChanges(); }
+  function advance(ms=3500): void { vi.advanceTimersByTime(ms); fixture.detectChanges(); }
   function click(selector:string): void { fixture.nativeElement.querySelector(selector).click(); fixture.detectChanges(); }
 
-  it('présente quatre photos et tourne toutes les six secondes, avec retour au début', () => {
+  it('présente quatre visuels et tourne toutes les 3,5 secondes, avec retour au début', () => {
     const component=create();
     expect(component.slides).toHaveLength(4);
     expect(component.current()).toBe(0);
-    advance(5999); expect(component.current()).toBe(0);
+    advance(3499); expect(component.current()).toBe(0);
     advance(1); expect(component.current()).toBe(1);
-    advance(18000); expect(component.current()).toBe(0);
+    advance(10500); expect(component.current()).toBe(0);
   });
 
   it('met en pause lors de la navigation manuelle et expose la pagination active', () => {
@@ -52,17 +53,53 @@ describe('CarHeroCarouselComponent', () => {
     const component=create(); click('.carousel-pause');
     advance(12000); expect(component.current()).toBe(0);
     click('.carousel-pause');
-    advance(5999); expect(component.current()).toBe(0);
+    advance(3499); expect(component.current()).toBe(0);
     advance(1); expect(component.current()).toBe(1);
   });
 
-  it('arrête la rotation à l’interaction et ne reprend que sur demande', () => {
+  it('suspend au survol puis maintient la pause lorsque le focus entre dans le carrousel', () => {
     const component=create();
-    fixture.nativeElement.querySelector('section').dispatchEvent(new Event('pointerenter'));
+    const section = fixture.nativeElement.querySelector('section');
+    section.dispatchEvent(new Event('pointerenter'));
     fixture.detectChanges(); advance(12000); expect(component.current()).toBe(0);
-    click('.carousel-pause'); advance(); expect(component.current()).toBe(1);
-    fixture.nativeElement.querySelector('section').dispatchEvent(new Event('focusin'));
+    section.dispatchEvent(new Event('pointerleave'));
+    fixture.detectChanges(); advance(); expect(component.current()).toBe(1);
+    section.dispatchEvent(new Event('focusin'));
     fixture.detectChanges(); advance(12000); expect(component.current()).toBe(1);
+    click('.carousel-pause'); advance(); expect(component.current()).toBe(2);
+  });
+
+  it('observe la visibilité du carrousel et déconnecte l’observateur à la destruction', () => {
+    let notify!: IntersectionObserverCallback;
+    const disconnect = vi.fn();
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(callback: IntersectionObserverCallback) { notify = callback; }
+      observe() {}
+      disconnect = disconnect;
+    });
+    const component = create();
+    notify([{ isIntersecting: false, intersectionRatio: 0 } as IntersectionObserverEntry], {} as IntersectionObserver);
+    fixture.detectChanges();
+    advance(7000);
+    expect(component.current()).toBe(0);
+    notify([{ isIntersecting: true, intersectionRatio: 1 } as IntersectionObserverEntry], {} as IntersectionObserver);
+    fixture.detectChanges();
+    advance();
+    expect(component.current()).toBe(1);
+    fixture.destroy();
+    expect(disconnect).toHaveBeenCalledOnce();
+  });
+
+  it('change de visuel au balayage horizontal sans intercepter le défilement vertical', () => {
+    const component = create();
+    const section = fixture.nativeElement.querySelector('section');
+    const gesture = (type: string, x: number, y: number) =>
+      section.dispatchEvent(Object.assign(new Event(type), {pointerType:'touch', pointerId:1, clientX:x, clientY:y}));
+    gesture('pointerdown', 200, 120); gesture('pointerup', 180, 30);
+    expect(component.current()).toBe(0);
+    gesture('pointerdown', 200, 120); gesture('pointerup', 100, 118);
+    expect(component.current()).toBe(1);
+    expect(component.paused()).toBe(true);
   });
 
   it('suspend la rotation pour un onglet caché sans annuler la pause utilisateur', () => {

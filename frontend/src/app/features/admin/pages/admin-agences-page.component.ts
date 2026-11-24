@@ -26,6 +26,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
     MatButtonModule,
     MatProgressSpinnerModule,
   ],
+  styleUrl: './admin-agences-page.component.scss',
   template: `
     <!-- En-tête agences -->
     <div class="adm-agence-header">
@@ -43,11 +44,92 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
       </div>
     </div>
 
-    <section class="page-shell">
+    <section class="page-shell adm-agence-layout">
+      <!-- Liste des agences -->
+      <div class="adm-agence-directory">
+        <div class="adm-agence-directory-heading">
+          <h2>{{ language.t('nav.agences') }}</h2>
+          <span class="adm-agence-count"
+            >{{ agences().length }} {{ language.t('admin.home.visible') }}</span
+          >
+        </div>
+        <div class="adm-agence-list">
+          @for (agence of agences(); track agence.id) {
+            <article class="adm-agence-card" [class.is-selected]="editingId() === agence.id">
+              <div class="adm-agence-card-header">
+                <span class="adm-agence-card-icon" aria-hidden="true"
+                  ><svg class="ui-icon"><use href="images/ui-icons.svg#agency" /></svg
+                ></span>
+                <div>
+                  <h3 class="adm-agence-card-name">{{ agence.nom }}</h3>
+                  <div class="adm-agence-card-addr">{{ agence.adresse }}</div>
+                </div>
+              </div>
+              <div class="adm-agence-info-grid">
+                <div class="adm-agence-info-item adm-agence-info-teal">
+                  <span class="adm-agence-info-label">{{ language.t('admin.agences.hours') }}</span>
+                  <span class="adm-agence-info-val"
+                    >{{ agence.heureOuverture.slice(0, 5) }} –
+                    {{ agence.heureFermeture.slice(0, 5) }}</span
+                  >
+                </div>
+                <div class="adm-agence-info-item adm-agence-info-violet">
+                  <span class="adm-agence-info-label">{{
+                    language.t('admin.agences.duration')
+                  }}</span>
+                  <span class="adm-agence-info-val">{{ agence.dureeTrajetMinutes }} min</span>
+                </div>
+                <div class="adm-agence-info-item adm-agence-info-amber">
+                  <span class="adm-agence-info-label">{{ language.t('admin.agences.break') }}</span>
+                  <span class="adm-agence-info-val">{{ agence.dureeEntreTrajetMinutes }} min</span>
+                </div>
+                <div class="adm-agence-info-item adm-agence-info-blue">
+                  <span class="adm-agence-info-label">{{ language.t('admin.agences.year') }}</span>
+                  <span class="adm-agence-info-val">{{ agence.anneeCivile }}</span>
+                </div>
+              </div>
+              <div class="adm-agence-card-actions">
+                <button
+                  class="adm-agence-action-edit"
+                  type="button"
+                  (click)="edit(agence); agencyName.focus()"
+                  [attr.aria-label]="language.t('common.edit') + ' : ' + agence.nom"
+                >
+                  {{ language.t('common.edit') }}
+                </button>
+                <button
+                  class="adm-agence-action-delete"
+                  type="button"
+                  (click)="remove(agence.id)"
+                  [attr.aria-label]="language.t('common.delete') + ' : ' + agence.nom"
+                >
+                  {{ language.t('common.delete') }}
+                </button>
+              </div>
+            </article>
+          } @empty {
+            <div class="adm-agence-empty">
+              <span class="adm-agence-card-icon" aria-hidden="true"
+                ><svg class="ui-icon"><use href="images/ui-icons.svg#agency" /></svg
+              ></span>
+              <p>{{ language.t('admin.agences.empty') }}</p>
+            </div>
+          }
+        </div>
+      </div>
+
       <!-- Formulaire -->
-      <div class="adm-agence-form-card">
+      <div class="adm-agence-form-card" id="agence-form" [class.is-editing]="editingId() !== null">
         <div class="adm-agence-form-header">
-          <span>{{ editingId() ? '✏️' : '➕' }}</span>
+          <span class="adm-agence-form-icon" aria-hidden="true">
+            <svg class="ui-icon" viewBox="0 0 24 24">
+              <path
+                [attr.d]="
+                  editingId() ? 'm4 16 12-12 4 4-12 12H4v-4Z M14 6l4 4' : 'M12 5v14M5 12h14'
+                "
+              />
+            </svg>
+          </span>
           <h2 class="adm-agence-form-title">
             {{ editingId() ? language.t('common.edit') : language.t('common.create') }}
           </h2>
@@ -55,7 +137,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         <form [formGroup]="form" class="grid gap-4 pt-4 md:grid-cols-2" (ngSubmit)="save()">
           <mat-form-field appearance="outline"
             ><mat-label>{{ language.t('admin.agences.name') }}</mat-label
-            ><input matInput formControlName="nom"
+            ><input #agencyName matInput formControlName="nom"
           /></mat-form-field>
           <mat-form-field appearance="outline"
             ><mat-label>{{ language.t('admin.agences.address') }}</mat-label
@@ -83,10 +165,10 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
           /></mat-form-field>
 
           @if (message()) {
-            <div class="status-success md:col-span-2">{{ message() }}</div>
+            <div role="status" class="status-success md:col-span-2">{{ message() }}</div>
           }
           @if (errorMessage()) {
-            <div class="status-error md:col-span-2">{{ errorMessage() }}</div>
+            <div role="alert" class="status-error md:col-span-2">{{ errorMessage() }}</div>
           }
 
           <div class="flex flex-wrap items-center gap-3 md:col-span-2">
@@ -109,282 +191,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
           </div>
         </form>
       </div>
-
-      <!-- Liste des agences -->
-      <div class="grid gap-5 md:grid-cols-2">
-        @for (agence of agences(); track agence.id) {
-          <div class="adm-agence-card">
-            <div class="adm-agence-card-header">
-              <div>
-                <div class="adm-agence-card-name">{{ agence.nom }}</div>
-                <div class="adm-agence-card-addr">{{ agence.adresse }}</div>
-              </div>
-            </div>
-            <div class="adm-agence-info-grid">
-              <div class="adm-agence-info-item adm-agence-info-teal">
-                <span class="adm-agence-info-label">{{ language.t('admin.agences.hours') }}</span>
-                <span class="adm-agence-info-val"
-                  >{{ agence.heureOuverture }} – {{ agence.heureFermeture }}</span
-                >
-              </div>
-              <div class="adm-agence-info-item adm-agence-info-violet">
-                <span class="adm-agence-info-label">{{
-                  language.t('admin.agences.duration')
-                }}</span>
-                <span class="adm-agence-info-val">{{ agence.dureeTrajetMinutes }} min</span>
-              </div>
-              <div class="adm-agence-info-item adm-agence-info-amber">
-                <span class="adm-agence-info-label">{{ language.t('admin.agences.break') }}</span>
-                <span class="adm-agence-info-val">{{ agence.dureeEntreTrajetMinutes }} min</span>
-              </div>
-              <div class="adm-agence-info-item adm-agence-info-blue">
-                <span class="adm-agence-info-label">{{ language.t('admin.agences.year') }}</span>
-                <span class="adm-agence-info-val">{{ agence.anneeCivile }}</span>
-              </div>
-            </div>
-            <div class="adm-agence-card-actions">
-              <button class="adm-agence-action-edit" type="button" (click)="edit(agence)">
-                {{ language.t('common.edit') }}
-              </button>
-              <button class="adm-agence-action-delete" type="button" (click)="remove(agence.id)">
-                {{ language.t('common.delete') }}
-              </button>
-            </div>
-          </div>
-        } @empty {
-          <div class="adm-agence-empty md:col-span-2">
-            <span></span>
-            <p>{{ language.t('admin.agences.empty') }}</p>
-          </div>
-        }
-      </div>
     </section>
-
-    <style>
-      .adm-agence-header {
-        background: var(--ui-navy);
-        padding: 1.5rem 2rem;
-        box-shadow: var(--ui-shadow);
-        color: var(--ui-surface);
-      }
-      .adm-agence-header-inner {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        max-width: 1200px;
-        margin: 0 auto;
-        gap: 1rem;
-        flex-wrap: wrap;
-      }
-      .adm-agence-title-block {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-      }
-      .adm-agence-icon {
-        font-size: 2.5rem;
-      }
-      .adm-agence-title {
-        font-size: 1.6rem;
-        font-weight: 800;
-        color: var(--ui-surface);
-        margin: 0;
-      }
-      .adm-agence-sub {
-        color: color-mix(in srgb, var(--ui-surface) 75%, transparent);
-        font-size: 0.85rem;
-        margin: 0;
-      }
-      .adm-agence-back-btn {
-        background: color-mix(in srgb, var(--ui-surface) 15%, transparent);
-        color: var(--ui-surface);
-        border: 2px solid color-mix(in srgb, var(--ui-surface) 35%, transparent);
-        border-radius: 9999px;
-        padding: 0.45rem 1.1rem;
-        font-weight: 700;
-        font-size: 0.85rem;
-        text-decoration: none;
-        transition: background 0.15s;
-        white-space: nowrap;
-      }
-      .adm-agence-back-btn:hover {
-        background: color-mix(in srgb, var(--ui-surface) 25%, transparent);
-      }
-
-      .adm-agence-form-card {
-        background: var(--ui-surface);
-        border-radius: 1.25rem;
-        box-shadow: var(--ui-shadow);
-        padding: 1.5rem;
-        border-left: 5px solid var(--ui-primary-strong);
-      }
-      .adm-agence-form-header {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 0.5rem;
-        font-size: 1.5rem;
-      }
-      .adm-agence-form-title {
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: var(--ui-navy);
-        margin: 0;
-      }
-
-      .adm-agence-btn-primary {
-        background: var(--ui-primary);
-        color: var(--ui-surface);
-        border: none;
-        border-radius: 0.6rem;
-        padding: 0.65rem 1.5rem;
-        font-weight: 700;
-        cursor: pointer;
-        box-shadow: var(--ui-shadow);
-        transition: transform 0.15s;
-      }
-      .adm-agence-btn-primary:hover:not(:disabled) {
-        transform: translateY(-1px);
-      }
-      .adm-agence-btn-primary:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-      .adm-agence-btn-secondary {
-        background: var(--ui-surface);
-        color: var(--ui-primary-strong);
-        border: 1.5px solid var(--ui-primary-soft);
-        border-radius: 0.6rem;
-        padding: 0.65rem 1.25rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background 0.15s;
-      }
-      .adm-agence-btn-secondary:hover {
-        background: var(--ui-surface-subtle);
-      }
-
-      .adm-agence-card {
-        background: var(--ui-surface);
-        border-radius: 1.25rem;
-        box-shadow: var(--ui-shadow);
-        overflow: hidden;
-        transition:
-          transform 0.15s,
-          box-shadow 0.15s;
-        border-top: 4px solid var(--ui-primary-strong);
-      }
-      .adm-agence-card:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--ui-shadow);
-      }
-      .adm-agence-card-header {
-        padding: 1rem 1.25rem 0.5rem;
-      }
-      .adm-agence-card-name {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--ui-navy);
-      }
-      .adm-agence-card-addr {
-        font-size: 0.85rem;
-        color: var(--ui-text-secondary);
-        margin-top: 0.15rem;
-      }
-
-      .adm-agence-info-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.6rem;
-        padding: 0.5rem 1.25rem 0.75rem;
-      }
-      .adm-agence-info-item {
-        border-radius: 0.6rem;
-        padding: 0.5rem 0.75rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.1rem;
-      }
-      .adm-agence-info-label {
-        font-size: 0.72rem;
-        font-weight: 600;
-        color: var(--ui-text-secondary);
-      }
-      .adm-agence-info-val {
-        font-size: 0.9rem;
-        font-weight: 700;
-      }
-      .adm-agence-info-teal {
-        background: var(--ui-surface-subtle);
-        color: var(--ui-primary-strong);
-      }
-      .adm-agence-info-violet {
-        background: var(--ui-surface);
-        color: var(--ui-primary-strong);
-      }
-      .adm-agence-info-amber {
-        background: var(--ui-surface-subtle);
-        color: var(--ui-warning);
-      }
-      .adm-agence-info-blue {
-        background: var(--ui-surface-subtle);
-        color: var(--ui-primary-strong);
-      }
-
-      .adm-agence-card-actions {
-        display: flex;
-        gap: 0.75rem;
-        padding: 0.75rem 1.25rem;
-        border-top: 1px solid var(--ui-surface-subtle);
-        flex-wrap: wrap;
-      }
-      .adm-agence-action-edit {
-        flex: 1;
-        min-width: 100px;
-        background: var(--ui-surface-subtle);
-        color: var(--ui-primary-strong);
-        border: 1.5px solid var(--ui-primary-soft);
-        border-radius: 0.5rem;
-        padding: 0.45rem 0.75rem;
-        font-size: 0.82rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition: background 0.15s;
-      }
-      .adm-agence-action-edit:hover {
-        background: var(--ui-primary-soft);
-      }
-      .adm-agence-action-delete {
-        flex: 1;
-        min-width: 100px;
-        background: var(--ui-surface);
-        color: var(--ui-danger);
-        border: 1.5px solid var(--ui-danger-soft);
-        border-radius: 0.5rem;
-        padding: 0.45rem 0.75rem;
-        font-size: 0.82rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition: background 0.15s;
-      }
-      .adm-agence-action-delete:hover {
-        background: var(--ui-surface-subtle);
-      }
-
-      .adm-agence-empty {
-        text-align: center;
-        padding: 3rem;
-        color: var(--ui-text-secondary);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 1.1rem;
-      }
-      .adm-agence-empty span {
-        font-size: 3rem;
-      }
-    </style>
   `,
 })
 export class AdminAgencesPage {

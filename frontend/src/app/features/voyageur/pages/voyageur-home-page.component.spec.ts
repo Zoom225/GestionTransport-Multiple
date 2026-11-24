@@ -1,3 +1,4 @@
+import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Router } from '@angular/router';
@@ -30,6 +31,12 @@ describe('VoyageurHomePage', () => {
 
   beforeEach(async () => {
     vi.useFakeTimers();
+
+    // Vitest runs Angular JIT without the Angular SCSS resource pipeline.
+    await resolveComponentResources(async (url) => {
+      if (url.endsWith('.scss')) return '';
+      throw new Error('Unexpected component resource: ' + url);
+    });
 
     voyageursApiMock = {
       getByMatricule: vi.fn().mockReturnValue(of(voyageur))
