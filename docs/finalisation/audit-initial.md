@@ -46,10 +46,14 @@ Windows 11, Java 21.0.9, Maven 3.9.15, Node 24.19.0 et npm 11.17.0. Code du cand
 | --- | --- |
 | `mvn -B -ntp clean verify` | Compilation et empaquetage réussis en 3 min 42 s. 200 tests réussis, 0 échec, 20 ignorés. Les bases PostgreSQL conditionnelles étaient désactivées pour ce premier passage. |
 | `npm ci` | Installation réussie. |
-| Angular et PostgreSQL | Les tâches CI sont vérifiées ci-dessus. Le rejeu local est en cours et sera consigné dans l’issue. |
+| `npm test` | 96 tests réussis dans 16 fichiers, 0 échec, 0 ignoré, en 117,28 s. |
+| `npm run build` | Build Angular de production réussi en 107,191 s. |
+| `scripts/test-all.ps1 -NoIdeConfig` | Préparation sur PostgreSQL 15 et contrôle de 18 tests en 44,633 s, puis suite complète de 220 tests réussis, 0 échec et 0 ignoré en 3 min 22 s. La suite inclut 18 tests de référence PostgreSQL et 2 tests de validation du schéma restauré. |
 
-`npm audit --package-lock-only --json` relève 16 entrées de sévérité modérée sur le verrou, issues de deux avis sous-jacents concernant [glob](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4) et [minimatch](https://github.com/advisories/GHSA-g3hv-75wg-m249). Ce total inclut les dépendances signalées par propagation. Le relevé Maven et la lecture des alertes Dependabot restent à compléter.
+`npm audit --package-lock-only --json` relève 16 entrées de sévérité modérée sur le verrou, issues de deux avis sous-jacents concernant [glob](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4) et [minimatch](https://github.com/advisories/GHSA-g3hv-75wg-m249). Ce total inclut les dépendances signalées par propagation.
+
+Le relevé `mvn dependency:list -DincludeScope=runtime` a permis de comparer 88 coordonnées à la base OSV. Des avis correspondent à 17 artefacts, dont Spring Boot, Spring Framework, Spring Security, Spring Data, Tomcat embarqué, Logback, Jackson et le pilote PostgreSQL. Ces correspondances de versions doivent être rapprochées des conditions de chaque avis avant remédiation. L’API publique des alertes Dependabot requiert une authentification.
 
 ## Suite de la livraison
 
-Le prochain chantier est la validation de la chaîne #28 → #30 → #32 → #33 vers `develop`. Les validations de sécurité, de précision financière, de PostgreSQL et de conformité métier doivent être liées à leurs chantiers respectifs. La livraison vers `master`, le tag et les preuves de déploiement restent soumis aux validations et autorisations prévues pour le TFE.
+Le prochain chantier est la validation de la chaîne #28 → #30 → #32 → #33 vers `develop`. Une [branche de consolidation](https://github.com/Zoom225/GestionTransport-Multiple/pull/37) prévoit une validation de l’arbre intégré. Les validations de sécurité, de précision financière, de PostgreSQL et de conformité métier doivent être liées à leurs chantiers respectifs. La livraison vers `master`, le tag et les preuves de déploiement restent soumis aux validations et autorisations prévues pour le TFE.
