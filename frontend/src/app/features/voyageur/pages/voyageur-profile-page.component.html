@@ -81,7 +81,7 @@
         >{{ language.t('voyageur.profile.finance') }} <span aria-hidden="true">→</span></span
       >
     </a>
-    @if (profile()?.peutProposerTrajet && participation()?.peutCreerMatch !== false) {
+    @if (profile()?.peutProposerTrajet && participation()?.peutCreerTrajet !== false) {
       <a routerLink="/voyageur/trajets/new" class="travel-action travel-action-dark">
         <span class="action-icon"
           ><svg class="ui-icon" aria-hidden="true"><use href="images/ui-icons.svg#car" /></svg

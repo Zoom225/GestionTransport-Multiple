@@ -42,8 +42,8 @@ export interface ParticipationStatus {
   debutSuspension: string | null;
   soldeDu: number;
   detteBloquante: boolean;
-  peutCreerMatch: boolean;
-  peutRejoindreMatch: boolean;
+  peutCreerTrajet: boolean;
+  peutRejoindreTrajet: boolean;
   motifRestriction: string | null;
   code: string | null;
   message: string;

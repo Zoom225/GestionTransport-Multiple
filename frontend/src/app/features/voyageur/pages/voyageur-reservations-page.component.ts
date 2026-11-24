@@ -80,7 +80,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
         <p role="status" aria-live="polite" class="status-success">{{ message() }}</p>
       }
 
-      @if (participation()?.peutRejoindreMatch === false) {
+      @if (participation()?.peutRejoindreTrajet === false) {
         <p role="status" class="status-error">{{ participation()?.message }}</p>
       }
       @if (errorMessage()) {
@@ -348,7 +348,7 @@ import { extractApiErrorMessage } from '../../../shared/utils/api-error.util';
                 [disabled]="
                   reservation.statut === 'ANNULEE' ||
                   reservation.paiement?.statut !== 'EN_ATTENTE' ||
-                  participation()?.peutRejoindreMatch === false ||
+                  participation()?.peutRejoindreTrajet === false ||
                   actionId() === reservation.id
                 "
               >
@@ -729,7 +729,7 @@ export class VoyageurReservationsPage {
   }
 
   pay(reservation: ReservationResponse): void {
-    if (this.participation()?.peutRejoindreMatch === false) return;
+    if (this.participation()?.peutRejoindreTrajet === false) return;
     const voyageurId = this.voyageurId();
     if (!voyageurId) {
       return;

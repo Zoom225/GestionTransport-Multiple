@@ -167,8 +167,8 @@ class SuspensionParticipationTest {
                 .andExpect(jsonPath("$.participation.finSuspension").value(debut.plus(Duration.ofHours(168)).toString()))
                 .andExpect(jsonPath("$.participation.soldeDu").value(100))
                 .andExpect(jsonPath("$.participation.detteBloquante").value(true))
-                .andExpect(jsonPath("$.participation.peutCreerMatch").value(false))
-                .andExpect(jsonPath("$.participation.peutRejoindreMatch").value(false))
+                .andExpect(jsonPath("$.participation.peutCreerTrajet").value(false))
+                .andExpect(jsonPath("$.participation.peutRejoindreTrajet").value(false))
                 .andExpect(jsonPath("$.participation.motifRestriction").isNotEmpty());
         mvc.perform(get("/api/voyageurs/me/sanctions").with(user(client.getMatricule()).roles("VOYAGEUR")))
                 .andExpect(status().isOk())
@@ -184,7 +184,7 @@ class SuspensionParticipationTest {
         mvc.perform(get("/api/voyageurs/me").with(user(client.getMatricule()).roles("VOYAGEUR")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.participation.suspensionActive").value(false))
-                .andExpect(jsonPath("$.participation.peutRejoindreMatch").value(true));
+                .andExpect(jsonPath("$.participation.peutRejoindreTrajet").value(true));
     }
     @Test void T18_paiementHTTPReserveAuProprietaireEtHistoriquePrive() throws Exception {
         sanctionner(); Voyageur autre = voyageur();
@@ -247,7 +247,7 @@ class SuspensionParticipationTest {
         clock.instant = imputation.plus(Duration.ofHours(168));
         mvc.perform(get("/api/voyageurs/me").with(principal))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.participation.peutCreerMatch").value(true));
+                .andExpect(jsonPath("$.participation.peutCreerTrajet").value(true));
         mvc.perform(post("/api/reservations").with(principal).contentType("application/json").content(inscription))
                 .andExpect(status().isCreated());
     }
