@@ -95,12 +95,12 @@ class VoyageurControllerTest {
 
     @Test
     @DisplayName("POST /api/voyageurs - Doit refuser la creation sans authentification")
-    void createVoyageur_WithoutAuthentication_ShouldReturnForbidden() throws Exception {
+    void createVoyageur_WithoutAuthentication_ShouldReturnUnauthorized() throws Exception {
         mockMvc.perform(post("/api/voyageurs")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(voyageurRequest)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

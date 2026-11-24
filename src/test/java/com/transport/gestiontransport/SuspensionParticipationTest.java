@@ -1,5 +1,6 @@
 package com.transport.gestiontransport;
 
+import com.transport.gestiontransport.config.JwtConfig;
 import com.transport.gestiontransport.entity.*;
 import com.transport.gestiontransport.entity.enums.*;
 import com.transport.gestiontransport.repository.*;
@@ -47,6 +48,7 @@ class SuspensionParticipationTest {
     @Autowired PaiementService paiementService;
     @Autowired VoyageurEligibilityService eligibility;
     @Autowired MockMvc mvc;
+    @Autowired JwtConfig jwtConfig;
     @Autowired ObjectMapper json;
     Voyageur client, chauffeur;
     Vehicule voiture;
@@ -79,6 +81,20 @@ class SuspensionParticipationTest {
     CreateTrajetRequest demandeCreation(String type) {
         return new CreateTrajetRequest(voiture.getId(), LocalDateTime.now().plusDays(10).withHour(10), type,
                 VilleBelge.MONS, VilleBelge.BRUXELLES, false, null);
+    }
+
+    @Test
+    void jwtAuthentifieLeVoyageurEtDistingueLesRefus() throws Exception {
+        String tokenVoyageur = jwtConfig.generateToken(client.getMatricule(), "VIP");
+        mvc.perform(get("/api/voyageurs/me").header("Authorization", "Bearer " + tokenVoyageur))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/trajets").header("Authorization", "Bearer " + tokenVoyageur))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/api/voyageurs/me").header("Authorization", "Bearer format-invalide"))
+                .andExpect(status().isUnauthorized());
+        String tokenRoleIncoherent = jwtConfig.generateToken(client.getMatricule(), "LOCAL");
+        mvc.perform(get("/api/voyageurs/me").header("Authorization", "Bearer " + tokenRoleIncoherent))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test void T01_detteCreee() { sanctionner(); assertThat(voyageurs.findById(client.getId()).orElseThrow().getSolde()).isEqualTo(100.0); }
@@ -191,7 +207,7 @@ class SuspensionParticipationTest {
         String url = "/api/trajets/" + prive.getId() + "/penalite/pay";
         mvc.perform(post(url).with(user(autre.getMatricule()).roles("VOYAGEUR"))).andExpect(status().isForbidden());
         mvc.perform(post(url).with(user("admin").roles("ADMIN"))).andExpect(status().isForbidden());
-        mvc.perform(post(url)).andExpect(status().isForbidden());
+        mvc.perform(post(url)).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/voyageurs/me/sanctions").with(user(autre.getMatricule()).roles("VOYAGEUR")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
     }
