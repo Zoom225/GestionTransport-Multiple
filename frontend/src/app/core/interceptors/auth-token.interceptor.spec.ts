@@ -1,4 +1,5 @@
 import { HttpRequest, HttpResponse } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { firstValueFrom, of } from 'rxjs';
@@ -95,5 +96,37 @@ describe('authTokenInterceptor', () => {
     );
 
     expect(receivedRequest?.headers.get('Authorization')).toBe('Bearer voyageur-token');
+  });
+
+  it('limite le jeton à l’API configurée sur un autre hôte', async () => {
+    const session = TestBed.inject(AdminSessionService);
+    session.setSession({
+      token: 'jwt-token',
+      email: 'admin@example.test',
+      nom: 'Admin',
+      prenom: 'Validation',
+      role: 'GLOBAL',
+      agenceId: null,
+    });
+
+    const previous = environment.apiBaseUrl;
+    environment.apiBaseUrl = 'https://api.example.test/api';
+    try {
+      for (const [url, expected] of [
+        ['https://api.example.test/api/agences', 'Bearer jwt-token'],
+        ['https://api.example.test/api/auth/login', null],
+        ['https://api.example.test/api-autre', null],
+        ['https://autre.example.test/api/agences', null],
+      ] as const) {
+        await firstValueFrom(TestBed.runInInjectionContext(() =>
+          authTokenInterceptor(new HttpRequest('GET', url), req => {
+            expect(req.headers.get('Authorization')).toBe(expected);
+            return of(new HttpResponse({ status: 200 }));
+          }),
+        ));
+      }
+    } finally {
+      environment.apiBaseUrl = previous;
+    }
   });
 });
