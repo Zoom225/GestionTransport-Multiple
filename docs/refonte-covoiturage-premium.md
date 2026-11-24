@@ -20,7 +20,7 @@ Les composants sont réutilisés et les modèles de données, validations, servi
 
 ## Carrousel et images
 
-Quatre visuels, rotation circulaire toutes les **3 500 ms**, fondu de **650 ms** avec `cubic-bezier(.22, .61, .36, 1)`. Le survol, l’onglet caché ou moins de 25 % du carrousel dans la fenêtre suspendent temporairement la lecture. Le focus entrant, la navigation manuelle et le balayage la mettent en pause jusqu’à la reprise explicite. Les flèches, Début et Fin sont disponibles au clavier. Le balayage est horizontal, avec un seuil de 50 px, pour préserver le défilement vertical. La préférence de mouvement réduit désactive le défilement automatique et les transitions. Les observateurs, écouteurs et timers sont nettoyés.
+Quatre visuels, rotation circulaire toutes les **6 000 ms**, fondu de **650 ms** avec `cubic-bezier(.22, .61, .36, 1)`. Le survol, l’onglet caché ou moins de 25 % du carrousel dans la fenêtre suspendent temporairement la lecture. Le focus entrant, la navigation manuelle et le balayage la mettent en pause jusqu’à la reprise explicite. Les flèches, Début et Fin sont disponibles au clavier. Le balayage est horizontal, avec un seuil de 50 px, pour préserver le défilement vertical. La préférence de mouvement réduit désactive le défilement automatique et les transitions. Les observateurs, écouteurs et timers sont nettoyés.
 
 | Visuel | Origine et droits |
 |---|---|

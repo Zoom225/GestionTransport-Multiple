@@ -264,7 +264,7 @@ export class CarHeroCarouselComponent implements AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private swipeStart?: { pointerId: number; x: number; y: number };
-  readonly rotationMs = 3500;
+  readonly rotationMs = 6000;
   readonly slides = [
     {name:'suv', alt:'carousel.suvAlt', author:'', url:null},
     {name:'electrique', alt:'carousel.electricAlt', author:'', url:null},

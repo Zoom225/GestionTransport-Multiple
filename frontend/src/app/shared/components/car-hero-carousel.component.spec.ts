@@ -26,16 +26,16 @@ describe('CarHeroCarouselComponent', () => {
     fixture=TestBed.createComponent(CarHeroCarouselComponent); fixture.detectChanges();
     return fixture.componentInstance;
   }
-  function advance(ms=3500): void { vi.advanceTimersByTime(ms); fixture.detectChanges(); }
+  function advance(ms=6000): void { vi.advanceTimersByTime(ms); fixture.detectChanges(); }
   function click(selector:string): void { fixture.nativeElement.querySelector(selector).click(); fixture.detectChanges(); }
 
-  it('présente quatre visuels et tourne toutes les 3,5 secondes, avec retour au début', () => {
+  it('présente quatre visuels et tourne toutes les six secondes, avec retour au début', () => {
     const component=create();
     expect(component.slides).toHaveLength(4);
     expect(component.current()).toBe(0);
-    advance(3499); expect(component.current()).toBe(0);
+    advance(5999); expect(component.current()).toBe(0);
     advance(1); expect(component.current()).toBe(1);
-    advance(10500); expect(component.current()).toBe(0);
+    advance(18000); expect(component.current()).toBe(0);
   });
 
   it('met en pause lors de la navigation manuelle et expose la pagination active', () => {
@@ -53,7 +53,7 @@ describe('CarHeroCarouselComponent', () => {
     const component=create(); click('.carousel-pause');
     advance(12000); expect(component.current()).toBe(0);
     click('.carousel-pause');
-    advance(3499); expect(component.current()).toBe(0);
+    advance(5999); expect(component.current()).toBe(0);
     advance(1); expect(component.current()).toBe(1);
   });
 
