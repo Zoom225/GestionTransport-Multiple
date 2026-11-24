@@ -1,67 +1,61 @@
 package com.transport.gestiontransport.config;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Date;
+import java.util.Optional;
 
-@Slf4j
 @Component
 public class JwtConfig {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private final SecretKey signingKey;
+    private final JwtParser parser;
+    private final long expiration;
 
-    @Value("${jwt.expiration}")
-    private long expiration;
-
-    private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    public JwtConfig(@Value("${jwt.secret}") String secret, @Value("${jwt.expiration}") long expiration) {
+        if (expiration <= 0) {
+            throw new IllegalArgumentException("La durée de validité JWT doit être positive.");
+        }
+        byte[] secretBytes = secret.getBytes(StandardCharsets.UTF_8);
+        if (secretBytes.length < 32 || secret.chars().distinct().count() < 16) {
+            throw new IllegalArgumentException("JWT_SECRET doit contenir au moins 32 octets et 16 caractères distincts.");
+        }
+        this.signingKey = Keys.hmacShaKeyFor(secretBytes);
+        this.parser = Jwts.parser().verifyWith(signingKey).build();
+        this.expiration = expiration;
     }
 
-    // génère un token JWT pour un admin
-    public String generateToken(String email, String role) {
+    public String generateToken(String subject, String role) {
+        Instant now = Instant.now();
         return Jwts.builder()
-                .subject(email)
+                .subject(subject)
                 .claim("role", role)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSigningKey())
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(now.plusMillis(expiration)))
+                .signWith(signingKey)
                 .compact();
     }
 
-    // extrait l'email depuis le token
-    public String extractEmail(String token) {
-        return extractClaims(token).getSubject();
-    }
-
-    // extrait le rôle depuis le token
-    public String extractRole(String token) {
-        return extractClaims(token).get("role", String.class);
-    }
-
-    // vérifie si le token est valide
-    public boolean isTokenValid(String token) {
+    Optional<Claims> readVerifiedClaims(String token) {
         try {
-            extractClaims(token);
-            return true;
-        } catch (Exception e) {
-            log.warn("Invalid JWT token : {}", e.getMessage());
-            return false;
+            Claims claims = parser.parseSignedClaims(token).getPayload();
+            String subject = claims.getSubject();
+            String role = claims.get("role", String.class);
+            if (subject == null || subject.isBlank() || role == null || role.isBlank() || claims.getExpiration() == null) {
+                return Optional.empty();
+            }
+            return Optional.of(claims);
+        } catch (JwtException | IllegalArgumentException exception) {
+            return Optional.empty();
         }
-    }
-
-    private Claims extractClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
     }
 }

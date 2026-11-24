@@ -374,7 +374,7 @@ au démarrage. Aucun secret par défaut n'est ajouté à `application.properties
 
 | Variable                | Usage                                                         | Défaut                                 |
 | ----------------------- | ------------------------------------------------------------- | -------------------------------------- |
-| JWT_SECRET              | Clé JWT, au moins 32 octets, obligatoire                      | Aucun                                  |
+| JWT_SECRET              | Clé JWT obligatoire : au moins 32 octets et 16 caractères distincts| Aucun                                  |
 | DB_URL                  | Connexion PostgreSQL                                          | localhost:5440/transportService        |
 | DB_USER / DB_PASSWORD   | Identifiants du serveur                                       | transport / transport en développement |
 | DEMO_DATA_ENABLED       | Activation explicite de la démonstration                      | false                                  |
@@ -382,6 +382,12 @@ au démarrage. Aucun secret par défaut n'est ajouté à `application.properties
 | RESERVATION_PAYMENT_TTL | Délai ISO-8601 de paiement                                    | PT30M                                  |
 | RESTRICTION_DAYS        | Durée d'une restriction validée                               | 7                                      |
 | SERVER_PORT             | Port HTTP Spring Boot                                         | 8080                                   |
+
+La vérification au démarrage écarte les clés manifestement faibles. Pour un environnement
+déployé, générer au moins 32 octets avec un générateur cryptographique et conserver la valeur
+dans le gestionnaire de secrets. Lors d’une rotation, mettre à jour la variable pour toutes
+les instances et redémarrer avec la nouvelle clé. Les jetons émis avec l’ancienne clé ne sont
+plus acceptés après le redémarrage. Les utilisateurs doivent se reconnecter.
 
 ## 4. Installer, tester et lancer Angular
 

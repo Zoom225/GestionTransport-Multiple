@@ -1,16 +1,14 @@
 package com.transport.gestiontransport.config;
 
-import com.transport.gestiontransport.entity.Administrateur;
-import com.transport.gestiontransport.entity.Voyageur;
 import com.transport.gestiontransport.repository.AdministrateurRepository;
 import com.transport.gestiontransport.repository.VoyageurRepository;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,10 +16,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -35,57 +31,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
-
         String authHeader = request.getHeader("Authorization");
-
-        // si pas de token → on laisse passer (les routes publiques sont gérées dans SecurityConfig)
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            jwtConfig.readVerifiedClaims(authHeader.substring(7)).ifPresent(this::authenticate);
         }
-
-        String token = authHeader.substring(7); // enlève "Bearer "
-
-        if (!jwtConfig.isTokenValid(token)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        String subject = jwtConfig.extractEmail(token); // peut être un email (Admin) ou un matricule (Voyageur)
-        String role = jwtConfig.extractRole(token);
-
-        // Distinguer admin et voyageur par le format du subject
-        boolean isAdmin = subject.contains("@"); // email = admin, matricule = voyageur
-
-        if (isAdmin) {
-            Administrateur admin = administrateurRepository.findByEmail(subject).orElse(null);
-            if (admin != null) {
-                authenticate(subject, role, true);
-                log.debug("Admin {} authenticated with role {}", subject, role);
-            }
-        } else {
-            Voyageur voyageur = voyageurRepository.findByMatriculeIgnoreCase(subject).orElse(null);
-            if (voyageur != null) {
-                authenticate(subject, role, false);
-                log.debug("Voyageur {} authenticated with role {}", subject, role);
-            }
-        }
-
         filterChain.doFilter(request, response);
     }
 
-    private void authenticate(String principal, String role, boolean admin) {
-        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
-        authorities.add(new SimpleGrantedAuthority(admin ? "ROLE_ADMIN" : "ROLE_VOYAGEUR"));
+    private void authenticate(Claims claims) {
+        String subject = claims.getSubject();
+        String role = claims.get("role", String.class);
+        if (subject.contains("@")) {
+            administrateurRepository.findByEmail(subject)
+                    .filter(admin -> admin.getTypeAdministrateur().name().equals(role))
+                    .ifPresent(admin -> setAuthentication(subject, "ADMIN", role));
+            return;
+        }
+        voyageurRepository.findByMatriculeIgnoreCase(subject)
+                .filter(voyageur -> voyageur.getTypeVoyageur().name().equals(role))
+                .ifPresent(voyageur -> setAuthentication(subject, "VOYAGEUR", role));
+    }
 
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(
-                        principal,
-                        null,
-                        authorities
-                );
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+    private void setAuthentication(String subject, String accountRole, String domainRole) {
+        var authorities = List.of(
+                new SimpleGrantedAuthority("ROLE_" + accountRole),
+                new SimpleGrantedAuthority("ROLE_" + domainRole));
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(subject, null, authorities));
     }
 }
