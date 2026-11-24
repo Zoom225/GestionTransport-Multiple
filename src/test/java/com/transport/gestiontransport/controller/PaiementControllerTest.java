@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.controller;
 
+import java.math.BigDecimal;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.transport.gestiontransport.config.JwtConfig;
 import com.transport.gestiontransport.config.SecurityConfig;
@@ -62,11 +64,11 @@ class PaiementControllerTest {
     void setUp() {
         paiement = new Paiement();
         paiement.setId(1L);
-        paiement.setMontant(15.0);
+        paiement.setMontant(new BigDecimal("15.00"));
 
         paiementResponse = new PaiementResponse();
         paiementResponse.setId(1L);
-        paiementResponse.setMontant(15.0);
+        paiementResponse.setMontant(new BigDecimal("15.00"));
     }
 
     @Test

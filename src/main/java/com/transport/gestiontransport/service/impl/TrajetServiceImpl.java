@@ -112,7 +112,7 @@ public class TrajetServiceImpl implements TrajetService {
                 .dateDebut(debut).dateFin(fin).villeDepart(request.villeDepart()).villeArrivee(request.villeArrivee())
                 .typeTrajet(type).statut(StatutTrajet.PLANIFIE).nbPassagersActuels(0)
                 .publicationAutomatiqueAutorisee(request.publicationAutomatiqueAutorisee())
-                .prixTotal(PRIX_TRAJET_EUROS.doubleValue()).prixParPassager(PRIX_CLIENT_EUROS.doubleValue()).build();
+                .prixTotal(PRIX_TRAJET_EUROS).prixParPassager(PRIX_CLIENT_EUROS).build();
         return trajetMapper.toTrajetDto(trajetRepository.save(trajet));
     }
 
@@ -286,8 +286,7 @@ public class TrajetServiceImpl implements TrajetService {
         // Timestamp the actual sanction after any wait for the organiser's lock.
         instantSanction = clock.instant().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
         maintenant = LocalDateTime.ofInstant(instantSanction, java.time.ZoneId.systemDefault());
-        organisateur.setSolde(java.math.BigDecimal.valueOf(organisateur.getSolde())
-                .add(PRIX_TRAJET_EUROS).doubleValue());
+        organisateur.setSolde(organisateur.getSolde().add(PRIX_TRAJET_EUROS));
         java.time.Instant finSuspension = instantSanction.plus(java.time.Duration.ofHours(168));
         restrictionRepository.save(Restriction.builder().voyageur(organisateur).trajetOrigine(trajet)
                 .sourceEvenement("trajet-prive-incomplet:" + trajetId)
@@ -315,10 +314,10 @@ public class TrajetServiceImpl implements TrajetService {
         Voyageur organisateur = voyageurRepository.findByIdForUpdate(voyageurId)
                 .orElseThrow(() -> new ResourceNotFoundException("Organisateur introuvable."));
         entityManager.refresh(organisateur);
-        if (organisateur.getSolde() < PRIX_TRAJET_EUROS.doubleValue()) {
+        if (organisateur.getSolde().compareTo(PRIX_TRAJET_EUROS) < 0) {
             throw new BusinessException("Solde incoherent : regularisation necessaire.");
         }
-        organisateur.setSolde(java.math.BigDecimal.valueOf(organisateur.getSolde()).subtract(PRIX_TRAJET_EUROS).doubleValue());
+        organisateur.setSolde(organisateur.getSolde().subtract(PRIX_TRAJET_EUROS));
         trajet.setPenaliteIncompletPayeeLe(LocalDateTime.ofInstant(clock.instant(), java.time.ZoneId.systemDefault()));
         voyageurRepository.save(organisateur);
         trajetRepository.save(trajet);

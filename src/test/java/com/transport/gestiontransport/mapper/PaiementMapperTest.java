@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.mapper;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.dto.response.PaiementResponse;
 import com.transport.gestiontransport.entity.Paiement;
 import com.transport.gestiontransport.entity.enums.StatutPaiement;
@@ -27,7 +29,7 @@ class PaiementMapperTest {
         // Arrange
         // Correction : Construire l'objet, puis setter l'ID
         Paiement paiement = Paiement.builder()
-                .montant(15.0)
+                .montant(new BigDecimal("15.00"))
                 .statut(StatutPaiement.PAYE)
                 .datePaiement(LocalDateTime.of(2024, 5, 1, 12, 30))
                 .build();
@@ -40,7 +42,7 @@ class PaiementMapperTest {
         assertNotNull(response);
         assertAll("Vérification du mapping de Paiement vers Response",
                 () -> assertEquals(1L, response.getId()),
-                () -> assertEquals(15.0, response.getMontant()),
+                () -> assertEquals(0, new BigDecimal("15.00").compareTo(response.getMontant())),
                 () -> assertEquals(StatutPaiement.PAYE, response.getStatut()),
                 () -> assertEquals(LocalDateTime.of(2024, 5, 1, 12, 30), response.getDatePaiement())
         );
@@ -52,7 +54,7 @@ class PaiementMapperTest {
         // Arrange
         // Correction : Construire l'objet, puis setter l'ID
         Paiement paiement = Paiement.builder()
-                .montant(20.0)
+                .montant(new BigDecimal("20.00"))
                 .statut(StatutPaiement.EN_ATTENTE)
                 .datePaiement(null) // Le paiement n'a pas encore été effectué
                 .build();

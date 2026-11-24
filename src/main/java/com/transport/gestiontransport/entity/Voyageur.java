@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.entity;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.entity.enums.TypeVoyageur;
 import jakarta.persistence.*;
 import lombok.*;
@@ -38,8 +40,8 @@ public class Voyageur extends BaseEntity {
     @Column(nullable = false, columnDefinition = "boolean default false")
     private Boolean peutProposerTrajet = false;
 
-    @Column(nullable = false)
-    private Double solde;
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal solde;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "agence_id")

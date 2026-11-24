@@ -1,5 +1,7 @@
 package com.transport.gestiontransport.service;
 
+import java.math.BigDecimal;
+
 import com.transport.gestiontransport.entity.Voyageur;
 import com.transport.gestiontransport.exception.ParticipationException;
 import com.transport.gestiontransport.repository.*;
@@ -17,11 +19,11 @@ class VoyageurEligibilityServiceTest {
     final Instant debut = Instant.parse("2026-03-27T12:00:00Z");
     final Instant fin = debut.plus(Duration.ofHours(168));
 
-    private VoyageurEligibilityService service(double solde, Instant instant) {
-        Voyageur v = Voyageur.builder().solde(solde).build(); v.setId(1L);
+    private VoyageurEligibilityService service(int solde, Instant instant) {
+        Voyageur v = Voyageur.builder().solde(BigDecimal.valueOf(solde)).build(); v.setId(1L);
         when(voyageurs.findById(1L)).thenReturn(Optional.of(v));
         when(voyageurs.findByIdForUpdate(1L)).thenReturn(Optional.of(v));
-        when(voyageurs.soldeCourant(1L)).thenReturn(solde);
+        when(voyageurs.soldeCourant(1L)).thenReturn(BigDecimal.valueOf(solde));
         when(restrictions.finSuspensionActive(1L, instant)).thenReturn(instant.isBefore(fin) ? fin : null);
         return new VoyageurEligibilityService(voyageurs, restrictions, mock(TrajetRepository.class), Clock.fixed(instant, ZoneOffset.UTC));
     }

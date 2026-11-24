@@ -49,7 +49,8 @@ try {
     }
     foreach ($file in @('scripts/migrations/issue-8-organisateur-penalite.sql',
                         'scripts/migrations/issue-9-suspension-168h.sql',
-                        'scripts/migrations/issue-10-auteur-annulation.sql')) {
+                        'scripts/migrations/issue-10-auteur-annulation.sql',
+                        'scripts/migrations/issue-45-montants-bigdecimal.sql')) {
         Docker-Checked @('cp',$file,"${container}:/tmp/test-migration.sql") | Out-Null
         foreach ($database in @($baseline, $schema)) {
             Docker-Checked @('exec',$container,'psql','-X','-U','transport_test','-d',$database,'-v','ON_ERROR_STOP=1','-f','/tmp/test-migration.sql') | Out-Null
