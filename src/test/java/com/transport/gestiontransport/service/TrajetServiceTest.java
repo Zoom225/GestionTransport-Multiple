@@ -18,9 +18,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -207,6 +210,34 @@ class TrajetServiceTest {
         assertTrue(erreur.getMessage().contains("parcours de publication"));
         assertEquals(TypeTrajet.PRIVE, prive.getTypeTrajet());
         verify(trajetRepository).save(prive);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void modificationReserveeAOrganisateurOuAuChauffeurHistorique(boolean organisateurDesigne) {
+        Voyageur chauffeur = new Voyageur();
+        chauffeur.setId(2L);
+        Trajet trajet = Trajet.builder()
+                .typeTrajet(TypeTrajet.PRIVE)
+                .statut(StatutTrajet.PLANIFIE)
+                .chauffeur(chauffeur)
+                .organisateur(organisateurDesigne ? organisateur : null)
+                .build();
+        when(trajetRepository.findById(10L)).thenReturn(Optional.of(trajet));
+        when(vehiculeService.getById(vehicule.getId())).thenReturn(vehicule);
+        TrajetRequest demande = TrajetRequest.builder()
+                .organisateurId(organisateurDesigne ? organisateur.getId() : chauffeur.getId())
+                .vehiculeId(vehicule.getId())
+                .date(LocalDate.now().plusDays(1))
+                .heureDebut(LocalTime.of(10, 0))
+                .typeTrajet(TypeTrajet.PRIVE)
+                .build();
+
+        trajetService.updateTrajet(10L, demande);
+        demande.setOrganisateurId(organisateurDesigne ? chauffeur.getId() : organisateur.getId());
+
+        assertThrows(AccessDeniedException.class, () -> trajetService.updateTrajet(10L, demande));
+        verify(trajetRepository).save(trajet);
     }
 
     @Test

@@ -14,6 +14,7 @@ import com.transport.gestiontransport.service.VoyageurService;
 import com.transport.gestiontransport.service.VehiculeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -210,9 +211,10 @@ public class TrajetServiceImpl implements TrajetService {
         if (trajet.getStatut() == StatutTrajet.ANNULE) {
             throw new BusinessException("Impossible de modifier un trajet annulé.");
         }
-        // Regle metier : seul l'organisateur peut modifier son trajet.
-        if (!trajet.getChauffeur().getId().equals(request.getOrganisateurId())) {
-            throw new BusinessException("Seul l'organisateur peut modifier ce trajet.");
+        // Les trajets historiques peuvent ne pas avoir d’organisateur renseigné.
+        Voyageur organisateur = trajet.getOrganisateur() != null ? trajet.getOrganisateur() : trajet.getChauffeur();
+        if (!organisateur.getId().equals(request.getOrganisateurId())) {
+            throw new AccessDeniedException("Seul l’organisateur peut modifier ce trajet.");
         }
 
         if (trajet.getTypeTrajet() == TypeTrajet.PRIVE && request.getTypeTrajet() == TypeTrajet.PUBLIC) {
