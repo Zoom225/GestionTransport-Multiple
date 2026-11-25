@@ -1,0 +1,295 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.adm-agence-header {
+  max-width: 1220px;
+  margin: 2rem auto 0;
+  padding: 0 1.5rem;
+}
+.adm-agence-header-inner,
+.adm-agence-title-block {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.adm-agence-header-inner {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.adm-agence-title-block {
+  min-width: 0;
+  flex: 1 1 260px;
+}
+.adm-agence-icon,
+.adm-agence-card-icon,
+.adm-agence-form-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--ui-primary-soft);
+  color: var(--ui-primary-strong);
+  font-size: 1.5rem;
+}
+.adm-agence-title {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+.adm-agence-sub {
+  margin: 0;
+  color: var(--ui-text-secondary);
+  font-size: 0.9rem;
+}
+.adm-agence-back-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+  background: var(--ui-surface);
+  color: var(--ui-text-secondary);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+.adm-agence-layout {
+  max-width: 1220px;
+  align-items: start;
+}
+.adm-agence-directory,
+.adm-agence-form-card {
+  width: 100%;
+  min-width: 0;
+}
+.adm-agence-directory-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.adm-agence-directory-heading h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+.adm-agence-count {
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: var(--ui-primary-soft);
+  color: var(--ui-primary-strong);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+.adm-agence-list {
+  display: grid;
+  gap: 1.25rem;
+}
+.adm-agence-card,
+.adm-agence-form-card {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: 20px;
+  box-shadow: var(--ui-shadow);
+  overflow: hidden;
+}
+.adm-agence-card {
+  transition:
+    border-color var(--ui-motion),
+    box-shadow var(--ui-motion);
+}
+.adm-agence-card:hover {
+  border-color: var(--ui-primary);
+  box-shadow: var(--ui-shadow-raised);
+}
+.adm-agence-card.is-selected,
+.adm-agence-form-card.is-editing {
+  border-color: var(--ui-primary);
+}
+.adm-agence-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(120deg, var(--ui-primary-soft), var(--ui-surface) 80%);
+}
+.adm-agence-card-header > div {
+  min-width: 0;
+}
+.adm-agence-card-icon {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+}
+.adm-agence-card-name {
+  font-size: 1.1rem;
+  line-height: 1.4;
+  font-weight: 750;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.adm-agence-card-addr {
+  font-size: 0.85rem;
+  color: var(--ui-text-secondary);
+  margin-top: 0.4rem;
+  overflow-wrap: anywhere;
+}
+.adm-agence-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--ui-border);
+  border-block: 1px solid var(--ui-border);
+}
+.adm-agence-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem 1.5rem;
+  background: var(--ui-surface);
+}
+.adm-agence-info-label {
+  font-size: 0.75rem;
+  color: var(--ui-text-secondary);
+}
+.adm-agence-info-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.adm-agence-info-teal .adm-agence-info-val {
+  color: var(--ui-teal-strong);
+}
+.adm-agence-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+}
+.adm-agence-action-edit,
+.adm-agence-action-delete,
+.adm-agence-btn-primary,
+.adm-agence-btn-secondary {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid var(--ui-border);
+  border-radius: 10px;
+  padding: 0.6rem 1rem;
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  font-weight: 650;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background var(--ui-motion);
+}
+.adm-agence-action-edit {
+  color: var(--ui-primary-strong);
+  border-color: var(--ui-primary);
+}
+.adm-agence-action-edit:hover,
+.adm-agence-btn-secondary:hover,
+.adm-agence-back-btn:hover {
+  background: var(--ui-primary-soft);
+}
+.adm-agence-action-delete {
+  color: var(--ui-danger);
+  border-color: transparent;
+  margin-left: auto;
+}
+.adm-agence-action-delete:hover {
+  background: var(--ui-danger-soft);
+}
+.adm-agence-form-card {
+  padding: 1.5rem;
+  scroll-margin-top: 130px;
+}
+.adm-agence-form-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--ui-border);
+}
+.adm-agence-form-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 1.2rem;
+}
+.adm-agence-form-title {
+  font-size: 1.1rem;
+  margin: 0;
+}
+.adm-agence-btn-primary {
+  color: var(--ui-surface);
+  background: var(--ui-primary);
+  border-color: var(--ui-primary);
+}
+.adm-agence-btn-primary:hover:not(:disabled) {
+  background: var(--ui-primary-strong);
+}
+.adm-agence-btn-primary:disabled {
+  background: var(--ui-disabled);
+  border-color: var(--ui-disabled);
+  color: var(--ui-text-secondary);
+  cursor: not-allowed;
+}
+.adm-agence-empty {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  border: 1px dashed var(--ui-border);
+  border-radius: 20px;
+  color: var(--ui-text-secondary);
+}
+.adm-agence-empty p {
+  margin: 0;
+}
+@media (min-width: 1050px) {
+  .adm-agence-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 2rem;
+  }
+  .adm-agence-form-card form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .adm-agence-form-card form > * {
+    grid-column: 1;
+  }
+}
+@media (min-width: 650px) and (max-width: 1049px) {
+  .adm-agence-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .adm-agence-empty {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 400px) {
+  .adm-agence-card-header,
+  .adm-agence-form-card {
+    padding: 1.1rem;
+  }
+  .adm-agence-info-item {
+    padding: 0.85rem 1rem;
+  }
+  .adm-agence-card-actions {
+    padding: 1rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .adm-agence-card,
+  .adm-agence-card-actions button,
+  .adm-agence-form-card button {
+    transition: none;
+  }
+}

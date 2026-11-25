@@ -1,0 +1,389 @@
+package com.transport.gestiontransport.service;
+
+import java.math.BigDecimal;
+
+import com.transport.gestiontransport.entity.*;
+import com.transport.gestiontransport.entity.enums.StatutTrajet;
+import com.transport.gestiontransport.entity.enums.TypeTrajet;
+import com.transport.gestiontransport.entity.enums.TypeVoyageur;
+import com.transport.gestiontransport.exception.BusinessException;
+import com.transport.gestiontransport.exception.ResourceNotFoundException;
+import com.transport.gestiontransport.mapper.TrajetMapper;
+import com.transport.gestiontransport.dto.request.CreateTrajetRequest;
+import com.transport.gestiontransport.dto.request.TrajetRequest;
+import com.transport.gestiontransport.dto.response.TrajetDto;
+import com.transport.gestiontransport.repository.*;
+import com.transport.gestiontransport.service.impl.TrajetServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Collections;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+@DisplayName("Tests de TrajetServiceImpl")
+class TrajetServiceTest {
+
+    @Mock
+    private TrajetRepository trajetRepository;
+    @Mock
+    private VoyageurRepository voyageurRepository;
+    @Mock
+    private ReservationRepository reservationRepository;
+    @Mock
+    private PaiementRepository paiementRepository;
+    @Mock
+    private IndisponibiliteServiceRepository indisponibiliteServiceRepository;
+    @Mock
+    private VehiculeService vehiculeService;
+    @Mock
+    private VoyageurService voyageurService;
+    @Mock
+    private TrajetMapper trajetMapper;
+
+    @Mock private jakarta.persistence.EntityManager entityManager;
+    @Mock private ReservationService reservationService;
+    @Mock private com.transport.gestiontransport.service.impl.VoyageurEligibilityService eligibilityService;
+    @Mock private com.transport.gestiontransport.service.impl.AdminAuthorizationService adminAuthorizationService;
+
+    @InjectMocks
+    private TrajetServiceImpl trajetService;
+
+    private Voyageur organisateur;
+    private Vehicule vehicule;
+    private Agence agence;
+    private CreateTrajetRequest createTrajetRequest;
+    private TrajetDto trajetDto;
+
+    @Test
+    void mesTrajetsIncluentLesTrajetsConduitsSansDoublon() {
+        Trajet organise = new Trajet(); organise.setId(1L);
+        Trajet conduit = new Trajet(); conduit.setId(2L);
+        when(trajetRepository.findOrganisesPar(1L)).thenReturn(java.util.List.of(organise));
+        when(trajetRepository.findByChauffeurId(1L)).thenReturn(java.util.List.of(organise, conduit));
+        when(trajetMapper.toTrajetDto(organise)).thenReturn(trajetDto);
+        when(trajetMapper.toTrajetDto(conduit)).thenReturn(new TrajetDto(2L, null, null, null,
+                9L, null, null, null, null, TypeTrajet.PRIVE, StatutTrajet.PLANIFIE, 0, new BigDecimal("25.0"), null));
+        assertEquals(java.util.List.of(1L, 2L), trajetService.findByOrganisateur(1L).stream().map(TrajetDto::id).toList());
+        verify(trajetMapper).toTrajetDto(organise);
+        verify(trajetMapper).toTrajetDto(conduit);
+    }
+
+    @BeforeEach
+    void setUp() {
+        agence = new Agence();
+        agence.setId(1L);
+        agence.setDureeTrajetMinutes(90);
+        agence.setDureeEntreTrajetMinutes(15);
+        agence.setHeureOuverture(LocalTime.of(9, 0));
+        agence.setHeureFermeture(LocalTime.of(22, 0));
+
+        organisateur = new Voyageur();
+        organisateur.setId(1L);
+        organisateur.setMatricule("user123");
+        organisateur.setPeutProposerTrajet(true);
+        organisateur.setPrenom("John");
+        organisateur.setNom("Doe");
+        organisateur.setTypeVoyageur(TypeVoyageur.LIBRE);
+
+        vehicule = new Vehicule();
+        vehicule.setId(1L);
+        vehicule.setNom("Renault Clio");
+        vehicule.setDisponible(true);
+        vehicule.setPrix(new BigDecimal("20.00"));
+        vehicule.setAgence(agence);
+
+        createTrajetRequest = new CreateTrajetRequest(
+                vehicule.getId(),
+                LocalDate.now().plusDays(5).atTime(10, 0),
+                "PUBLIC", com.transport.gestiontransport.entity.enums.VilleBelge.MONS,
+                com.transport.gestiontransport.entity.enums.VilleBelge.BRUXELLES, false, null
+        );
+
+        trajetDto = new TrajetDto(
+                1L,
+                vehicule.getId(),
+                vehicule.getNom(),
+                null, // agenceNom
+                organisateur.getId(),
+                organisateur.getPrenom() + " " + organisateur.getNom(),
+                createTrajetRequest.trajetDate().toLocalDate(),
+                createTrajetRequest.trajetDate().toLocalTime(),
+                createTrajetRequest.trajetDate().plusMinutes(90).toLocalTime(),
+                TypeTrajet.PUBLIC,
+                StatutTrajet.PLANIFIE,
+                0,
+                new BigDecimal("25.0"),
+                null  // dateConversionPublic
+        );
+    }
+
+    @Test
+    void refuseDeuxVillesIdentiquesAvantVerrouillageOuEnregistrement() {
+        var ville = com.transport.gestiontransport.entity.enums.VilleBelge.MONS;
+        var request = new CreateTrajetRequest(1L, LocalDateTime.now().plusDays(2), "PUBLIC", ville, ville, false, null);
+        when(voyageurRepository.findByMatriculeIgnoreCase("V1001")).thenReturn(Optional.of(organisateur));
+        BusinessException error = assertThrows(BusinessException.class, () -> trajetService.createTrajet(request, "V1001"));
+        assertTrue(error.getMessage().contains("la ville de départ et la destination ne peuvent pas être identiques"));
+        verifyNoInteractions(entityManager, vehiculeService);
+        verify(trajetRepository, never()).save(any());
+    }
+
+    @Test
+    void creationVoyageurConserveSonIdentiteCommeOrganisateurPourLaSanction() {
+        when(voyageurRepository.findByMatriculeIgnoreCase("user123")).thenReturn(Optional.of(organisateur));
+        when(vehiculeService.getById(1L)).thenReturn(vehicule);
+        when(trajetRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        trajetService.createTrajet(createTrajetRequest, "user123");
+        verify(trajetRepository).save(argThat(t -> t.getOrganisateur() == organisateur));
+    }
+
+    @Test
+    void refuseUneRechercheAvecDeuxVillesIdentiques() {
+        var ville = com.transport.gestiontransport.entity.enums.VilleBelge.BRUXELLES;
+        assertThrows(BusinessException.class, () -> trajetService.searchPublicTrajets(ville, ville, null));
+        verifyNoInteractions(trajetRepository);
+    }
+
+    @Test
+    void conserveLaRechercheSansDestinationImposee() {
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        when(trajetRepository.findByTypeTrajetAndStatut(TypeTrajet.PUBLIC, StatutTrajet.PLANIFIE)).thenReturn(java.util.List.of());
+        assertTrue(trajetService.searchPublicTrajets(com.transport.gestiontransport.entity.enums.VilleBelge.MONS, null, null).isEmpty());
+    }
+
+    @Test
+    void nePublieJamaisUnTrajetPriveSansConsentement() {
+        Trajet prive = Trajet.builder().typeTrajet(TypeTrajet.PRIVE).statut(StatutTrajet.PLANIFIE)
+                .dateDebut(LocalDateTime.now().plusHours(12)).publicationAutomatiqueAutorisee(false).build();
+        when(trajetRepository.findById(10L)).thenReturn(Optional.of(prive));
+        assertThrows(BusinessException.class, () -> trajetService.convertToPublic(10L));
+        assertEquals(TypeTrajet.PRIVE, prive.getTypeTrajet());
+        verifyNoInteractions(voyageurService);
+        verify(trajetRepository, never()).save(any());
+    }
+
+    @Test
+    void refuseLaPublicationParModificationGenerique() {
+        Trajet prive = Trajet.builder()
+                .typeTrajet(TypeTrajet.PRIVE)
+                .statut(StatutTrajet.PLANIFIE)
+                .chauffeur(organisateur)
+                .organisateur(organisateur)
+                .publicationAutomatiqueAutorisee(false)
+                .build();
+        when(trajetRepository.findById(10L)).thenReturn(Optional.of(prive));
+        when(vehiculeService.getById(vehicule.getId())).thenReturn(vehicule);
+        TrajetRequest demande = TrajetRequest.builder()
+                .organisateurId(organisateur.getId())
+                .vehiculeId(vehicule.getId())
+                .date(LocalDate.now().plusDays(1))
+                .heureDebut(LocalTime.of(10, 0))
+                .typeTrajet(TypeTrajet.PRIVE)
+                .build();
+
+        trajetService.updateTrajet(10L, demande);
+        demande.setTypeTrajet(TypeTrajet.PUBLIC);
+
+        BusinessException erreur = assertThrows(BusinessException.class,
+                () -> trajetService.updateTrajet(10L, demande));
+
+        assertTrue(erreur.getMessage().contains("parcours de publication"));
+        assertEquals(TypeTrajet.PRIVE, prive.getTypeTrajet());
+        verify(trajetRepository).save(prive);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void modificationReserveeAOrganisateurOuAuChauffeurHistorique(boolean organisateurDesigne) {
+        Voyageur chauffeur = new Voyageur();
+        chauffeur.setId(2L);
+        Trajet trajet = Trajet.builder()
+                .typeTrajet(TypeTrajet.PRIVE)
+                .statut(StatutTrajet.PLANIFIE)
+                .chauffeur(chauffeur)
+                .organisateur(organisateurDesigne ? organisateur : null)
+                .build();
+        when(trajetRepository.findById(10L)).thenReturn(Optional.of(trajet));
+        when(vehiculeService.getById(vehicule.getId())).thenReturn(vehicule);
+        TrajetRequest demande = TrajetRequest.builder()
+                .organisateurId(organisateurDesigne ? organisateur.getId() : chauffeur.getId())
+                .vehiculeId(vehicule.getId())
+                .date(LocalDate.now().plusDays(1))
+                .heureDebut(LocalTime.of(10, 0))
+                .typeTrajet(TypeTrajet.PRIVE)
+                .build();
+
+        trajetService.updateTrajet(10L, demande);
+        demande.setOrganisateurId(organisateurDesigne ? chauffeur.getId() : organisateur.getId());
+
+        assertThrows(AccessDeniedException.class, () -> trajetService.updateTrajet(10L, demande));
+        verify(trajetRepository).save(trajet);
+    }
+
+    @Test
+    void refuseUnChauffeurNonAutorise() {
+        organisateur.setPeutProposerTrajet(false);
+        when(voyageurRepository.findByMatriculeIgnoreCase("user123")).thenReturn(Optional.of(organisateur));
+        when(vehiculeService.getById(1L)).thenReturn(vehicule);
+        assertThrows(BusinessException.class, () -> trajetService.createTrajet(createTrajetRequest, "user123"));
+        verify(trajetRepository, never()).save(any());
+    }
+
+    @Test
+    void refuseUnVehiculeIndisponible() {
+        vehicule.setDisponible(false);
+        when(voyageurRepository.findByMatriculeIgnoreCase("user123")).thenReturn(Optional.of(organisateur));
+        when(vehiculeService.getById(1L)).thenReturn(vehicule);
+        BusinessException erreur = assertThrows(BusinessException.class,
+                () -> trajetService.createTrajet(createTrajetRequest, "user123"));
+        assertTrue(erreur.getMessage().contains("véhicule est indisponible"));
+        verify(trajetRepository, never()).save(any());
+    }
+
+    @Test
+    void publicationConsentanteDansLes24HeuresNePenalisePasLeChauffeur() {
+        Trajet prive = Trajet.builder().typeTrajet(TypeTrajet.PRIVE).statut(StatutTrajet.PLANIFIE)
+                .dateDebut(LocalDateTime.now().plusHours(12)).publicationAutomatiqueAutorisee(true).build();
+        when(trajetRepository.findById(10L)).thenReturn(Optional.of(prive));
+        trajetService.convertToPublic(10L);
+        assertEquals(TypeTrajet.PUBLIC, prive.getTypeTrajet());
+        verifyNoInteractions(voyageurService);
+    }
+
+    @Test
+    void refuseDeuxVillesIdentiques() {
+        when(voyageurRepository.findByMatriculeIgnoreCase("user123")).thenReturn(Optional.of(organisateur));
+        var request = new CreateTrajetRequest(1L, createTrajetRequest.trajetDate(), "PUBLIC",
+                com.transport.gestiontransport.entity.enums.VilleBelge.MONS,
+                com.transport.gestiontransport.entity.enums.VilleBelge.MONS, false, null);
+        assertThrows(BusinessException.class, () -> trajetService.createTrajet(request, "user123"));
+        verify(trajetRepository, never()).save(any());
+    }
+
+    @Test
+    void unAdministrateurDoitSelectionnerUnChauffeur() {
+        assertThrows(BusinessException.class, () -> trajetService.createTrajetForAdmin(createTrajetRequest));
+        verifyNoInteractions(trajetRepository);
+    }
+
+    @Test
+    @DisplayName("createTrajet - Succès")
+    void createTrajet_ShouldSucceed_WhenAllRulesAreMet() {
+        // Arrange
+        when(voyageurRepository.findByMatriculeIgnoreCase("user123")).thenReturn(Optional.of(organisateur));
+        when(vehiculeService.getById(vehicule.getId())).thenReturn(vehicule);
+        when(voyageurService.hasOutstandingBalance(organisateur.getId())).thenReturn(false);
+        when(voyageurService.hasActiveRestriction(organisateur.getId())).thenReturn(false);
+        when(trajetRepository.findOverlappingTrajets(any(), any(), any(), any())).thenReturn(Collections.emptyList());
+        when(trajetRepository.save(any(Trajet.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(trajetMapper.toTrajetDto(any(Trajet.class))).thenReturn(trajetDto); // Utiliser le DTO corrigé
+
+        // Act
+        TrajetDto result = trajetService.createTrajet(createTrajetRequest, "user123");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(0, result.nbPassagersActuels());
+        assertEquals(TypeTrajet.PUBLIC, result.typeTrajet());
+        assertEquals(0, new BigDecimal("25.00").compareTo(result.prixParPassager()));
+        verify(trajetRepository, times(1)).save(argThat(trajet ->
+                new BigDecimal("100.00").compareTo(trajet.getPrixTotal()) == 0
+                        && new BigDecimal("25.00").compareTo(trajet.getPrixParPassager()) == 0));
+        verifyNoInteractions(reservationRepository, paiementRepository);
+    }
+
+    @Test
+    @DisplayName("createTrajet - Échoue si le voyageur a un solde impayé")
+    void createTrajet_ShouldFail_WhenVoyageurHasOutstandingBalance() {
+        // Arrange
+        when(voyageurRepository.findByMatriculeIgnoreCase("user123")).thenReturn(Optional.of(organisateur));
+        when(vehiculeService.getById(vehicule.getId())).thenReturn(vehicule);
+        when(voyageurService.hasOutstandingBalance(organisateur.getId())).thenReturn(true);
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            trajetService.createTrajet(createTrajetRequest, "user123");
+        });
+        assertEquals("Vous avez un solde impayé et ne pouvez pas créer de trajet.", exception.getMessage());
+        verify(trajetRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("createTrajet - Échoue si le voyageur a une restriction active")
+    void createTrajet_ShouldFail_WhenVoyageurHasActiveRestriction() {
+        // Arrange
+        when(voyageurRepository.findByMatriculeIgnoreCase("user123")).thenReturn(Optional.of(organisateur));
+        when(vehiculeService.getById(vehicule.getId())).thenReturn(vehicule);
+        when(voyageurService.hasOutstandingBalance(organisateur.getId())).thenReturn(false);
+        when(voyageurService.hasActiveRestriction(organisateur.getId())).thenReturn(true);
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            trajetService.createTrajet(createTrajetRequest, "user123");
+        });
+        assertEquals("Vous avez une restriction active et ne pouvez pas créer de trajet.", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("createTrajet - Échoue si le départ est passé")
+    void createTrajet_ShouldFail_WhenDepartureIsPast() {
+        // Arrange
+        CreateTrajetRequest tooFarRequest = new CreateTrajetRequest(vehicule.getId(), LocalDateTime.now().minusDays(1), "PUBLIC", com.transport.gestiontransport.entity.enums.VilleBelge.MONS, com.transport.gestiontransport.entity.enums.VilleBelge.BRUXELLES, false, null);
+        when(voyageurRepository.findByMatriculeIgnoreCase("user123")).thenReturn(Optional.of(organisateur));
+        when(vehiculeService.getById(vehicule.getId())).thenReturn(vehicule);
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            trajetService.createTrajet(tooFarRequest, "user123");
+        });
+        assertTrue(exception.getMessage().contains("départ doit être futur"));
+    }
+
+    @Test
+    @DisplayName("createTrajet - Échoue si le créneau est déjà pris")
+    void createTrajet_ShouldFail_WhenSlotIsAlreadyBooked() {
+        // Arrange
+        when(voyageurRepository.findByMatriculeIgnoreCase("user123")).thenReturn(Optional.of(organisateur));
+        when(vehiculeService.getById(vehicule.getId())).thenReturn(vehicule);
+        when(trajetRepository.findOverlappingTrajets(any(), any(), any(), any())).thenReturn(Collections.singletonList(new Trajet()));
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            trajetService.createTrajet(createTrajetRequest, "user123");
+        });
+        assertEquals("Ce créneau est déjà réservé sur le vehicule : " + vehicule.getId(), exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("createTrajet - Échoue si le voyageur n'est pas trouvé")
+    void createTrajet_ShouldFail_WhenVoyageurNotFound() {
+        // Arrange
+        when(voyageurRepository.findByMatriculeIgnoreCase("unknownUser")).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            trajetService.createTrajet(createTrajetRequest, "unknownUser");
+        });
+        assertEquals("Voyageur non trouvé pour l'utilisateur: unknownUser", exception.getMessage());
+    }
+}

@@ -24,7 +24,7 @@ describe('adminGuard', () => {
   it('devrait autoriser l\'accès quand la session existe et qu\'aucun rôle n\'est requis', () => {
     localStorage.setItem(
       ADMIN_SESSION_KEY,
-      JSON.stringify({ token: 'x', email: 'a', nom: 'n', prenom: 'p', role: 'GLOBAL', siteId: null })
+      JSON.stringify({ token: 'x', email: 'a', nom: 'n', prenom: 'p', role: 'GLOBAL', agenceId: null })
     );
 
     const result = TestBed.runInInjectionContext(() => adminGuard({ data: {} } as never, {} as never));
@@ -35,7 +35,7 @@ describe('adminGuard', () => {
   it('devrait bloquer l\'accès quand le rôle n\'est pas autorisé', () => {
     localStorage.setItem(
       ADMIN_SESSION_KEY,
-      JSON.stringify({ token: 'x', email: 'a', nom: 'n', prenom: 'p', role: 'SITE', siteId: 2 })
+      JSON.stringify({ token: 'x', email: 'a', nom: 'n', prenom: 'p', role: 'AGENCE', agenceId: 2 })
     );
     const router = TestBed.inject(Router);
 

@@ -1,0 +1,230 @@
+:host {
+  display: block;
+  background: var(--color-surface);
+  padding: clamp(1rem, 4vw, 3.5rem) 1rem;
+}
+.traveller-login-shell {
+  max-width: 1180px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  border-radius: 30px;
+  overflow: hidden;
+  background: var(--ui-surface);
+  box-shadow: 0 24px 70px rgb(16 36 58 / 7%);
+  border: 1px solid var(--ui-border);
+}
+.traveller-story {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(1.75rem, 4vw, 3rem);
+  color: var(--ui-surface);
+  background: var(--color-primary);
+  min-height: 700px;
+}
+.traveller-story::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgb(16 36 58 / 95%) 10%, rgb(16 36 58 / 69%) 50%, rgb(16 36 58 / 13%) 75%, rgb(16 36 58 / 85%));
+}
+.traveller-story-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 40% center;
+  z-index: -2;
+}
+.traveller-eyebrow {
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  color: var(--ui-hero-accent);
+  margin: 0 0 2rem;
+}
+.traveller-story h1 {
+  max-width: 10ch;
+  font-size: clamp(2.4rem, 4.2vw, 3.8rem);
+  font-weight: 750;
+  line-height: 1.08;
+  letter-spacing: -0.055em;
+  margin: 0 0 1.5rem;
+}
+.traveller-story-copy > p:not(.traveller-eyebrow) {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  max-width: 32ch;
+  color: var(--ui-primary-soft);
+}
+.traveller-promise {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+.traveller-promise > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgb(18 184 166 / 42%);
+  border-radius: 999px;
+  background: rgb(16 36 58 / 60%);
+  font-size: 0.75rem;
+}
+.traveller-promise small {
+  font-size: inherit;
+}
+.traveller-story-note {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 5rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.traveller-story-note span {
+  font-size: 2rem;
+  color: var(--ui-hero-accent);
+}
+.traveller-login-panel {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+}
+.gestiontransport-login-card {
+  width: 100%;
+}
+.gestiontransport-login-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  font-size: 1.5rem;
+  border-radius: 50%;
+  background: var(--ui-primary-soft);
+  color: var(--ui-primary);
+  margin-bottom: 1.5rem;
+}
+.gestiontransport-login-title {
+  font-size: 1.8rem;
+  letter-spacing: -0.04em;
+  margin: 0 0 0.75rem;
+  color: var(--color-primary);
+}
+.gestiontransport-login-sub {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin: 0 0 1.75rem;
+}
+.gestiontransport-form {
+  display: grid;
+  gap: 0.5rem;
+}
+.gestiontransport-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 0;
+  border-radius: var(--ui-radius-button);
+  background: var(--color-accent);
+  color: var(--color-primary);
+  box-shadow: var(--ui-shadow-action);
+  transition: background var(--ui-motion), transform var(--ui-motion);
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 50px;
+}
+.gestiontransport-btn-primary:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+.gestiontransport-btn-primary:disabled {
+  background: var(--ui-disabled);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.password-toggle-button {
+  width: 44px;
+  height: 44px;
+  color: var(--color-text-muted);
+}
+.gestiontransport-types-grid {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ui-border);
+}
+.gestiontransport-type-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.gestiontransport-type-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border-radius: 10px;
+}
+.gestiontransport-type-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+.gestiontransport-type-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+.gestiontransport-error {
+  padding: 0.9rem;
+  background: #fef2f2;
+  color: #991b1b;
+  border-radius: 10px;
+}
+.gestiontransport-found-card {
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--ui-primary-soft);
+  color: var(--color-primary);
+}
+.gestiontransport-found-name {
+  font-weight: 700;
+}
+.gestiontransport-found-details {
+  font-size: 0.8rem;
+}
+@media (max-width: 760px) {
+  .traveller-login-shell {
+    grid-template-columns: 1fr;
+    border-radius: 22px;
+  }
+  .traveller-story {
+    min-height: 340px;
+  }
+  .traveller-story h1 {
+    font-size: 2.6rem;
+    max-width: 13ch;
+  }
+  .traveller-eyebrow {
+    margin-bottom: 1rem;
+  }
+  .traveller-story-note {
+    margin-top: 1.5rem;
+  }
+  .traveller-story-photo {
+    object-position: 50% 60%;
+  }
+}

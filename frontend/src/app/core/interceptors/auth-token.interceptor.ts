@@ -1,16 +1,19 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 import { inject } from '@angular/core';
 import { AdminSessionService } from '../auth/admin-session.service';
-import { MemberSessionService } from '../auth/member-session.service';
+import { VoyageurSessionService } from '../auth/voyageur-session.service';
 
 export const authTokenInterceptor: HttpInterceptorFn = (req, next) => {
   const adminSession = inject(AdminSessionService);
-  const memberSession = inject(MemberSessionService);
+  const voyageurSession = inject(VoyageurSessionService);
 
-  const token = adminSession.token() || memberSession.token();
+  const token = adminSession.token() || voyageurSession.token();
 
-  const isApiCall = req.url.startsWith('/api');
-  const isLoginCall = req.url.includes('/api/auth/login') || req.url.includes('/api/membres/login'); // Modified
+  const apiBaseUrl = environment.apiBaseUrl;
+  const path = req.url.split('?')[0];
+  const isApiCall = path === apiBaseUrl || path.startsWith(`${apiBaseUrl}/`);
+  const isLoginCall = path === `${apiBaseUrl}/auth/login` || path === `${apiBaseUrl}/voyageurs/login`;
 
   if (!token || !isApiCall || isLoginCall) {
     return next(req);

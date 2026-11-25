@@ -1,389 +1,337 @@
-import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatchesApiService } from '../../../core/api/matches-api.service';
-import { MemberSessionService } from '../../../core/auth/member-session.service';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { Component, inject, signal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TrajetsApiService } from '../../../core/api/trajets-api.service';
+import { VoyageurSessionService } from '../../../core/auth/voyageur-session.service';
+import { TrajetSearchComponent } from '../../../shared/components/trajet-search.component';
+import { TrajetCardComponent } from '../../../shared/components/trajet-card.component';
+import { RechercheTrajet, TrajetResponse } from '../../../shared/models/trajet.model';
+import { CarHeroCarouselComponent } from '../../../shared/components/car-hero-carousel.component';
+import { AnimatedRouteBannerComponent } from '../../../shared/components/animated-route-banner.component';
 
 @Component({
   selector: 'app-landing-page',
   standalone: true,
   imports: [
-    CommonModule,
     RouterLink,
     MatButtonModule,
-    MatCardModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    TrajetSearchComponent,
+    TrajetCardComponent,
+    CarHeroCarouselComponent,
+    AnimatedRouteBannerComponent,
   ],
   template: `
-    <section class="home-shell">
-      <div class="home-hero">
-        <div class="home-hero-copy">
-          <p class="eyebrow">{{ copy().eyebrow }}</p>
-          <h1>{{ copy().title }}</h1>
-          <p class="lead">{{ copy().lead }}</p>
-
-          <div class="hero-actions">
-            <a mat-flat-button color="primary" routerLink="/member">
-              {{ memberSession.isAuthenticated() ? copy().memberCtaConnected : copy().memberCta }}
-            </a>
-            <a mat-stroked-button routerLink="/admin/login">{{ copy().adminCta }}</a>
-            <button mat-stroked-button type="button" (click)="checkApi()" [disabled]="loading()">
-              {{ copy().testApi }}
-            </button>
+    <app-car-hero-carousel />
+    <div class="content">
+      <div id="recherche" tabindex="-1" class="search-panel"><app-trajet-search (recherche)="rechercher($event)" /></div>
+      <section class="benefits" [attr.aria-label]="language.t('benefits.label')">
+        <article><span aria-hidden="true">✓</span><div><h2>{{ language.t('benefits.driverTitle') }}</h2><p>{{ language.t('benefits.driverBody') }}</p></div></article>
+        <article><span aria-hidden="true">€</span><div><h2>{{ language.t('benefits.priceTitle') }}</h2><p>{{ language.t('benefits.priceBody') }}</p></div></article>
+        <article><span aria-hidden="true">↗</span><div><h2>{{ language.t('benefits.simpleTitle') }}</h2><p>{{ language.t('benefits.simpleBody') }}</p></div></article>
+      </section>
+      <section id="trajets" class="available" aria-labelledby="available-title">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">{{ language.t('transport.onRoad') }}</p>
+            <h2 id="available-title">{{ language.t('transport.find') }}</h2>
           </div>
+          <span>{{ language.t('transport.paymentDemo') }}</span>
         </div>
-
-        <div class="court-panel" [attr.aria-label]="copy().matchPreviewLabel">
-          <div class="court-lines">
-            <span></span>
-            <span></span>
+        @if (loading()) {
+          <div class="loading" role="status">
+            <mat-spinner
+              [attr.aria-label]="language.t('transport.searching')"
+              diameter="28"
+            /><span>{{ language.t('transport.searching') }}</span>
           </div>
-          <div class="match-card live">
-            <p>{{ copy().matchPublic }}</p>
-            <strong>{{ count() ?? '--' }}</strong>
-            <span>{{ copy().matchAvailable }}</span>
-          </div>
-          <div class="match-card">
-            <p>{{ copy().reservation }}</p>
-            <strong>{{ copy().simpleReservation }}</strong>
-            <span>{{ copy().reservationBody }}</span>
-          </div>
+        }
+        @if (erreur()) {
+          <p class="status-error" role="alert">{{ erreur() }}</p>
+          <button mat-stroked-button (click)="rechercher(derniereRecherche)">
+            {{ language.t('transport.retry') }}
+          </button>
+        }
+        <div class="trip-grid">
+          @for (trajet of trajets(); track trajet.id) {
+            <app-trajet-card [trajet]="trajet" (reservationDemandee)="reserver()" />
+          }
         </div>
-      </div>
+        @if (!loading() && !erreur() && !trajets().length) {
+          <div class="empty">
+            <h3>{{ language.t('transport.noRides') }}</h3>
+            <p>{{ language.t('transport.tryOther') }}</p>
+          </div>
+        }
+      </section>
 
-      @if (loading() || message() || error()) {
-        <mat-card class="card-soft feedback-card">
-          <mat-card-content>
-            @if (loading()) {
-              <div class="loading-line">
-                <mat-spinner diameter="28"></mat-spinner>
-                <span>{{ copy().loadingApi }}</span>
-              </div>
-            }
+      <!-- Bannière animée ultra-légère SVG / CSS pur -->
+      <app-animated-route-banner />
 
-            @if (message()) {
-              <p class="status-success">{{ message() }}</p>
-            }
-            @if (error()) {
-              <p class="status-error">{{ error() }}</p>
-            }
-          </mat-card-content>
-        </mat-card>
-      }
-
-      <div class="feature-grid">
-        <mat-card class="feature-card">
-          <mat-card-content>
-            <span class="feature-code">01</span>
-            <h2>{{ copy().feature1Title }}</h2>
-            <p>{{ copy().feature1Body }}</p>
-          </mat-card-content>
-        </mat-card>
-        <mat-card class="feature-card">
-          <mat-card-content>
-            <span class="feature-code">02</span>
-            <h2>{{ copy().feature2Title }}</h2>
-            <p>{{ copy().feature2Body }}</p>
-          </mat-card-content>
-        </mat-card>
-        <mat-card class="feature-card">
-          <mat-card-content>
-            <span class="feature-code">03</span>
-            <h2>{{ copy().feature3Title }}</h2>
-            <p>{{ copy().feature3Body }}</p>
-          </mat-card-content>
-        </mat-card>
-        <mat-card class="feature-card">
-          <mat-card-content>
-            <span class="feature-code">04</span>
-            <h2>{{ copy().feature4Title }}</h2>
-            <p>{{ copy().feature4Body }}</p>
-          </mat-card-content>
-        </mat-card>
-      </div>
-    </section>
+      <section class="popular">
+        <p class="eyebrow">{{ language.t('transport.belgium') }}</p>
+        <h2>{{ language.t('transport.popular') }}</h2>
+        <p>{{ language.t('transport.suggestions') }}</p>
+        <div class="popular-grid">
+          <button (click)="rechercher({ depart: 'MONS', arrivee: 'BRUXELLES' })">
+            Mons <span>→</span> Bruxelles
+          </button>
+          <button (click)="rechercher({ depart: 'CHARLEROI', arrivee: 'BRUXELLES' })">
+            Charleroi <span>→</span> Bruxelles
+          </button>
+          <button (click)="rechercher({ depart: 'NAMUR', arrivee: 'BRUXELLES' })">
+            Namur <span>→</span> Bruxelles
+          </button>
+          <button (click)="rechercher({ depart: 'BRUXELLES', arrivee: 'LIEGE' })">
+            Bruxelles <span>→</span> Liège
+          </button>
+          <button (click)="rechercher({ depart: 'LIEGE', arrivee: 'BRUXELLES' })">
+            Liège <span>→</span> Bruxelles
+          </button>
+          <button (click)="rechercher({ depart: 'BRUXELLES', arrivee: 'ANVERS' })">
+            Bruxelles <span>→</span> {{ language.t('ui.antwerp') }}
+          </button>
+        </div>
+      </section>
+      <section id="fonctionnement" class="how">
+        <p class="eyebrow">{{ language.t('transport.withYou') }}</p>
+        <h2>{{ language.t('transport.how') }}</h2>
+        <div class="steps">
+          <article>
+            <h3>{{ language.t('transport.findStep') }}</h3>
+            <p>{{ language.t('transport.findBody') }}</p>
+          </article>
+          <article>
+            <h3>{{ language.t('transport.payStep') }}</h3>
+            <p>{{ language.t('transport.payBody') }}</p>
+          </article>
+          <article>
+            <h3>{{ language.t('transport.travelStep') }}</h3>
+            <p>{{ language.t('transport.travelBody') }}</p>
+          </article>
+        </div>
+      </section>
+      <section class="driver-call">
+        <div>
+          <h2>{{ language.t('transport.shareWheel') }}</h2>
+          <p>{{ language.t('transport.driverBody') }}</p>
+        </div>
+        <a mat-flat-button routerLink="/voyageur">{{ language.t('transport.myArea') }}</a>
+      </section>
+    </div>
   `,
-  styles: [`
-    .home-shell {
-      width: min(1180px, calc(100% - 2rem));
-      margin: 0 auto;
-      padding: 3rem 0 4rem;
-    }
-
-    .home-hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
-      gap: 2rem;
-      align-items: stretch;
-      min-height: 460px;
-    }
-
-    .home-hero-copy {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: clamp(2rem, 4vw, 4rem);
-      border: 1px solid rgba(15, 23, 42, 0.08);
-      border-radius: 8px;
-      background:
-        linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.88)),
-        radial-gradient(circle at 8% 0%, rgba(16, 185, 129, 0.18), transparent 36%);
-      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
-    }
-
-    .eyebrow {
-      margin: 0 0 0.8rem;
-      color: #047857;
-      font-size: 0.78rem;
-      font-weight: 900;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 0;
-      color: #0f172a;
-      font-size: clamp(3rem, 8vw, 6rem);
-      line-height: 0.95;
-      font-weight: 900;
-      letter-spacing: 0;
-    }
-
-    .lead {
-      max-width: 640px;
-      margin: 1.3rem 0 0;
-      color: #475569;
-      font-size: 1.08rem;
-      line-height: 1.75;
-    }
-
-    .hero-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.8rem;
-      margin-top: 2rem;
-    }
-
-    .court-panel {
-      position: relative;
-      overflow: hidden;
-      min-height: 420px;
-      border-radius: 8px;
-      border: 1px solid rgba(4, 120, 87, 0.18);
-      background:
-        linear-gradient(90deg, rgba(255, 255, 255, 0.54) 1px, transparent 1px),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.54) 1px, transparent 1px),
-        linear-gradient(135deg, #0f766e, #22c55e 55%, #84cc16);
-      background-size: 52px 52px, 52px 52px, auto;
-      box-shadow: 0 24px 60px rgba(4, 120, 87, 0.16);
-    }
-
-    .court-lines {
-      position: absolute;
-      inset: 42px;
-      border: 2px solid rgba(255, 255, 255, 0.72);
-    }
-
-    .court-lines::before,
-    .court-lines::after {
-      content: '';
-      position: absolute;
-      background: rgba(255, 255, 255, 0.72);
-    }
-
-    .court-lines::before {
-      inset: 0 auto 0 50%;
-      width: 2px;
-    }
-
-    .court-lines::after {
-      inset: 50% 0 auto;
-      height: 2px;
-    }
-
-    .court-lines span {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      background: rgba(255, 255, 255, 0.52);
-    }
-
-    .court-lines span:first-child {
-      left: 25%;
-    }
-
-    .court-lines span:last-child {
-      right: 25%;
-    }
-
-    .match-card {
-      position: absolute;
-      right: 1.2rem;
-      bottom: 1.2rem;
-      width: min(240px, calc(100% - 2.4rem));
-      padding: 1rem;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.92);
-      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
-      backdrop-filter: blur(12px);
-    }
-
-    .match-card.live {
-      top: 1.2rem;
-      bottom: auto;
-      left: 1.2rem;
-      right: auto;
-    }
-
-    .match-card p {
-      margin: 0 0 0.35rem;
-      color: #64748b;
-      font-size: 0.78rem;
-      font-weight: 800;
-      text-transform: uppercase;
-    }
-
-    .match-card strong {
-      display: block;
-      color: #0f172a;
-      font-size: 2rem;
-      line-height: 1;
-    }
-
-    .match-card span {
-      display: block;
-      margin-top: 0.35rem;
-      color: #475569;
-      font-size: 0.9rem;
-    }
-
-    .feedback-card {
-      margin-top: 1.5rem;
-    }
-
-    .loading-line {
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      color: #475569;
-      font-weight: 700;
-    }
-
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
-
-    .feature-card {
-      min-height: 190px;
-      border-radius: 8px !important;
-    }
-
-    .feature-card h2 {
-      margin: 1rem 0 0.5rem;
-      color: #0f172a;
-      font-size: 1.05rem;
-      font-weight: 850;
-    }
-
-    .feature-card p {
-      margin: 0;
-      color: #64748b;
-      line-height: 1.6;
-    }
-
-    .feature-code {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 2.3rem;
-      height: 2.3rem;
-      border-radius: 8px;
-      background: #ecfdf5;
-      color: #047857;
-      font-weight: 900;
-    }
-
-    @media (max-width: 920px) {
-      .home-hero,
-      .feature-grid {
-        grid-template-columns: 1fr;
+  styles: [
+    `
+      :host {
+        display: block;
       }
-
-      .court-panel {
-        min-height: 360px;
+      .content { width: min(1312px, calc(100% - var(--space-gutter) * 2)); margin-inline: auto; }
+      .eyebrow {
+        font-size: 0.72rem;
+        font-weight: 750;
+        letter-spacing: 0.13em;
+        color: var(--ui-teal-strong);
+        text-transform: uppercase;
+        margin: 0 0 1rem;
       }
-    }
-  `]
+      .search-panel {
+        position: relative;
+        z-index: 1;
+        padding: clamp(1rem, 2.8vw, 2rem);
+        margin-top: -2.55rem;
+        border: 1px solid var(--ui-border);
+        background: var(--ui-surface);
+        border-radius: var(--ui-radius-large);
+        box-shadow: var(--ui-shadow-raised);
+      }
+      .available,
+      .popular,
+      .how {
+        padding-top: var(--ui-space-section);
+      }
+      .benefits { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1.5rem; padding-block: 2.3rem; border-bottom: 1px solid var(--ui-border); }
+      .benefits article { display: flex; gap: 1rem; align-items: start; }
+      .benefits article > span { display: grid; place-items: center; width: 44px; min-width: 44px; height: 44px; border-radius: 14px; background: var(--ui-teal-soft); color: var(--ui-teal-strong); font-weight: 750; }
+      .benefits h2 { font-size: 1rem; margin: 0 0 .5rem; letter-spacing: -.015em; }
+      .benefits p { font-size: .9rem; color: var(--ui-text-secondary); margin: 0; }
+      .section-title {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+      .section-title h2 {
+        margin: 0;
+      }
+      .section-title > span {
+        font-size: 0.8rem;
+        color: var(--ui-text-secondary);
+      }
+      .section-title .eyebrow {
+        margin-bottom: 0.5rem;
+      }
+      .trip-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.25rem;
+      }
+      .empty {
+        padding: 3rem 1.5rem;
+        border: 1px dashed var(--ui-border);
+        border-radius: var(--ui-radius);
+        background: var(--ui-surface);
+        text-align: center;
+      }
+      .empty p,
+      .steps p,
+      .popular > p {
+        color: var(--ui-text-secondary);
+        line-height: 1.8;
+      }
+      .loading {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 2rem;
+      }
+      .popular-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+      }
+      .popular-grid button {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        align-items: center;
+        padding: 1.15rem;
+        min-height: 64px;
+        border: 1px solid var(--ui-border);
+        border-radius: var(--ui-radius-button);
+        background: var(--ui-surface);
+        color: var(--ui-navy);
+        font-weight: 650;
+        cursor: pointer;
+        text-align: left;
+        transition: background var(--ui-motion), border-color var(--ui-motion);
+      }
+      .popular-grid button:hover:not(:disabled) {
+        border-color: var(--ui-primary);
+        color: var(--ui-primary-strong);
+        background: var(--ui-primary-soft);
+      }
+      .popular-grid span {
+        color: var(--ui-teal-strong);
+      }
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.25rem;
+      }
+      .steps article {
+        padding: 1.75rem;
+        background: var(--ui-surface);
+        border: 1px solid var(--ui-border);
+        border-top: 3px solid var(--color-accent);
+        border-radius: var(--ui-radius);
+      }
+      .steps h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.75rem;
+      }
+      .steps p {
+        font-size: 0.9rem;
+        margin: 0;
+      }
+      .driver-call {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        margin: 4rem 0 1rem;
+        padding: 2.5rem;
+        border-radius: 20px;
+        color: var(--ui-surface);
+        background: var(--ui-navy);
+      }
+      .driver-call h2 {
+        margin-top: 0;
+      }
+      .driver-call p {
+        color: var(--ui-surface);
+        margin-bottom: 0;
+      }
+      @media (max-width: 1000px) {
+        .trip-grid,
+        .popular-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .steps {
+          gap: 1rem;
+        }
+        .steps article {
+          padding: 1.25rem;
+        }
+      }
+      @media (max-width: 720px) {
+        .search-panel {
+          padding: 1rem;
+          margin-top: -1.35rem;
+        }
+        .trip-grid,
+        .popular-grid,
+        .steps,
+        .benefits {
+          grid-template-columns: 1fr;
+        }
+        .available,
+        .popular,
+        .how {
+          padding-top: 2.5rem;
+        }
+        .driver-call {
+          padding: 1.5rem;
+          margin-top: 2.5rem;
+        }
+      }
+    `,
+  ],
 })
 export class LandingPage {
-  private readonly matchesApi = inject(MatchesApiService);
-  readonly memberSession = inject(MemberSessionService);
-  private readonly language = inject(LanguageService);
-
+  readonly language = inject(LanguageService);
+  private readonly api = inject(TrajetsApiService);
+  private readonly router = inject(Router);
+  private readonly session = inject(VoyageurSessionService);
+  readonly trajets = signal<TrajetResponse[]>([]);
   readonly loading = signal(false);
-  readonly count = signal<number | null>(null);
-  readonly errorCode = signal<'api' | ''>('');
-  readonly message = computed(() => {
-    if (this.count() === null) {
-      return '';
-    }
-
-    return this.language.t('landing.apiSuccess', { count: this.count() ?? 0 });
-  });
-  readonly error = computed(() => {
-    if (!this.errorCode()) {
-      return '';
-    }
-
-    return this.language.t('landing.apiError');
-  });
-  readonly copy = computed(() => ({
-    eyebrow: this.language.t('landing.eyebrow'),
-    title: this.language.t('landing.title'),
-    lead: this.language.t('landing.lead'),
-    memberCta: this.language.t('landing.memberCta'),
-    memberCtaConnected: this.language.t('landing.memberCtaConnected'),
-    adminCta: this.language.t('landing.adminCta'),
-    testApi: this.language.t('landing.testApi'),
-    loadingApi: this.language.t('landing.loadingApi'),
-    matchPreviewLabel: this.language.t('landing.matchPreviewLabel'),
-    matchPublic: this.language.t('landing.matchPublic'),
-    matchAvailable: this.language.t('landing.matchAvailable'),
-    reservation: this.language.t('landing.reservation'),
-    reservationBody: this.language.t('landing.reservationBody'),
-    simpleReservation: this.language.t('landing.simpleReservation'),
-    feature1Title: this.language.t('landing.feature1.title'),
-    feature1Body: this.language.t('landing.feature1.body'),
-    feature2Title: this.language.t('landing.feature2.title'),
-    feature2Body: this.language.t('landing.feature2.body'),
-    feature3Title: this.language.t('landing.feature3.title'),
-    feature3Body: this.language.t('landing.feature3.body'),
-    feature4Title: this.language.t('landing.feature4.title'),
-    feature4Body: this.language.t('landing.feature4.body')
-  }));
-
-  checkApi(): void {
+  readonly erreur = signal('');
+  derniereRecherche: RechercheTrajet = {};
+  constructor() {
+    this.rechercher({});
+  }
+  rechercher(filtres: RechercheTrajet): void {
+    this.derniereRecherche = filtres;
     this.loading.set(true);
-    this.errorCode.set('');
-
-    this.matchesApi.getPublic().subscribe({
-      next: (matches) => {
-        this.count.set(matches.length);
+    this.erreur.set('');
+    this.trajets.set([]);
+    this.api.getPublic(filtres).subscribe({
+      next: (trajets) => {
+        this.trajets.set(trajets);
         this.loading.set(false);
       },
       error: () => {
-        this.count.set(null);
-        this.errorCode.set('api');
+        this.erreur.set(this.language.t('ui.loadError'));
         this.loading.set(false);
-      }
+      },
     });
+  }
+  reserver(): void {
+    this.router.navigateByUrl(this.session.isAuthenticated() ? '/voyageur/trajets' : '/voyageur');
   }
 }

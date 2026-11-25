@@ -8,7 +8,7 @@ import { apiUrl } from './api-url';
 export class PaiementsApiService {
   constructor(private readonly http: HttpClient) {}
 
-  pay(reservationId: number, _membreId?: number): Observable<PaiementResponse> {
+  pay(reservationId: number, _voyageurId?: number): Observable<PaiementResponse> {
     return this.http.post<PaiementResponse>(
       apiUrl(`/paiements/reservation/${reservationId}/pay`),
       {}
@@ -23,7 +23,7 @@ export class PaiementsApiService {
     return this.http.get<PaiementResponse>(apiUrl(`/paiements/reservation/${reservationId}`));
   }
 
-  getByMembre(membreId: number): Observable<PaiementResponse[]> {
-    return this.http.get<PaiementResponse[]>(apiUrl(`/paiements/membre/${membreId}`));
+  getByVoyageur(voyageurId: number): Observable<PaiementResponse[]> {
+    return this.http.get<PaiementResponse[]>(apiUrl(`/paiements/voyageur/${voyageurId}`));
   }
 }

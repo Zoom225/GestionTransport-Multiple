@@ -1,7 +1,7 @@
 import { Injectable, computed, effect, signal } from '@angular/core';
 import { Locale, TRANSLATIONS, TranslationKey, TranslationParams } from './translations';
 
-const STORAGE_KEY = 'padelplay_language';
+const STORAGE_KEY = 'gestiontransport_language';
 const SUPPORTED_LOCALES: Locale[] = ['fr', 'en'];
 
 @Injectable({ providedIn: 'root' })
@@ -17,6 +17,7 @@ export class LanguageService {
       if (typeof document !== 'undefined') {
         document.documentElement.lang = locale;
         document.documentElement.dir = 'ltr';
+        document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', this.t('seo.description'));
       }
 
       try {

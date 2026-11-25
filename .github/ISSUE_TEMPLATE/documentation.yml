@@ -1,0 +1,82 @@
+name: "Documentation"
+description: "Décrire une lacune dans la documentation ou les preuves de livraison."
+body:
+  - type: textarea
+    id: contexte
+    attributes:
+      label: "Contexte"
+      description: "Expliquer pourquoi cette intervention est nécessaire."
+    validations:
+      required: true
+  - type: textarea
+    id: probleme
+    attributes:
+      label: "Problème constaté"
+      description: "Document concerné, information manquante et version de référence."
+    validations:
+      required: true
+  - type: textarea
+    id: objectifs
+    attributes:
+      label: "Objectifs"
+      description: "Décrire le résultat attendu."
+    validations:
+      required: true
+  - type: textarea
+    id: travaux
+    attributes:
+      label: "Travaux à réaliser"
+      description: "Ajouter une checklist des tâches techniques."
+    validations:
+      required: true
+  - type: textarea
+    id: criteres
+    attributes:
+      label: "Critères d’acceptation"
+      description: "Indiquer des conditions vérifiables."
+    validations:
+      required: true
+  - type: textarea
+    id: regles
+    attributes:
+      label: "Règles métier concernées"
+      description: "Indiquer les références RM lorsqu’elles sont connues."
+    validations:
+      required: false
+  - type: textarea
+    id: acquis
+    attributes:
+      label: "Acquis d’apprentissage concernés"
+      description: "Indiquer les références AA lorsqu’elles sont connues."
+    validations:
+      required: false
+  - type: textarea
+    id: tests
+    attributes:
+      label: "Tests attendus"
+      description: "Préciser les contrôles à exécuter et les scénarios à vérifier."
+    validations:
+      required: true
+  - type: textarea
+    id: risques
+    attributes:
+      label: "Risques et dépendances"
+      description: "Indiquer les régressions à surveiller et les issues liées."
+    validations:
+      required: false
+  - type: dropdown
+    id: priorite
+    attributes:
+      label: Priorité
+      options:
+        - Critique
+        - Haute
+        - Moyenne
+        - Basse
+    validations:
+      required: true
+  - type: textarea
+    id: resultat
+    attributes:
+      label: Résultat final
+      description: Ajouter les preuves, la pull request et le résultat GitHub Actions avant la clôture.

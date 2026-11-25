@@ -1,0 +1,114 @@
+name: Validation GestionTransport
+
+on:
+  pull_request:
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: issue1_validation_ci
+          POSTGRES_USER: transport
+          POSTGRES_PASSWORD: transport_ci_only
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U transport -d issue1_validation_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      POSTGRES_BASELINE_URL: jdbc:postgresql://localhost:5432/issue1_validation_ci
+      DB_USER: transport
+      DB_PASSWORD: transport_ci_only
+      DEMO_DATA_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - run: mvn -B -ntp verify
+      - name: Vérifier migration et mappings sur copie PostgreSQL
+        env:
+          PGPASSWORD: transport_ci_only
+          TRANSPORT_SCHEMA_URL: jdbc:postgresql://localhost:5432/transport_schema_copy_ci
+        run: |
+          # M?me version majeure que le serveur : ?viter les SET non pris en charge.
+          pg15() { docker exec -i "${{ job.services.postgres.id }}" "$@"; }
+          pg15 createdb -U transport transport_schema_copy_ci
+          pg15 pg_dump -U transport --no-owner issue1_validation_ci | pg15 psql -U transport -v ON_ERROR_STOP=1 transport_schema_copy_ci
+          pg15 psql -U transport -d transport_schema_copy_ci < src/test/resources/schema-historique-fixture.sql
+          pg15 psql -U transport -d transport_schema_copy_ci -At < scripts/migrations/issue-3-empreintes.sql > /tmp/schema-before.txt
+          pg15 psql -U transport -d transport_schema_copy_ci < scripts/migrations/issue-3-schema-transport.sql
+          pg15 psql -U transport -d transport_schema_copy_ci -At < scripts/migrations/issue-3-empreintes.sql > /tmp/schema-after.txt
+          cmp /tmp/schema-before.txt /tmp/schema-after.txt
+          pg15 psql -U transport -d transport_schema_copy_ci < scripts/migrations/issue-3-schema-transport.sql
+          pg15 psql -U transport -d transport_schema_copy_ci -At < scripts/migrations/issue-3-empreintes.sql > /tmp/schema-second.txt
+          cmp /tmp/schema-after.txt /tmp/schema-second.txt
+          pg15 psql -U transport -d transport_schema_copy_ci -v ON_ERROR_STOP=1 -c 'CREATE TABLE sites(id bigint)'
+          if pg15 psql -U transport -d transport_schema_copy_ci < scripts/migrations/issue-3-schema-transport.sql; then
+            echo 'La migration aurait d? refuser les tables parall?les'; exit 1
+          fi
+          pg15 psql -U transport -d transport_schema_copy_ci -v ON_ERROR_STOP=1 -c 'DROP TABLE sites'
+          pg15 psql -U transport -d transport_schema_copy_ci -At < scripts/migrations/issue-3-empreintes.sql > /tmp/schema-refusal.txt
+          cmp /tmp/schema-after.txt /tmp/schema-refusal.txt
+          for migration in scripts/migrations/issue-8-organisateur-penalite.sql \
+                           scripts/migrations/issue-9-suspension-168h.sql \
+                           scripts/migrations/issue-10-auteur-annulation.sql; do
+            pg15 psql -U transport -d transport_schema_copy_ci -v ON_ERROR_STOP=1 < "$migration"
+          done
+          # Vérifier une conversion réelle de flottants sur une fixture synthétique.
+          pg15 createdb -U transport transport_decimal_ci
+          decimal_psql() { pg15 psql -X -U transport -d transport_decimal_ci -v ON_ERROR_STOP=1 "$@"; }
+          decimal_psql < src/test/resources/montants-historiques-fixture.sql
+          if decimal_psql < scripts/migrations/issue-45-montants-bigdecimal.sql; then
+            echo "La migration devait refuser la valeur avec une fraction de centime"; exit 1
+          fi
+          test "$(decimal_psql -Atc "SELECT pg_typeof(montant) FROM paiements")" = "double precision"
+          decimal_psql -c 'UPDATE voyageurs SET solde = 0 WHERE id = 2'
+          for tentative in 1 2; do
+            decimal_psql < scripts/migrations/issue-45-montants-bigdecimal.sql
+            decimal_psql < src/test/resources/verification-montants.sql
+          done
+          pg15 psql -X -U transport -d transport_schema_copy_ci -v ON_ERROR_STOP=1 < scripts/migrations/issue-45-montants-bigdecimal.sql
+          mvn -B -ntp -Dtest=TransportSchemaValidationTest test
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Construire l’image de production
+        run: docker build --tag gestiontransport-validation .

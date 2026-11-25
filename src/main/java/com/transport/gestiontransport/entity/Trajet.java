@@ -1,0 +1,97 @@
+package com.transport.gestiontransport.entity;
+
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.transport.gestiontransport.entity.enums.StatutTrajet;
+import com.transport.gestiontransport.entity.enums.TypeTrajet;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Entity
+@Table(name = "trajets", indexes = {
+        @Index(name = "idx_trajets_recherche", columnList = "type_trajet,statut,ville_depart,ville_arrivee,date_debut"),
+        @Index(name = "idx_trajets_chauffeur_creneau", columnList = "chauffeur_id,date_debut,date_fin"),
+        @Index(name = "idx_trajets_vehicule_creneau", columnList = "vehicule_id,date_debut,date_fin")
+})
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Trajet extends BaseEntity {
+    private java.time.LocalDateTime dateAnnulation;
+    // Immutable actor identifier retained in the cancellation history.
+    private Long annuleParVoyageurId;
+    public static final int MAX_CLIENTS = 4;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vehicule_id", nullable = false)
+    @JsonBackReference("vehicule-trajets")
+    private Vehicule vehicule;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "chauffeur_id", nullable = false)
+    private Voyageur chauffeur;
+
+    // Independent from the assigned driver. Historical trips remain unassigned.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "voyageur_organisateur_id")
+    private Voyageur organisateur;
+
+    private LocalDateTime penaliteIncompletImputeeLe;
+    private LocalDateTime penaliteIncompletPayeeLe;
+
+    public boolean estResponsable(Long voyageurId) {
+        return organisateur != null ? organisateur.getId().equals(voyageurId)
+                : chauffeur != null && chauffeur.getId().equals(voyageurId);
+    }
+
+    @Enumerated(EnumType.STRING)
+    private com.transport.gestiontransport.entity.enums.VilleBelge villeDepart;
+
+    @Enumerated(EnumType.STRING)
+    private com.transport.gestiontransport.entity.enums.VilleBelge villeArrivee;
+
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean publicationAutomatiqueAutorisee = false;
+
+    @Column(nullable = false)
+    private LocalDateTime dateDebut;
+
+    @Column(nullable = false)
+    private LocalDateTime dateFin;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type_trajet", nullable = false)
+    private TypeTrajet typeTrajet;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatutTrajet statut;
+
+    @Column(name = "nb_passagers_actuels", nullable = false)
+    @jakarta.validation.constraints.Min(0)
+    @jakarta.validation.constraints.Max(MAX_CLIENTS)
+    private Integer nbPassagersActuels;
+
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal prixTotal;
+
+    @Column(name = "prix_par_passager", nullable = false, precision = 19, scale = 2)
+    private BigDecimal prixParPassager;
+
+    private LocalDateTime dateConversionPublic;
+
+    @OneToMany(mappedBy = "trajet", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("trajet-reservations")
+    private List<Reservation> reservations;
+
+    // L'entité est maintenant un simple POJO qui représente la table de la base de données.
+    // Toute la logique de manipulation des dates a été déplacée dans la couche service.
+}
