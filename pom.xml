@@ -21,6 +21,7 @@
 		<commons-lang3.version>3.18.0</commons-lang3.version>
 		<lombok.version>1.18.36</lombok.version>
 		<postgresql.version>42.7.12</postgresql.version>
+		<tomcat.version>10.1.62</tomcat.version>
 	</properties>
 
 	<dependencies>
