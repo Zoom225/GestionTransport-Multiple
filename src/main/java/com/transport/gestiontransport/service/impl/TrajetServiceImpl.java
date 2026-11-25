@@ -215,6 +215,10 @@ public class TrajetServiceImpl implements TrajetService {
             throw new BusinessException("Seul l'organisateur peut modifier ce trajet.");
         }
 
+        if (trajet.getTypeTrajet() == TypeTrajet.PRIVE && request.getTypeTrajet() == TypeTrajet.PUBLIC) {
+            throw new BusinessException("La conversion d’un trajet privé en trajet public doit suivre le parcours de publication.");
+        }
+
         Vehicule vehicule = vehiculeService.getById(request.getVehiculeId());
         entityManager.lock(vehicule, LockModeType.PESSIMISTIC_WRITE);
         entityManager.refresh(vehicule);
