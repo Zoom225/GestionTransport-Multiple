@@ -20,6 +20,27 @@ npm.cmd --version
 
 Utiliser la racine du dépôt pour Docker et Maven. Les commandes npm s’exécutent dans `frontend`.
 
+## Menu de commandes
+
+Pour afficher les commandes depuis la racine :
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\commandes.ps1
+```
+
+Le menu donne accès à Docker, Maven et Angular. Pour lancer toute l’application, démarrer le backend et le frontend dans **deux terminaux**. Installer les dépendances Angular une première fois avant de lancer le frontend. Une de ces commandes peut aussi être appelée directement :
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\commandes.ps1 -Action DemarrerBackend
+powershell -NoProfile -ExecutionPolicy Bypass -File .\commandes.ps1 -Action DemarrerFrontend
+powershell -NoProfile -ExecutionPolicy Bypass -File .\commandes.ps1 -Action TesterBackend
+```
+
+Lorsque le port 4200 est occupé, lancer le menu avec `-PortFrontend 4202` ou appeler directement `-Action DemarrerFrontend -PortFrontend 4202`.
+
+Les autres actions sont `CompilerBackend`, `InstallerFrontend`, `CompilerFrontend`, `TesterFrontend`, `EtatDocker` et `ConstruireImage`. Les serveurs s’exécutent au premier plan dans le terminal qui les lance.
+
+
 ## 1. Préparer PostgreSQL
 
 Le [fichier Compose](docker-compose.yml) démarre **PostgreSQL 15**. Il publie le port hôte **5440** vers le port **5432** du conteneur. La base locale porte le nom `transportService`. Le service Compose `postgres` utilise le conteneur `gestiontransport-db`.
