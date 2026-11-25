@@ -35,4 +35,3 @@ export class VehiculesApiService {
     return this.http.delete<void>(apiUrl(`/vehicules/${id}`));
   }
 }
-

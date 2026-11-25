@@ -28,4 +28,3 @@ export class AgencesApiService {
     return this.http.delete<void>(apiUrl(`/agences/${id}`));
   }
 }
-

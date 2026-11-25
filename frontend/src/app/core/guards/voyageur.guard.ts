@@ -12,4 +12,3 @@ export const voyageurGuard: CanActivateFn = () => {
 
   return router.parseUrl('/voyageur');
 };
-
