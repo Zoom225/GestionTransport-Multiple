@@ -1,6 +1,6 @@
-# Dossier de preuves des onze acquis EPHEC
+# Dossier de preuves des onze acquis produit
 
-Les domaines ci-dessous reprennent les intitulés fournis pour la mission. La grille du professeur et les identifiants RM01 à RM30 restent à confirmer. Java/Spring Boot et Angular démontrent des compétences techniques comparables à celles mobilisées avec C# et Blazor, sous réserve de l’accord du professeur sur cette équivalence.
+Les sections décrivent les domaines de validation de TransportMultiple et leurs preuves techniques. La correspondance RM01 à RM30 reste à confirmer dans le référentiel métier.
 
 Les preuves de référence portent sur `d74caeb`, intégré via la PR #37. Le rejeu de cet arbre a donné 220 tests backend réussis, dont 20 conditionnels avec PostgreSQL, et 96 réussis en Angular, sans échec ni test ignoré. Les preuves postérieures indiquent leur propre commit. [Audit](https://github.com/Zoom225/GestionTransport-Multiple/blob/develop/docs/finalisation/audit-initial.md) · [CI d’intégration](https://github.com/Zoom225/GestionTransport-Multiple/actions/runs/45464071817).
 
@@ -13,7 +13,7 @@ Formaliser les acteurs et leurs fenêtres d’accès à la réservation.
 - Test et résultat. `src/test/java/com/transport/gestiontransport/service/ReservationServiceTest.java`. Le contrôle correspondant fait partie des suites réussies sur le candidat de référence.
 - Traçabilité. Issue [#2](https://github.com/Zoom225/GestionTransport-Multiple/issues/2), PR [#37](https://github.com/Zoom225/GestionTransport-Multiple/pull/37), commit de preuve `d74caeb`.
 - Démonstration. Comparer une demande VIP à J+21 et à J+22, puis effectuer la même vérification pour LOCAL et LIBRE.
-- Limite. Les libellés de la source académique restent à confirmer.
+- Limite. Les libellés de la référentiel produit restent à confirmer.
 
 ```text
 VIP/LOCAL/LIBRE ; appliquer le délai à chaque réservation
@@ -163,7 +163,7 @@ Démarrer une démonstration reproductible sur un jeu de données isolé.
 - Test et résultat. `src/test/java/com/transport/gestiontransport/DataInitializerTest.java`. Les 15 cas de DataInitializer réussissent dans la validation de référence.
 - Traçabilité. Issue [#34](https://github.com/Zoom225/GestionTransport-Multiple/issues/34), PR [#35](https://github.com/Zoom225/GestionTransport-Multiple/pull/35), commit de preuve `d74caeb`.
 - Démonstration. Comparer l’initialisation sur une base de démonstration vide et le refus sur une base métier.
-- Limite. Les identifiants et mots de passe de production sont hors du dossier de soutenance.
+- Limite. Les identifiants et mots de passe de production sont hors du dossier de démonstration.
 
 ```text
 @Profile("dev")

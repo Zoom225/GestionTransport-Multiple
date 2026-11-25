@@ -1,4 +1,4 @@
-# Audit initial de la finalisation du TFE
+# Audit initial de la finalisation de livraison
 
 Audit du 24 novembre 2026 pour [l’issue #34](https://github.com/Zoom225/GestionTransport-Multiple/issues/34). Le rapport est proposé sur une branche issue de `develop`. Le code testé est celui du dernier candidat fonctionnel de `origin`, dans un dossier de travail séparé.
 
@@ -36,7 +36,7 @@ Au moment de l’audit, les issues [#1](https://github.com/Zoom225/GestionTransp
 - **PostgreSQL.** Le candidat conserve `ddl-auto=update` dans la configuration principale. Le workflow `.github/workflows/validation.yml` utilise PostgreSQL 15, un schéma isolé, une comparaison d’empreintes, le rejeu de la migration de nomenclature, son refus en présence de tables concurrentes et un contrôle Hibernate des mappings.
 - **Réservation et sanctions.** Le candidat comporte des transactions et des verrous pessimistes sur des opérations de réservation et de trajet. Les tests de l’API et d’Angular existent. Un relevé par règle et un contrôle des paiements et réservations simultanés restent nécessaires pour la livraison.
 - **Interface.** L’issue [#29](https://github.com/Zoom225/GestionTransport-Multiple/issues/29) fixe une rotation de six secondes. `car-hero-carousel.component.ts` et son test fixent actuellement 3 500 ms sur le candidat, qui gère aussi `prefers-reduced-motion`. L’issue #29 couvre déjà ce point. Les contrôles navigateur aux largeurs et au zoom demandés restent à consolider.
-- **Documentation et déploiement.** Le dépôt contient des documents d’analyse et de validation dans `docs/covoiturage/`. Le cahier officiel numéroté RM01–RM30 et les intitulés officiels des acquis EPHEC restent à retrouver ou à confirmer. L’état d’un déploiement actif n’a pas été établi.
+- **Documentation et déploiement.** Le dépôt contient des documents d’analyse et de validation dans `docs/covoiturage/`. Le cahier officiel numéroté RM01–RM30 et la grille de validation produit restent à retrouver ou à confirmer. L’état d’un déploiement actif n’a pas été établi.
 
 ## Contrôles locaux
 
@@ -56,4 +56,4 @@ Le relevé `mvn dependency:list -DincludeScope=runtime` a permis de comparer 88 
 
 ## Suite de la livraison
 
-Le prochain chantier est la validation de la chaîne #28 → #30 → #32 → #33 vers `develop`. Une [branche de consolidation](https://github.com/Zoom225/GestionTransport-Multiple/pull/37) prévoit une validation de l’arbre intégré. Les validations de sécurité, de précision financière, de PostgreSQL et de conformité métier doivent être liées à leurs chantiers respectifs. La livraison vers `master`, le tag et les preuves de déploiement restent soumis aux validations et autorisations prévues pour le TFE.
+Le prochain chantier est la validation de la chaîne #28 → #30 → #32 → #33 vers `develop`. Une [branche de consolidation](https://github.com/Zoom225/GestionTransport-Multiple/pull/37) prévoit une validation de l’arbre intégré. Les validations de sécurité, de précision financière, de PostgreSQL et de conformité métier doivent être liées à leurs chantiers respectifs. La livraison vers `master`, le tag et les preuves de déploiement restent soumis aux validations et autorisations prévues pour la livraison.

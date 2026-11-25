@@ -551,7 +551,7 @@ export type TranslationParams = Record<string, string | number>;
 
 export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>>> = {
   fr: {
-    'seo.description': 'Covoiturage entre villes belges : chauffeur identifié, quatre passagers maximum et 25 € par personne. Paiement simulé dans cette version académique.',
+    'seo.description': 'Covoiturage entre villes belges : chauffeur identifié, quatre passagers maximum et 25 € par personne. Paiement simulé.',
     'carousel.label': 'Voyager ensemble en Belgique',
     'carousel.description': 'carrousel',
     'carousel.slide': 'photographie',
@@ -1129,7 +1129,7 @@ export const TRANSLATIONS: Record<Locale, Partial<Record<TranslationKey, string>
     'studio.personal': 'Informations du compte',
   },
   en: {
-    'seo.description': 'Carpooling between Belgian cities: an identified driver, up to four passengers and €25 per person. Simulated payments in this academic version.',
+    'seo.description': 'Carpooling between Belgian cities: an identified driver, up to four passengers and €25 per person. Simulated payments.',
     'carousel.label': 'Travelling together in Belgium',
     'carousel.description': 'carousel',
     'carousel.slide': 'photograph',

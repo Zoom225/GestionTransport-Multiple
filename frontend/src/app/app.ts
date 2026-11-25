@@ -21,7 +21,7 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
     <a class="skip-link" href="#main-content">{{ language.t('ui.skip') }}</a>
     <header class="app-header" (keydown.escape)="menuOuvert.set(false); menuButton.focus()">
       <div class="app-header-inner">
-        <a routerLink="/" class="app-logo" aria-label="GestionTransport-Multiple">
+        <a routerLink="/" class="app-logo" aria-label="TransportMultiple">
           <span class="app-logo-badge" aria-hidden="true"><svg class="ui-icon"><use href="images/ui-icons.svg#car" /></svg></span>
           <span class="app-logo-text">Gestion<wbr />Transport<span class="app-logo-suffix">-Multiple</span></span>
         </a>
@@ -165,7 +165,7 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
     @if (showJourneyBanner) {
       <section class="journey-banner" [class.journey-banner-compact]="adminSession.isAuthenticated() || router.url.startsWith('/admin/login') || router.url === '/voyageur'" [attr.aria-label]="language.t('design.bannerLabel')">
         <div class="journey-banner-copy">
-          <p class="journey-eyebrow">GestionTransport-Multiple</p>
+          <p class="journey-eyebrow">TransportMultiple</p>
           <p class="journey-banner-title">{{ adminSession.isAuthenticated() ? language.t(adminSession.isGlobalAdmin() ? 'premium.global' : 'premium.local') : language.t('design.bannerTitle') }}</p>
           <p>{{ language.t(adminSession.isAuthenticated() ? 'design.adminSubtitle' : 'design.bannerSubtitle') }}</p>
           <a [routerLink]="adminSession.isAuthenticated() ? '/admin/trajets' : voyageurSession.isAuthenticated() ? '/voyageur/trajets' : '/'"
@@ -195,7 +195,7 @@ import { LanguageSwitcherComponent } from './shared/components/language-switcher
     <footer class="app-footer">
       <div class="footer-inner">
         <div>
-          <strong>GestionTransport-Multiple</strong>
+          <strong>TransportMultiple</strong>
           <p>{{ language.t('ui.footerTagline') }}</p>
         </div>
         <nav class="footer-links" [attr.aria-label]="language.t('ui.mainNav')">

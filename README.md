@@ -1,6 +1,6 @@
-# GestionTransport-Multiple
+# TransportMultiple
 
-Plateforme académique de covoiturage entre villes belges, construite sur l'application existante
+Plateforme de covoiturage entre villes belges, construite sur l'application existante
 avec **Java 21, Spring Boot, Angular et PostgreSQL 15**.
 
 **Un trajet = un chauffeur déjà associé + quatre passagers maximum.**
@@ -156,7 +156,7 @@ Ouvrir trois terminaux PowerShell dans le dossier contenant `pom.xml` et
 `docker-compose.yml`. Adapter ce chemin à l'emplacement du dépôt :
 
 ```powershell
-Set-Location 'C:\chemin\vers\GestionTransport-Multiple'
+Set-Location 'C:\chemin\vers\TransportMultiple'
 ```
 
 | Terminal | Dossier de travail | Commandes détaillées |
@@ -581,7 +581,7 @@ Toutes les PR ciblent `develop`. Les branches fonctionnelles partent du dernier
 | #6    | feature/issue-6-transport-frontend          | [#16](https://github.com/Zoom225/GestionTransport-Multiple/pull/16)                                                                    |
 | #7 | feature/issue-7-integration-validation | [#17](https://github.com/Zoom225/GestionTransport-Multiple/pull/17) |
 | #6 | feature/issue-6-ui-professionnelle | [#21](https://github.com/Zoom225/GestionTransport-Multiple/pull/21) |
-| #4, #6, #7 | feature/issue-4-soutenance-finalisation | [#18](https://github.com/Zoom225/GestionTransport-Multiple/pull/18) |
+| #4, #6, #7 | commit 83409a8 | [#18](https://github.com/Zoom225/GestionTransport-Multiple/pull/18) |
 
 Documents à lire pour présenter le projet :
 
@@ -594,7 +594,7 @@ Documents à lire pour présenter le projet :
 - [Validation finale et préservation des données](docs/covoiturage/issue-7-validation.md).
 - [Audit initial historique](docs/audit-initial.md) et [exécutions de baseline](docs/baseline-execution.md).
 
-## Candidat de soutenance — finalisation issues #4 et #7
+## Candidat de démonstration — finalisation issues #4 et #7
 
 Dernière validation : **155 tests backend dont 15 PostgreSQL**, **63 tests Angular**,
 builds réussis et [CI réussie](https://github.com/Zoom225/GestionTransport-Multiple/actions/runs/43277688472).
@@ -639,10 +639,10 @@ Un solde exigible positif bloque toujours réservation et paiement de confirmati
   le motif et l'administrateur déclarant sont conservés ; une répétition ne les écrase pas.
 - Administration des voyageurs : `GET /api/voyageurs/{id}/restrictions` retourne
   l'historique et l'état actif calculé, selon le périmètre d'agence de l'administrateur.
-- Migration additive : [issue-4-restrictions-soutenance.sql](scripts/migrations/issue-4-restrictions-soutenance.sql).
+- Migration additive : [issue-4-restrictions-validation.sql](scripts/migrations/issue-4-restrictions-validation.sql).
   Revue et sauvegarde requises avant application sur une base existante ; aucun paiement réécrit.
 
-### Démonstration devant le jury
+### Démonstration fonctionnelle
 
 Suivre les commandes Docker, backend et frontend des sections 1 à 6. Ouvrir Swagger,
 puis rechercher Mons → Bruxelles dans Angular. Se connecter avec le client VIP de la
@@ -702,7 +702,7 @@ la base métier. [Diagnostic détaillé](docs/covoiturage/issue-7-validation.md)
 La configuration Maven partagée ci-dessous exige ses propres variables
 d'environnement ; elle n'hérite pas de celles de la configuration Spring Boot.
 
-- IntelliJ : utiliser la configuration partagée **GestionTransport-Multiple**
+- IntelliJ : utiliser la configuration partagée **TransportMultiple**
   (`.run/GestionTransport-Multiple.run.xml`), qui exécute `spring-boot:run` via Maven
   sans dépendre du nom local du module. Configurer les variables DB/JWT comme ci-dessus.
   Pour une configuration Spring Boot personnelle, la classe principale est

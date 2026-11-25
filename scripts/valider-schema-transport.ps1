@@ -3,7 +3,7 @@
     [Parameter(Mandatory=$true,ParameterSetName='Source')][string]$SourceDatabase,
     [Parameter(Mandatory=$true,ParameterSetName='Sauvegarde')][string]$BackupFile,
     [Parameter(Mandatory=$true)][string]$DatabaseUser,
-    [string]$ValidationContainer = 'transport-soutenance-validation'
+    [string]$ValidationContainer = 'transport-schema-validation'
 )
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path $PSScriptRoot -Parent)
