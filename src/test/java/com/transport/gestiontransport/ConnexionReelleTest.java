@@ -10,6 +10,7 @@ import com.transport.gestiontransport.repository.VoyageurRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -17,13 +18,19 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import java.math.BigDecimal;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -36,6 +43,9 @@ class ConnexionReelleTest {
 
     @Autowired
     MockMvc mvc;
+    @Autowired
+    @Qualifier("requestMappingHandlerMapping")
+    RequestMappingHandlerMapping handlerMapping;
     @Autowired
     ObjectMapper objectMapper;
     @Autowired
@@ -81,6 +91,46 @@ class ConnexionReelleTest {
         mvc.perform(get("/api/voyageurs").header("Authorization", "Bearer " + jeton))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    void swaggerExposeLesRoutesRestEtLeSchemaJwtSansAuthentification() throws Exception {
+        mvc.perform(get("/swagger-ui.html")).andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/swagger-ui/index.html"));
+        mvc.perform(get("/swagger-ui/index.html")).andExpect(status().isOk());
+        mvc.perform(get("/v3/api-docs/swagger-config")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.url").value("/v3/api-docs"));
+
+        byte[] documentation = mvc.perform(get("/v3/api-docs")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.components.securitySchemes['Bearer Auth'].scheme").value("bearer"))
+                .andExpect(jsonPath("$.components.securitySchemes['Bearer Auth'].bearerFormat").value("JWT"))
+                .andReturn().getResponse().getContentAsByteArray();
+        var cheminsDocumentes = objectMapper.readTree(documentation).path("paths");
+
+        var routes = handlerMapping.getHandlerMethods().keySet().stream()
+                .flatMap(mapping -> mapping.getPatternValues().stream()
+                        .filter(path -> path.startsWith("/api/"))
+                        .flatMap(path -> mapping.getMethodsCondition().getMethods().stream()
+                                .map(method -> method.name().toLowerCase(Locale.ROOT) + " " + path)))
+                .collect(Collectors.toSet());
+        var operationsDocumentees = cheminsDocumentes.properties().stream()
+                .filter(chemin -> chemin.getKey().startsWith("/api/"))
+                .flatMap(chemin -> chemin.getValue().properties().stream()
+                        .filter(operation -> Set.of("get", "post", "put", "patch", "delete", "options", "head", "trace")
+                                .contains(operation.getKey()))
+                        .map(operation -> operation.getKey() + " " + chemin.getKey()))
+                .collect(Collectors.toSet());
+
+        assertThat(routes).isNotEmpty();
+        assertThat(operationsDocumentees).containsExactlyInAnyOrderElementsOf(routes);
+    }
+
+    @Test
+    void swaggerPublicLaisseLesOperationsMetierProtegees() throws Exception {
+        mvc.perform(get("/api/voyageurs")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/voyageurs/me").header("Authorization", "Bearer invalide"))
+                .andExpect(status().isUnauthorized());
+    }
+
 
     private ResultActions connexion(String route, String champ, String identifiant, String motDePasse) throws Exception {
         return mvc.perform(post(route).contentType(MediaType.APPLICATION_JSON)
