@@ -10,6 +10,7 @@ import com.transport.gestiontransport.exception.BusinessException;
 import com.transport.gestiontransport.exception.ResourceNotFoundException;
 import com.transport.gestiontransport.mapper.TrajetMapper;
 import com.transport.gestiontransport.dto.request.CreateTrajetRequest;
+import com.transport.gestiontransport.dto.request.TrajetRequest;
 import com.transport.gestiontransport.dto.response.TrajetDto;
 import com.transport.gestiontransport.repository.*;
 import com.transport.gestiontransport.service.impl.TrajetServiceImpl;
@@ -176,6 +177,36 @@ class TrajetServiceTest {
         assertEquals(TypeTrajet.PRIVE, prive.getTypeTrajet());
         verifyNoInteractions(voyageurService);
         verify(trajetRepository, never()).save(any());
+    }
+
+    @Test
+    void refuseLaPublicationParModificationGenerique() {
+        Trajet prive = Trajet.builder()
+                .typeTrajet(TypeTrajet.PRIVE)
+                .statut(StatutTrajet.PLANIFIE)
+                .chauffeur(organisateur)
+                .organisateur(organisateur)
+                .publicationAutomatiqueAutorisee(false)
+                .build();
+        when(trajetRepository.findById(10L)).thenReturn(Optional.of(prive));
+        when(vehiculeService.getById(vehicule.getId())).thenReturn(vehicule);
+        TrajetRequest demande = TrajetRequest.builder()
+                .organisateurId(organisateur.getId())
+                .vehiculeId(vehicule.getId())
+                .date(LocalDate.now().plusDays(1))
+                .heureDebut(LocalTime.of(10, 0))
+                .typeTrajet(TypeTrajet.PRIVE)
+                .build();
+
+        trajetService.updateTrajet(10L, demande);
+        demande.setTypeTrajet(TypeTrajet.PUBLIC);
+
+        BusinessException erreur = assertThrows(BusinessException.class,
+                () -> trajetService.updateTrajet(10L, demande));
+
+        assertTrue(erreur.getMessage().contains("parcours de publication"));
+        assertEquals(TypeTrajet.PRIVE, prive.getTypeTrajet());
+        verify(trajetRepository).save(prive);
     }
 
     @Test
