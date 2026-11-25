@@ -1,5 +1,5 @@
 name: "Documentation"
-description: "Décrire une lacune dans la documentation ou les preuves du TFE."
+description: "Décrire une lacune dans la documentation ou les preuves de livraison."
 body:
   - type: textarea
     id: contexte

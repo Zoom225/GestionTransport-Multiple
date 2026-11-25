@@ -154,9 +154,9 @@ en 18 secondes, **OpenAPI et Swagger UI HTTP 200**. La clé JWT utilisée vient 
 de la configuration IntelliJ corrigée. Instance de vérification arrêtée après contrôle ;
 aucune modification de la base métier.
 
-## Finalisation soutenance du 12 novembre 2026 — PR #18
+## Finalisation démonstration du 12 novembre 2026 — PR #18
 
-Branche : `feature/issue-4-soutenance-finalisation`, depuis `develop` après fusion
+Branche : `commit 83409a8`, depuis `develop` après fusion
 de la PR #17 (`679c0c3`). Issues #4 (restrictions), #6 (administration Angular)
 et #7 (validation/livraison). `master` n'a pas été modifiée directement.
 
@@ -183,12 +183,12 @@ utilisée sur le port 5541. Ces incidents ne sont pas présentés comme des test
 
 ### Résultats locaux finaux
 
-- `mvn -B verify`, URL `jdbc:postgresql://127.0.0.1:5541/issue1_validation_soutenance` :
+- `mvn -B verify`, URL `jdbc:postgresql://127.0.0.1:5541/issue1_validation_<identifiant>` :
   **155 tests, dont 15 PostgreSQL, zéro échec/erreur/ignoré**, build réussi.
 - Frontend : **`npm ci`, `npm run build` et 63 tests `npm test` réussis** avec le
   verrou de correctifs Angular 21.2.26, sans modifier les versions majeures.
 - `node scripts/validation-covoiturage.cjs` : réussi sur
-  `transport_demo_soutenance_20261112192048`, backend 18081 et build Angular 4201.
+  `transport_demo_<identifiant>`, backend 18081 et build Angular 4201.
   JWT global/local/chauffeur et trois catégories, privé/invitations/consentement,
   cinq demandes sans retenue de place, quatre paiements de 25 € (100 €), deux
   paiements concurrents pour la dernière place, annulation/remboursement et réutilisation,
@@ -223,7 +223,7 @@ vulnérabilité de production. L'audit complet laisse 16 alertes modérées sur 
 ne pas les confondre avec zéro risque global, ni exposer un serveur de développement
 sur Internet. Les migrations SQL sont additives ; aucune donnée historique recalculée.
 
-### Trame de soutenance
+### Trame de démonstration
 
 1. Présenter l'architecture Controller → Service → Repository et les DTO/mappers,
    puis Angular (services API, guard, interceptor) et PostgreSQL. Voir le README.

@@ -54,7 +54,7 @@ Angular : les 58 tests existants passent (`npm test`).
 
 ## Suite
 
-## Complément soutenance du 12 novembre 2026 — issue #4
+## Complément démonstration du 12 novembre 2026 — issue #4
 
 Le service Voyageur existant centralise les restrictions ; aucun second moteur n'est
 ajouté. `addRestrictionPourEvenement` verrouille le voyageur et enregistre un fait unique.

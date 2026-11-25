@@ -1,4 +1,4 @@
-# Rapport de non-régression du candidat TFE
+# Rapport de non-régression du candidat de livraison
 
 Contrôles du 24 novembre 2026 sur le candidat intégré `67128d5accbf04ad71ca121dadba209502bcb833`, Windows 11, Java 21.0.9, Maven 3.9.15, Node.js 24.19.0, npm 11.17.0 et PostgreSQL 15.20 isolé. La [CI du candidat](https://github.com/Zoom225/GestionTransport-Multiple/actions/runs/45467082023) a réussi sur ce SHA. Les deux tests de connexion réels sont ajoutés dans le chantier #58.
 

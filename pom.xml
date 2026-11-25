@@ -13,7 +13,7 @@
 	<groupId>com.transport</groupId>
 	<artifactId>gestiontransport-multiple</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>GestionTransport-Multiple</name>
+	<name>TransportMultiple</name>
 	<description>Gestion du transport public et privé</description>
 
 	<properties>

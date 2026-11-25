@@ -12,7 +12,7 @@ Le PDF `Enonce_GestionTransport_Multiple_Covoiturage_MAJ.pdf`, version du
 Le fichier est conservé dans les Téléchargements du demandeur ; aucun exemplaire
 ni extrait intégral n'est publié dans le dépôt.
 
-Les instructions du demandeur précisent la version académique : villes belges,
+Les instructions du demandeur précisent la version de validation : villes belges,
 conducteur réutilisant Voyageur, simulation de paiement, monolithe et interface
 responsive. La décision ultérieure fixe le tarif actuel à 100 € par trajet,
 soit 25 € par personne pour quatre places (issue #4, PR #10).
