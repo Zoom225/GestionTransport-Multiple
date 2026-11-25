@@ -26,15 +26,7 @@
 
 ## Règles métier
 
-Les références RM01 à RM30 sont réservées aux identifiants du cahier des charges officiel. La preuve technique est stockée par fonctionnalité en attendant la correspondance officielle. Le rapport d’audit décrit les limites.
-
-| Fonctionnalité | Code et preuve du candidat | Correspondance RM |
-| --- | --- | --- |
-| Accès et périmètre | `SecurityConfig`, `AdminAuthorizationService`, `AdminAuthorizationServiceTest`. | À confirmer. |
-| Réservations et paiements | `ReservationServiceImpl`, `PaiementServiceImpl`, `PostgresBaselineTest`. | À confirmer. |
-| Règlement et durée de suspension | `VoyageurEligibilityService`, `SuspensionParticipationTest`, `issue-9-suspension-168h.sql`. | À confirmer. |
-| Affichage des sanctions | `voyageur-profile-page.component.ts` et `voyageur-profile-page.component.spec.ts`. | À confirmer. |
-| Migrations du schéma | `scripts/migrations/issue-3-schema-transport.sql`, `TransportSchemaValidationTest`. | À confirmer. |
+Le [référentiel RM01 à RM30 et ses preuves](validation-metier.md) relie chaque règle au code et aux tests disponibles. Il signale les écarts constatés et les décisions métier en attente.
 
 ## Acquis d’apprentissage
 
